@@ -1,0 +1,6 @@
+@GhostTrickBe_HostAddress = http://localhost:5043
+
+GET {{GhostTrickBe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

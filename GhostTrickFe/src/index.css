@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+@import "./styles/variables.css";
+@import "./styles/base.css";
+@import "./styles/components.css";
+@import "./styles/layout.css";
+@import "./styles/pages/home.css";
+@import "./styles/pages/product-listing.css";
+@import "./styles/pages/product-detail.css";
+@import "./styles/pages/cart.css";
+@import "./styles/pages/checkout.css";
+@import "./styles/pages/auth.css";
+@import "./styles/pages/about.css";
+@import "./styles/pages/blog.css";
+@import "./styles/pages/policy.css";
+@import "./styles/pages/profile.css";
+@import "./styles/pages/sale.css";
+@import "./styles/responsive.css";
+
+/* Base and Variables */
+/* Components and Layout (Base) */
+/* Page-specific Styles */
+/* Global Responsive Overrides */

@@ -1,0 +1,102 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: #fcfcfc;
+  color: #000;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 20px;
+    --header-height: 60px;
+  }
+}
+
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* --- Form Validation Styles --- */
+.form-control.is-invalid,
+.gt-form-group input.is-invalid,
+.gt-form-group textarea.is-invalid,
+.gt-form-group select.is-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: #dc3545;
+}

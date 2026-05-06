@@ -1,0 +1,151 @@
+/* --- Auth Pages --- */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+  padding: 50px 15px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: var(--secondary-text);
+  margin-bottom: 30px;
+  font-size: 0.9rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: var(--primary-text);
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.form-link {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.auth-submit {
+  padding: 14px;
+  background: var(--primary-text);
+  color: white;
+  border: none;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  transition: opacity 0.3s;
+}
+
+.auth-submit:hover {
+  opacity: 0.85;
+}
+
+.auth-divider-line {
+  text-align: center;
+  margin: 25px 0;
+  position: relative;
+  color: var(--secondary-text);
+  font-size: 0.85rem;
+}
+
+.auth-divider-line::before,
+.auth-divider-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.auth-divider-line::before {
+  left: 0;
+}
+
+.auth-divider-line::after {
+  right: 0;
+}
+
+.social-login {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-btn {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.social-btn:hover {
+  background: var(--bg-light);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: var(--secondary-text);
+}
+
+.auth-switch a {
+  color: var(--accent-color);
+  font-weight: 600;
+}

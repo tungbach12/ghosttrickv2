@@ -1,0 +1,12 @@
+src/GhostTrick.WebApi/appsettings.json
+src/GhostTrick.WebApi/appsettings.Development.json
+src/GhostTrick.WebApi/bin/Debug/net9.0/appsettings.json
+
+# .NET Ignore
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

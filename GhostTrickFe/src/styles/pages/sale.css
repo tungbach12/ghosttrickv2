@@ -1,0 +1,137 @@
+/* --- Sale Event Page --- */
+.sale-banner {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.sale-banner-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.sale-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  color: white;
+  text-align: center;
+}
+
+.sale-tag {
+  display: inline-block;
+  background: red;
+  color: white;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  border-radius: 2px;
+}
+
+.sale-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.sale-desc {
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto 30px;
+  opacity: 0.9;
+}
+
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.countdown-item {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 70px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.countdown-item .num {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.countdown-item .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.sale-ended {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ff4d4f;
+  background: white;
+  display: inline-block;
+  padding: 10px 30px;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .sale-title {
+    font-size: 1.6rem;
+    margin-bottom: 5px;
+  }
+
+  .sale-desc {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sale-tag {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+  }
+
+  .sale-banner {
+    height: auto;
+  }
+
+  .sale-banner-img {
+    height: auto;
+    aspect-ratio: auto;
+  }
+
+  .countdown {
+    gap: 6px;
+  }
+
+  .countdown-item {
+    min-width: 45px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+
+  .countdown-item .num {
+    font-size: 1rem;
+  }
+
+  .countdown-item .label {
+    font-size: 0.6rem;
+  }
+}

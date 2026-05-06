@@ -1,0 +1,101 @@
+/* --- About Page --- */
+.about-hero {
+  position: relative;
+  height: 350px;
+  overflow: hidden;
+}
+
+.about-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-hero-overlay h1 {
+  color: white;
+  font-size: 2.5rem;
+  letter-spacing: 3px;
+}
+
+.about-content {
+  padding: 50px 0;
+}
+
+.about-section {
+  margin-bottom: 50px;
+}
+
+.about-section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 18px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.about-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: var(--accent-color);
+}
+
+.about-section p {
+  color: var(--secondary-text);
+  line-height: 1.8;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.about-card {
+  background: var(--bg-light);
+  padding: 30px;
+  border-radius: 10px;
+}
+
+.about-card h3 {
+  margin-bottom: 12px;
+}
+
+.about-card p {
+  font-size: 0.9rem;
+}
+
+.about-stats {
+  display: flex;
+  justify-content: space-around;
+  background: var(--primary-text);
+  color: white;
+  padding: 40px;
+  border-radius: 10px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}

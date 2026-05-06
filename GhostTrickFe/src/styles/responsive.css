@@ -1,0 +1,209 @@
+/* --- Global Responsive Overrides --- */
+
+/* Root Font Scaling */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Slightly smaller base for mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+/* --- Container Padding --- */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 15px;
+  }
+}
+
+/* --- Typography Scaling --- */
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem !important;
+    letter-spacing: -1px !important;
+  }
+
+  .hero-title {
+    font-size: 2.2rem !important;
+    letter-spacing: -1px !important;
+    line-height: 1 !important;
+  }
+  
+  .logo {
+    font-size: 1.6rem !important;
+  }
+}
+
+/* --- Header & Navigation --- */
+@media (max-width: 860px) {
+  .header-main {
+    height: 60px !important;
+    padding: 0 15px !important;
+  }
+
+  .header-main .logo {
+    font-size: 1.4rem !important;
+  }
+
+  .nav-menu-mobile .nav-link {
+    padding: 12px 20px !important;
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+  }
+}
+
+/* --- Hero Section --- */
+@media (max-width: 768px) {
+  .hero-overlay {
+    padding: 20px !important;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 80%) !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.7rem !important;
+    padding: 2px 8px !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .hero-btn {
+    padding: 10px 20px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* --- Product Grid & Cards --- */
+@media (max-width: 768px) {
+  .product-grid {
+    gap: 15px 10px !important;
+  }
+
+  .product-card {
+    flex: 0 0 calc(50% - 5px) !important;
+    border-width: 1px !important;
+  }
+
+  .product-info {
+    padding: 10px !important;
+  }
+
+  .product-name {
+    font-size: 0.75rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .product-price {
+    font-size: 0.85rem !important;
+  }
+}
+
+/* --- Vouchers --- */
+@media (max-width: 768px) {
+  .voucher-card {
+    flex: 0 0 88% !important;
+    padding: 12px !important;
+    height: auto !important;
+    min-height: 90px !important;
+  }
+
+  .voucher-code {
+    font-size: 1.1rem !important;
+  }
+
+  .voucher-desc {
+    font-size: 0.65rem !important;
+  }
+
+  .voucher-btn {
+    padding: 8px 12px !important;
+    font-size: 0.65rem !important;
+  }
+}
+
+/* --- Cart & Checkout --- */
+@media (max-width: 768px) {
+  .cart-table thead {
+    display: none; /* Hide headers on mobile */
+  }
+
+  .cart-item {
+    display: flex !important;
+    flex-wrap: wrap;
+    padding: 15px 0 !important;
+    border-bottom: 1px solid #eee;
+    gap: 15px;
+  }
+
+  .cart-item td {
+    display: block;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .cart-item .td-product {
+    width: 100%;
+  }
+
+  .cart-item .td-price, 
+  .cart-item .td-qty, 
+  .cart-item .td-total {
+    width: auto;
+    flex: 1;
+  }
+
+  .cart-summary {
+    margin-top: 20px !important;
+    padding: 20px !important;
+  }
+}
+
+/* --- Footer --- */
+@media (max-width: 768px) {
+  .footer-main {
+    grid-template-columns: 1fr !important;
+    gap: 25px !important;
+    text-align: center;
+  }
+
+  .footer-contact li {
+    justify-content: center;
+  }
+
+  .social-icons {
+    justify-content: center;
+  }
+  
+  .footer-bottom {
+    padding: 20px 0 !important;
+  }
+
+  .bottom-inner {
+    flex-direction: column !important;
+    gap: 10px !important;
+    text-align: center !important;
+  }
+}
+
+/* --- Category Tabs --- */
+@media (max-width: 768px) {
+  .tabs {
+    gap: 15px !important;
+    margin-bottom: 20px !important;
+    overflow-x: auto;
+    justify-content: flex-start !important;
+    padding: 0 15px;
+    scrollbar-width: none;
+  }
+  
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .section-title {
+    white-space: nowrap;
+    padding-bottom: 2px !important;
+  }
+}
