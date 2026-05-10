@@ -12,6 +12,7 @@ namespace GhostTrick.Infrastructure.Persistence
         // Products
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<ProductColor> ProductColors { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
 
@@ -34,14 +35,38 @@ namespace GhostTrick.Infrastructure.Persistence
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<OtpCode> OtpCodes { get; set; }
         
+        // Carts
+        public DbSet<CartItem> CartItems { get; set; }
+        
         // Tracking & History
         public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
         public DbSet<OrderTimeline> OrderTimelines { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<ProductReview> ProductReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
+
+            // ── CartItem ──────────────────────────────────────────────
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(ci => ci.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<CartItem>()
+                .HasOne(ci => ci.Variant)
+                .WithMany()
+                .HasForeignKey(ci => ci.VariantId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // ── Category ──────────────────────────────────────────────
             builder.Entity<Category>()
@@ -59,12 +84,21 @@ namespace GhostTrick.Infrastructure.Persistence
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ── ProductColor ──────────────────────────────────────────
+            builder.Entity<ProductColor>().HasQueryFilter(c => !c.IsDeleted && c.IsActive);
+
             // ── ProductVariant ────────────────────────────────────────
             builder.Entity<ProductVariant>()
                 .HasOne(v => v.Product)
                 .WithMany(p => p.Variants)
                 .HasForeignKey(v => v.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductVariant>()
+                .HasOne(v => v.Color)
+                .WithMany()
+                .HasForeignKey(v => v.ColorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Stock cannot go negative
             builder.Entity<ProductVariant>()
@@ -104,6 +138,8 @@ namespace GhostTrick.Infrastructure.Persistence
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<Order>().HasQueryFilter(o => !o.IsDeleted);
+
             builder.Entity<Order>()
                 .HasOne(o => o.Voucher)
                 .WithMany()
@@ -121,6 +157,13 @@ namespace GhostTrick.Infrastructure.Persistence
             builder.Entity<Order>()
                 .Property(o => o.PaymentStatus)
                 .HasConversion<string>();
+
+            // Indexes for performance
+            builder.Entity<Order>().HasIndex(o => o.CreatedAt);
+            builder.Entity<Order>().HasIndex(o => o.Status);
+            builder.Entity<Order>().HasIndex(o => o.PaymentStatus);
+            builder.Entity<Order>().HasIndex(o => o.TotalAmount);
+            builder.Entity<Order>().HasIndex(o => o.IsDeleted);
 
             // ── OrderTimeline ─────────────────────────────────────────
             builder.Entity<OrderTimeline>()
@@ -205,6 +248,20 @@ namespace GhostTrick.Infrastructure.Persistence
                 .WithMany(u => u.OtpCodes)
                 .HasForeignKey(oc => oc.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // ── ProductReview ─────────────────────────────────────────
+            builder.Entity<ProductReview>()
+                .HasOne(pr => pr.Product)
+                .WithMany()
+                .HasForeignKey(pr => pr.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductReview>()
+                .HasOne(pr => pr.User)
+                .WithMany()
+                .HasForeignKey(pr => pr.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Entity<ProductReview>().HasQueryFilter(pr => !pr.IsDeleted);
         }
     }
 }

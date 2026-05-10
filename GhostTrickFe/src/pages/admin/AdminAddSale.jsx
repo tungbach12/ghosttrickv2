@@ -54,7 +54,7 @@ const AdminAddSale = () => {
   const [productsLoading, setProductsLoading] = useState(false);
   const [allProducts, setAllProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState([]); // Array of { productId, salePrice, flashStock }
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -101,7 +101,14 @@ const AdminAddSale = () => {
             isActive: s.isActive
           });
           setBannerPreview(s.bannerUrl);
-          setSelectedProductIds(s.productIds || []);
+          
+          // Map existing products
+          const existing = (s.products || []).map(p => ({
+            productId: p.id,
+            salePrice: p.price,
+            flashStock: p.flashStock || 10
+          }));
+          setSelectedProducts(existing);
         }
       } catch (error) {
         addToast('Không thể tải dữ liệu', 'error');
@@ -168,20 +175,38 @@ const AdminAddSale = () => {
     }
   };
 
-  const toggleProductSelection = (productId) => {
-    setSelectedProductIds(prev => 
-      prev.includes(productId) 
-        ? prev.filter(pId => pId !== productId) 
-        : [...prev, productId]
-    );
+  const toggleProductSelection = (product) => {
+    setSelectedProducts(prev => {
+      const exists = prev.find(p => p.productId === product.id);
+      if (exists) {
+        return prev.filter(p => p.productId !== product.id);
+      } else {
+        return [...prev, {
+          productId: product.id,
+          salePrice: Math.floor(product.price * 0.7), // Default 30% off
+          flashStock: 10
+        }];
+      }
+    });
+  };
+
+  const updateProductConfig = (productId, field, value) => {
+    setSelectedProducts(prev => prev.map(p => 
+      p.productId === productId ? { ...p, [field]: Number(value) } : p
+    ));
   };
 
   const selectAll = () => {
-    setSelectedProductIds(allProducts.map(p => p.id));
+    const all = allProducts.map(p => ({
+      productId: p.id,
+      salePrice: Math.floor(p.price * 0.7),
+      flashStock: 10
+    }));
+    setSelectedProducts(all);
   };
 
   const deselectAll = () => {
-    setSelectedProductIds([]);
+    setSelectedProducts([]);
   };
 
   const validate = () => {
@@ -201,7 +226,7 @@ const AdminAddSale = () => {
       newErrors.banner = 'Vui lòng tải lên banner cho chương trình';
     }
 
-    if (selectedProductIds.length === 0) {
+    if (selectedProducts.length === 0) {
       addToast('Cảnh báo: Bạn chưa chọn sản phẩm nào cho đợt sale này', 'warning');
     }
 
@@ -243,7 +268,8 @@ const AdminAddSale = () => {
         addToast('Tạo đợt sale thành công', 'success');
       }
 
-      await saleService.assignProducts(saleId, selectedProductIds);
+      // Sync products with prices and stocks
+      await saleService.assignProducts(saleId, selectedProducts);
       navigate('/admin/sales');
     } catch (error) {
       console.error('Error saving sale:', error);
@@ -424,28 +450,70 @@ const AdminAddSale = () => {
                   {productsLoading ? (
                     <div className="loading-state">Đang tải danh sách sản phẩm...</div>
                   ) : filteredProducts.length > 0 ? (
-                    filteredProducts.map(product => (
-                      <div key={product.id} className={`selection-item ${selectedProductIds.includes(product.id) ? 'selected' : ''}`} onClick={() => toggleProductSelection(product.id)}>
-                        <div className="item-img"><img src={product.mainImageUrl} alt="" /></div>
-                        <div className="item-info">
-                          <div className="item-name">{product.name}</div>
-                          <div className="item-meta">
-                            <span>SKU: {product.sku}</span>
-                            <span>•</span>
-                            <span className="price">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}</span>
+                    filteredProducts.map(product => {
+                      const isSelected = selectedProducts.some(p => p.productId === product.id);
+                      return (
+                        <div key={product.id} className={`selection-item ${isSelected ? 'selected' : ''}`} onClick={() => toggleProductSelection(product)}>
+                          <div className="item-img"><img src={product.mainImageUrl} alt="" /></div>
+                          <div className="item-info">
+                            <div className="item-name">{product.name}</div>
+                            <div className="item-meta">
+                              <span>SKU: {product.sku}</span>
+                              <span>•</span>
+                              <span className="price">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}</span>
+                            </div>
                           </div>
+                          <div className="check-box">{isSelected && <Check size={14} />}</div>
                         </div>
-                        <div className="check-box">{selectedProductIds.includes(product.id) && <Check size={14} />}</div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="empty-state">Không tìm thấy sản phẩm phù hợp.</div>
                   )}
                 </div>
               </div>
+              
+              {selectedProducts.length > 0 && (
+                <div className="selected-configs" style={{ marginTop: '32px' }}>
+                  <h4 className="config-title">Cấu hình giá và kho Sale ({selectedProducts.length})</h4>
+                  <div className="config-list">
+                    {selectedProducts.map(sp => {
+                      const product = allProducts.find(p => p.id === sp.productId);
+                      if (!product) return null;
+                      return (
+                        <div key={sp.productId} className="config-item">
+                          <div className="config-product-info">
+                            <img src={product.mainImageUrl} alt="" />
+                            <span>{product.name}</span>
+                          </div>
+                          <div className="config-inputs">
+                            <div className="config-field">
+                              <label>Giá Sale (VND)</label>
+                              <input 
+                                type="number" 
+                                value={sp.salePrice} 
+                                onChange={(e) => updateProductConfig(sp.productId, 'salePrice', e.target.value)} 
+                              />
+                            </div>
+                            <div className="config-field">
+                              <label>Số lượng Sale</label>
+                              <input 
+                                type="number" 
+                                value={sp.flashStock} 
+                                onChange={(e) => updateProductConfig(sp.productId, 'flashStock', e.target.value)} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="selection-stats">
                 <Package size={16} />
-                <span>Đã chọn <strong>{selectedProductIds.length}</strong> sản phẩm áp dụng giảm giá.</span>
+                <span>Đã chọn <strong>{selectedProducts.length}</strong> sản phẩm áp dụng giảm giá.</span>
               </div>
             </div>
           </form>
@@ -455,7 +523,7 @@ const AdminAddSale = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .admin-page-container { padding: 32px; max-width: 1200px; margin: 0 auto; font-family: 'Inter', sans-serif; }
+        .admin-page-container { padding: 32px; max-width: 1200px; margin: 0 auto; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         .admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
         .admin-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
         .admin-subtitle { color: #64748b; margin: 4px 0 0 0; }
@@ -512,6 +580,49 @@ const AdminAddSale = () => {
         .check-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #e2e8f0; margin-left: auto; display: flex; align-items: center; justify-content: center; }
         .selected .check-box { background: #3b82f6; border-color: #3b82f6; color: white; }
         .selection-stats { margin-top: 16px; padding: 12px 20px; background: #f0f9ff; border-radius: 12px; color: #0369a1; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        
+        .config-title { font-size: 1rem; font-weight: 800; color: #1e293b; margin-bottom: 16px; border-left: 4px solid #3b82f6; padding-left: 12px; }
+        .config-list { display: flex; flex-direction: column; gap: 12px; }
+        .config-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; gap: 24px; }
+        .config-product-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .config-product-info img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+        .config-product-info span { font-weight: 700; color: #334155; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .config-inputs { display: flex; gap: 16px; }
+        .config-field { display: flex; flex-direction: column; gap: 4px; }
+        .config-field label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        .config-field input { padding: 8px 12px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; width: 120px !important; font-size: 0.9rem !important; }
+
+        @media (max-width: 768px) {
+          .admin-page-container { padding: 16px; }
+          .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+          .admin-title { font-size: 1.5rem; }
+          .admin-actions { width: 100%; flex-direction: column; gap: 8px; }
+          .gt-btn-cancel, .gt-btn-submit { width: 100%; }
+          .admin-card { padding: 20px; border-radius: 16px; }
+          
+          .gt-form-grid { grid-template-columns: 1fr; gap: 16px; }
+          .gt-form-group.span-2 { grid-column: span 1; }
+          
+          .cropper-container { height: 400px; }
+          .aspect-ratio-selector { overflow-x: auto; white-space: nowrap; padding: 8px; }
+          .cropper-controls { flex-direction: column; gap: 16px; }
+          .zoom-control { width: 100%; }
+          .cropper-actions { width: 100%; }
+          .btn-crop-cancel, .btn-crop-save { flex: 1; }
+          
+          .banner-overlay-actions { bottom: 10px; right: 10px; flex-direction: column; gap: 8px; }
+          .change-img-btn, .remove-img-btn { width: 100%; justify-content: center; }
+          
+          .products-selection-grid { grid-template-columns: 1fr; }
+          .selection-item { padding: 10px; }
+          .item-img img { width: 48px; height: 48px; }
+          .item-name { font-size: 0.85rem; }
+          
+          .config-item { flex-direction: column; align-items: flex-start; gap: 16px; }
+          .config-product-info { width: 100%; }
+          .config-inputs { width: 100%; flex-direction: column; gap: 12px; }
+          .config-field input { width: 100% !important; }
+        }
         `
       }} />
     </div>

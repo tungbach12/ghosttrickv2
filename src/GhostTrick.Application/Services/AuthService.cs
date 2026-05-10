@@ -43,7 +43,7 @@ namespace GhostTrick.Application.Services
                 UserName = dto.Email,
                 Email = dto.Email,
                 FullName = dto.FullName,
-                Phone = dto.Phone,
+                PhoneNumber = dto.Phone,
                 EmailConfirmed = false // Require OTP
             };
 
@@ -69,6 +69,9 @@ namespace GhostTrick.Application.Services
             if (!isValid)
                 throw new UnauthorizedAccessException("Email hoặc mật khẩu không đúng.");
 
+            if (await _userManager.IsLockedOutAsync(user))
+                throw new UnauthorizedAccessException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+
             return await BuildAuthResponseAsync(user);
         }
 
@@ -80,6 +83,9 @@ namespace GhostTrick.Application.Services
 
             if (stored == null || stored.IsRevoked || stored.ExpiresAt < DateTime.UtcNow)
                 throw new UnauthorizedAccessException("Refresh token không hợp lệ hoặc đã hết hạn.");
+
+            if (await _userManager.IsLockedOutAsync(stored.User!))
+                throw new UnauthorizedAccessException("Tài khoản đã bị khóa.");
 
             // Rotate: revoke old, issue new
             stored.IsRevoked = true;
@@ -116,7 +122,7 @@ namespace GhostTrick.Application.Services
                     Id = user.Id,
                     FullName = user.FullName,
                     Email = user.Email!,
-                    Phone = user.Phone,
+                    Phone = user.PhoneNumber,
                     AvatarUrl = user.AvatarUrl,
                     Role = roles.FirstOrDefault()
                 }
@@ -220,6 +226,31 @@ namespace GhostTrick.Application.Services
             return true;
         }
 
+        public async Task ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email)
+                ?? throw new InvalidOperationException("Người dùng không tồn tại.");
+
+            var otpEntity = await _context.OtpCodes
+                .Where(o => o.UserId == user.Id && o.Code == dto.Code && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(o => o.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (otpEntity == null)
+                throw new InvalidOperationException("Mã OTP không hợp lệ hoặc đã hết hạn.");
+
+            // Mark OTP as used
+            otpEntity.IsUsed = true;
+            await _context.SaveChangesAsync();
+
+            // Reset password
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+
+            if (!result.Succeeded)
+                throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
         public async Task<AuthResponseDto> GoogleLoginAsync(string idToken)
         {
             try
@@ -246,7 +277,14 @@ namespace GhostTrick.Application.Services
                     await _userManager.AddToRoleAsync(user, "Customer");
                 }
 
+                if (await _userManager.IsLockedOutAsync(user))
+                    throw new UnauthorizedAccessException("Tài khoản của bạn đã bị khóa.");
+
                 return await BuildAuthResponseAsync(user);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
             }
             catch (Exception)
             {

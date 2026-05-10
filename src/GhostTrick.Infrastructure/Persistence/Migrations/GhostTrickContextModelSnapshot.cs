@@ -74,10 +74,6 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Phone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -107,6 +103,42 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("GhostTrick.Domain.Entities.CartItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("VariantId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VariantId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("GhostTrick.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -114,6 +146,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -131,12 +166,50 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Slug")
                         .IsUnique();
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("GhostTrick.Domain.Entities.Feedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.HomeBanner", b =>
@@ -172,6 +245,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -242,6 +318,12 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShippingAddress")
@@ -253,7 +335,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -269,6 +351,16 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("PaymentStatus");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TotalAmount");
 
                     b.HasIndex("UserId");
 
@@ -293,9 +385,6 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
@@ -391,6 +480,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -423,6 +515,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ActualSalesCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -447,6 +542,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<string>("MainImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ManualSalesCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -462,9 +560,6 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("SalesCount")
-                        .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -484,6 +579,41 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("GhostTrick.Domain.Entities.ProductColor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HexCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProductColors");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductImage", b =>
@@ -514,6 +644,68 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.ToTable("ProductImages");
                 });
 
+            modelBuilder.Entity("GhostTrick.Domain.Entities.ProductReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFake")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerifiedPurchase")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserAvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProductReviews");
+                });
+
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductVariant", b =>
                 {
                     b.Property<int>("Id")
@@ -522,16 +714,19 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Color")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("ColorId")
+                        .HasColumnType("int");
 
                     b.Property<int>("LowStockThreshold")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Size")
                         .IsRequired()
@@ -542,6 +737,8 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ColorId");
 
                     b.HasIndex("ProductId");
 
@@ -635,6 +832,20 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int>("FlashStock")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SoldCount")
+                        .HasColumnType("int");
+
                     b.HasKey("SaleEventId", "ProductId");
 
                     b.HasIndex("ProductId");
@@ -680,10 +891,16 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasMaxLength(300)
@@ -714,13 +931,18 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("MinOrderAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UsageLimit")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
-                    b.Property<int>("UsedCount")
+                    b.Property<int>("UsageLimit")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -896,6 +1118,33 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("GhostTrick.Domain.Entities.CartItem", b =>
+                {
+                    b.HasOne("GhostTrick.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GhostTrick.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("CartItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GhostTrick.Domain.Entities.ProductVariant", "Variant")
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+
+                    b.Navigation("Variant");
+                });
+
             modelBuilder.Entity("GhostTrick.Domain.Entities.InventoryTransaction", b =>
                 {
                     b.HasOne("GhostTrick.Domain.Entities.ProductVariant", "Variant")
@@ -996,13 +1245,45 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("GhostTrick.Domain.Entities.ProductReview", b =>
+                {
+                    b.HasOne("GhostTrick.Domain.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("GhostTrick.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GhostTrick.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductVariant", b =>
                 {
+                    b.HasOne("GhostTrick.Domain.Entities.ProductColor", "Color")
+                        .WithMany()
+                        .HasForeignKey("ColorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("GhostTrick.Domain.Entities.Product", "Product")
                         .WithMany("Variants")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Color");
 
                     b.Navigation("Product");
                 });
@@ -1136,6 +1417,8 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("CartItems");
+
                     b.Navigation("Orders");
 
                     b.Navigation("OtpCodes");

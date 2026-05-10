@@ -12,6 +12,7 @@ namespace GhostTrick.Application.Interfaces
         // OTP & Google
         Task SendOtpAsync(string email);
         Task<bool> VerifyOtpAsync(string email, string code);
+        Task ResetPasswordAsync(ResetPasswordDto dto);
         Task<AuthResponseDto> GoogleLoginAsync(string idToken);
     }
 }

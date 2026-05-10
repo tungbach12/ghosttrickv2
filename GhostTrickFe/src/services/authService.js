@@ -42,11 +42,37 @@ export const authService = {
   },
 
   googleLogin: async (idToken) => {
-    const response = await api.post('/auth/google-login', { idToken });
-    if (response.data.accessToken) {
-      localStorage.setItem('gt_access_token', response.data.accessToken);
-      localStorage.setItem('gt_refresh_token', response.data.refreshToken);
+    try {
+      const response = await api.post('/auth/google-login', { idToken });
+      if (response.data.accessToken) {
+        localStorage.setItem('gt_access_token', response.data.accessToken);
+        localStorage.setItem('gt_refresh_token', response.data.refreshToken);
+      }
+      return response.data;
+    } catch (error) {
+      throw error;
     }
+  },
+
+  // Cart API
+  getCart: async () => {
+    const response = await api.get('/cart');
+    return response.data;
+  },
+
+  addToServerCart: async (productId, variantId, quantity) => {
+    const response = await api.post('/cart', { productId, variantId, quantity });
+    return response.data;
+  },
+
+  removeFromServerCart: async (variantId) => {
+    const response = await api.delete(`/cart/${variantId}`);
+    return response.data;
+  },
+
+  syncCartToServer: async (guestCart) => {
+    // guestCart: [{ productId, variantId, quantity }, ...]
+    const response = await api.post('/cart/sync', guestCart);
     return response.data;
   }
 };

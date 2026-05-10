@@ -7,7 +7,7 @@ export const voucherService = {
   },
 
   getPublicVouchers: async () => {
-    const response = await api.get('/vouchers');
+    const response = await api.get('/vouchers/public');
     return response.data;
   },
 

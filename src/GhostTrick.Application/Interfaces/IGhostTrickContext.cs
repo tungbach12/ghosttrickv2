@@ -9,8 +9,10 @@ namespace GhostTrick.Application.Interfaces
     {
         DbSet<Product> Products { get; }
         DbSet<Category> Categories { get; }
-        DbSet<ProductVariant> ProductVariants { get; }
-        DbSet<ProductImage> ProductImages { get; }
+        DbSet<ProductColor> ProductColors { get; }
+        DbSet<ProductVariant> ProductVariants { get; set; }
+        DbSet<ProductImage> ProductImages { get; set; }
+        DbSet<CartItem> CartItems { get; set; }
         DbSet<Order> Orders { get; }
         DbSet<OrderItem> OrderItems { get; }
         DbSet<SaleEvent> SaleEvents { get; }
@@ -18,11 +20,15 @@ namespace GhostTrick.Application.Interfaces
         DbSet<HomeBanner> HomeBanners { get; }
         DbSet<Voucher> Vouchers { get; }
         DbSet<VoucherUsage> VoucherUsages { get; }
+        DbSet<UserVoucher> UserVouchers { get; }
         DbSet<Policy> Policies { get; }
         DbSet<RefreshToken> RefreshTokens { get; }
         DbSet<OtpCode> OtpCodes { get; }
         DbSet<InventoryTransaction> InventoryTransactions { get; }
         DbSet<OrderTimeline> OrderTimelines { get; }
+        DbSet<Feedback> Feedbacks { get; }
+        DbSet<ProductReview> ProductReviews { get; }
+        DbSet<ApplicationUser> Users { get; }
 
         DatabaseFacade Database { get; }
 

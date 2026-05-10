@@ -84,10 +84,31 @@ namespace GhostTrick.WebApi.Controllers
         }
 
         [HttpPost("send-otp")]
-        public async Task<IActionResult> SendOtp([FromBody] OtpRequestDto dto)
+        public async Task<IActionResult> SendOtp([FromBody] ForgotPasswordDto dto)
         {
             await _auth.SendOtpAsync(dto.Email);
             return Ok(new { message = "Mã OTP đã được gửi." });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            await _auth.SendOtpAsync(dto.Email);
+            return Ok(new { message = "Mã OTP đã được gửi tới email của bạn." });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            try
+            {
+                await _auth.ResetPasswordAsync(dto);
+                return Ok(new { message = "Mật khẩu đã được thay đổi thành công." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("verify-otp")]

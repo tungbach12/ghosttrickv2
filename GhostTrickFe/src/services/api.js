@@ -1,12 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5043/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5043/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    // Let axios handle content-type automatically
-  },
 });
 
 // Request Interceptor: Attach JWT
@@ -27,8 +24,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip refresh logic for login/refresh endpoints
+    const isAuthRequest = originalRequest.url?.includes('/auth/login') || 
+                         originalRequest.url?.includes('/auth/google-login') ||
+                         originalRequest.url?.includes('/auth/refresh');
+
     // If error is 401 and we haven't tried refreshing yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
 
       try {

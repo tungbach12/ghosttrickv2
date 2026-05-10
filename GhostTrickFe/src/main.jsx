@@ -1,21 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './styles/base/global.css'
 import App from './App.jsx'
 import { GlobalProvider } from './context/GlobalContext'
 import { ToastProvider } from './context/ToastContext'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
-const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "355373139751-ie4gr5mdsi08fed9bmb7uff7bs6i264g.apps.googleusercontent.com";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <GlobalProvider>
-        <ToastProvider>
+      <ToastProvider>
+        <GlobalProvider>
           <App />
-        </ToastProvider>
-      </GlobalProvider>
+        </GlobalProvider>
+      </ToastProvider>
     </GoogleOAuthProvider>
   </StrictMode>,
 )

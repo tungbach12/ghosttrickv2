@@ -199,17 +199,11 @@
 
 .breadcrumb a {
   color: #666;
+  text-decoration: none;
 }
 
-.breadcrumb a:first-child span {
-  background: #000;
-  color: #fff;
-  padding: 2px 8px;
-  margin-right: 4px;
-}
-
-.breadcrumb a:first-child {
-  font-style: normal;
+.breadcrumb a:hover {
+  color: #000;
 }
 
 .breadcrumb-current {
@@ -267,21 +261,218 @@
 .account-menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 18px 24px;
+  gap: 16px;
+  padding: 20px 24px;
   color: #000;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   border-bottom: 2px solid #000;
   transition: all 0.2s;
   width: 100%;
   background: transparent;
-  border-left: none;
-  border-right: none;
-  border-top: none;
   cursor: pointer;
   text-align: left;
+}
+
+/* Voucher Wallet Styles */
+.voucher-wallet-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.sub-section-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.voucher-grid {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 10px 0 30px;
+}
+
+@media (min-width: 768px) {
+  .voucher-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.voucher-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.voucher-card-ui {
+  background: #000;
+  border: 1px solid #333;
+  padding: 24px;
+  box-shadow: 6px 6px 0px #eee;
+  position: relative;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  min-height: 110px;
+}
+
+/* Ticket notches (dots) at 4 corners */
+/* No notches needed for modern style */
+.voucher-card-ui::before, .voucher-card-ui::after,
+.voucher-card-ui .notch-tl, .voucher-card-ui .notch-bl {
+  display: none !important;
+}
+
+.voucher-card-ui:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px #000;
+  border-color: #fff;
+}
+
+.voucher-card-ui.public {
+  background: #111;
+  border: 2px dashed #444;
+  box-shadow: 4px 4px 0px #000;
+}
+
+.voucher-card-ui.public:hover {
+  border-color: #fff;
+  box-shadow: 8px 8px 0px #000;
+}
+
+.v-card-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 20px;
+  border-right: 1px dashed #333;
+}
+
+.v-card-code {
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.v-card-body {
+  display: none; /* Merged into v-card-top for cleaner look */
+}
+
+.v-card-desc {
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.v-card-min {
+  font-size: 0.65rem;
+  color: #666;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.v-card-validity {
+  font-size: 0.6rem;
+  color: #888;
+  font-weight: 500;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+.v-card-footer {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.v-status.saved {
+  color: #10b981;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.v-status.used {
+  color: #94a3b8;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.v-status.expired {
+  color: #ef4444;
+  font-weight: 900;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.voucher-card-ui.used-v {
+  opacity: 0.5;
+  background: #1a1a1a;
+  border-style: dashed;
+  box-shadow: 4px 4px 0px #ddd;
+}
+
+.voucher-card-ui.used-v:hover {
+  transform: none;
+  box-shadow: 4px 4px 0px #ddd;
+}
+
+.save-v-btn {
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 10px 16px;
+  font-weight: 900;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.public .save-v-btn {
+  background: #fff;
+  color: #000;
+  border: none;
+}
+
+.public .save-v-btn:hover {
+  background: #eee;
+  transform: scale(1.05);
+}
+
+.no-orders, .empty-wallet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 80px 40px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 800;
+  text-transform: uppercase;
+  border: 3px dashed #e2e8f0;
+  background: #f8fafc;
+}
+
+.no-orders svg, .empty-wallet svg {
+  color: #000;
+  margin-bottom: 10px;
 }
 
 .account-menu-item:last-child {
@@ -291,13 +482,23 @@
 .account-menu-item:hover {
   background: #000;
   color: #fff;
-  padding-left: 35px;
 }
 
 .account-menu-item.active {
-  background: #f0f0f0;
+  background: #eeeeee;
   color: #000;
-  border-left: 10px solid #000;
+  border-left: none;
+  position: relative;
+}
+
+.account-menu-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: #000;
 }
 
 .account-menu-item.logout {

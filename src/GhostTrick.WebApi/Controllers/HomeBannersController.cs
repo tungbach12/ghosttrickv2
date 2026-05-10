@@ -1,120 +1,64 @@
-using GhostTrick.Application.Interfaces;
-using GhostTrick.Domain.Entities;
-using GhostTrick.Infrastructure.Persistence;
 using GhostTrick.Application.DTOs;
-using GhostTrick.Domain.Entities;
 using GhostTrick.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GhostTrick.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/home-banners")]
     [ApiController]
     public class HomeBannersController : ControllerBase
     {
-        private readonly GhostTrickContext _context;
-        private readonly IPhotoService _photoService;
+        private readonly IMarketingService _marketingService;
 
-        public HomeBannersController(GhostTrickContext context, IPhotoService photoService)
+        public HomeBannersController(IMarketingService marketingService)
         {
-            _context = context;
-            _photoService = photoService;
+            _marketingService = marketingService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetActiveBanners()
+        public async Task<IActionResult> GetBanners()
         {
-            var banners = await _context.HomeBanners
-                .Where(b => !b.IsDeleted && b.IsActive)
-                .OrderBy(b => b.DisplayOrder)
-                .Select(b => new {
-                    b.Id,
-                    b.Title,
-                    b.Subtitle,
-                    b.LinkUrl,
-                    b.ImageUrl
-                })
-                .ToListAsync();
-            return Ok(banners);
+            var result = await _marketingService.GetBannersAsync();
+            return Ok(result);
         }
 
         [HttpGet("admin")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAdminBanners()
+        public async Task<IActionResult> GetBannersAdmin()
         {
-            var banners = await _context.HomeBanners
-                .Where(b => !b.IsDeleted)
-                .OrderBy(b => b.DisplayOrder)
-                .ToListAsync();
-            return Ok(banners);
+            var result = await _marketingService.GetBannersAsync();
+            return Ok(result);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateBanner([FromForm] HomeBannerDto dto)
+        public async Task<IActionResult> Create([FromForm] HomeBannerDto dto)
         {
-            if (dto.ImageFile == null)
-                return BadRequest("Image file is required.");
-
-            var uploadResult = await _photoService.AddPhotoAsync(dto.ImageFile);
-            if (uploadResult.Error != null)
-                return BadRequest(uploadResult.Error);
-
-            var banner = new HomeBanner
-            {
-                Title = dto.Title,
-                Subtitle = dto.Subtitle,
-                LinkUrl = dto.LinkUrl,
-                DisplayOrder = dto.DisplayOrder,
-                IsActive = dto.IsActive,
-                ImageUrl = uploadResult.Url
-            };
-
-            _context.HomeBanners.Add(banner);
-            await _context.SaveChangesAsync();
-
-            return Ok(banner);
+            var result = await _marketingService.CreateBannerAsync(dto);
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateBanner(int id, [FromForm] HomeBannerDto dto)
+        public async Task<IActionResult> Update(int id, [FromForm] HomeBannerDto dto)
         {
-            var banner = await _context.HomeBanners.FindAsync(id);
-            if (banner == null || banner.IsDeleted)
-                return NotFound();
-
-            banner.Title = dto.Title;
-            banner.Subtitle = dto.Subtitle;
-            banner.LinkUrl = dto.LinkUrl;
-            banner.DisplayOrder = dto.DisplayOrder;
-            banner.IsActive = dto.IsActive;
-
-            if (dto.ImageFile != null)
+            try
             {
-                var uploadResult = await _photoService.AddPhotoAsync(dto.ImageFile);
-                if (uploadResult.Error != null)
-                    return BadRequest(uploadResult.Error);
-
-                banner.ImageUrl = uploadResult.Url;
+                var result = await _marketingService.UpdateBannerAsync(id, dto);
+                return Ok(result);
             }
-
-            await _context.SaveChangesAsync();
-            return Ok(banner);
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteBanner(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var banner = await _context.HomeBanners.FindAsync(id);
-            if (banner == null)
-                return NotFound();
-
-            banner.IsDeleted = true;
-            await _context.SaveChangesAsync();
+            await _marketingService.DeleteBannerAsync(id);
             return NoContent();
         }
     }

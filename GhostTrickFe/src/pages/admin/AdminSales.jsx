@@ -91,110 +91,181 @@ const AdminSales = () => {
       </div>
 
       <div className="admin-table-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Tên chương trình</th>
-              <th>Thời gian</th>
-              <th style={{ textAlign: 'center' }}>Trạng thái</th>
-              <th style={{ textAlign: 'right' }}>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="desktop-only">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '100px 0' }}>
-                  <div className="loader"></div>
-                  <p style={{ marginTop: '16px', color: '#64748b' }}>Đang tải dữ liệu...</p>
-                </td>
+                <th>Tên chương trình</th>
+                <th>Thời gian</th>
+                <th style={{ textAlign: 'center' }}>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Hành động</th>
               </tr>
-            ) : sales.length > 0 ? (
-              sales.map((sale) => (
-                <tr key={sale.id} style={{
-                  background: sale.isActive ? '#f0f9ff' : 'transparent',
-                  borderLeft: sale.isActive ? '4px solid #3b82f6' : 'none'
-                }}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {sale.bannerUrl ? (
-                        <div style={{ 
-                          width: '80px', height: '45px', borderRadius: '8px', 
-                          overflow: 'hidden', border: '1px solid #e2e8f0'
-                        }}>
-                          <img 
-                            src={sale.bannerUrl} 
-                            alt="" 
-                            style={{ 
-                              width: '100%', height: '100%', objectFit: 'cover'
-                            }} 
-                          />
-                        </div>
-                      ) : (
-                        <div style={{ 
-                          width: '80px', height: '45px', borderRadius: '8px', 
-                          background: '#f1f5f9', display: 'flex', alignItems: 'center', 
-                          justifyContent: 'center', color: '#94a3b8' 
-                        }}>
-                          <ImageIcon size={20} />
-                        </div>
-                      )}
-                      <div>
-                        <div style={{ fontWeight: '700', color: '#1e293b' }}>{sale.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>slug: {sale.slug}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ fontSize: '0.85rem' }}>
-                      <div>Bắt đầu: <span style={{ fontWeight: '600' }}>{new Date(sale.startTime).toLocaleString('vi-VN')}</span></div>
-                      <div>Kết thúc: <span style={{ fontWeight: '600' }}>{new Date(sale.endTime).toLocaleString('vi-VN')}</span></div>
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      {!sale.isActive ? (
-                        <span className="status-badge status-info" style={{ background: '#f1f5f9', color: '#64748b', padding: '4px 12px', borderRadius: '20px' }}>TẠM DỪNG</span>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span className="status-badge status-success" style={{ padding: '4px 12px', borderRadius: '20px' }}>ĐANG CHẠY</span>
-                          <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>
-                            {getStatusBadge(sale.startTime, sale.endTime)}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      {!sale.isActive && (
-                        <button onClick={() => handleActivate(sale.id)} className="action-btn" style={{ color: '#3b82f6', background: '#eff6ff' }} title="Kích hoạt">
-                          <Play size={16} fill="currentColor" />
-                        </button>
-                      )}
-                      <button onClick={() => navigate(`/admin/sales/edit/${sale.id}`)} className="action-btn">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(sale.id)} className="action-btn delete">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '100px 0' }}>
+                    <div className="loader"></div>
+                    <p style={{ marginTop: '16px', color: '#64748b' }}>Đang tải dữ liệu...</p>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-                  Chưa có đợt sale nào được tạo.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : sales.length > 0 ? (
+                sales.map((sale) => (
+                  <tr key={sale.id} style={{
+                    background: sale.isActive ? '#f0f9ff' : 'transparent',
+                    borderLeft: sale.isActive ? '4px solid #3b82f6' : 'none'
+                  }}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {sale.bannerUrl ? (
+                          <div style={{ 
+                            width: '80px', height: '45px', borderRadius: '8px', 
+                            overflow: 'hidden', border: '1px solid #e2e8f0'
+                          }}>
+                            <img 
+                              src={sale.bannerUrl} 
+                              alt="" 
+                              style={{ 
+                                width: '100%', height: '100%', objectFit: 'cover'
+                              }} 
+                            />
+                          </div>
+                        ) : (
+                          <div style={{ 
+                            width: '80px', height: '45px', borderRadius: '8px', 
+                            background: '#f1f5f9', display: 'flex', alignItems: 'center', 
+                            justifyContent: 'center', color: '#94a3b8' 
+                          }}>
+                            <ImageIcon size={20} />
+                          </div>
+                        )}
+                        <div>
+                          <div style={{ fontWeight: '700', color: '#1e293b' }}>{sale.name}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>slug: {sale.slug}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem' }}>
+                        <div>Bắt đầu: <span style={{ fontWeight: '600' }}>{new Date(sale.startTime).toLocaleString('vi-VN')}</span></div>
+                        <div>Kết thúc: <span style={{ fontWeight: '600' }}>{new Date(sale.endTime).toLocaleString('vi-VN')}</span></div>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        {!sale.isActive ? (
+                          <span className="status-badge status-info" style={{ background: '#f1f5f9', color: '#64748b', padding: '4px 12px', borderRadius: '20px' }}>TẠM DỪNG</span>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <span className="status-badge status-success" style={{ padding: '4px 12px', borderRadius: '20px' }}>ĐANG CHẠY</span>
+                            <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>
+                              {getStatusBadge(sale.startTime, sale.endTime)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        {!sale.isActive && (
+                          <button onClick={() => handleActivate(sale.id)} className="action-btn" style={{ color: '#3b82f6', background: '#eff6ff' }} title="Kích hoạt">
+                            <Play size={16} fill="currentColor" />
+                          </button>
+                        )}
+                        <button onClick={() => navigate(`/admin/sales/edit/${sale.id}`)} className="action-btn">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(sale.id)} className="action-btn delete">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
+                    Chưa có đợt sale nào được tạo.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mobile-sale-list mobile-only">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}><div className="loader"></div></div>
+          ) : sales.length > 0 ? (
+            sales.map((sale) => (
+              <div key={sale.id} className={`sale-mobile-card ${sale.isActive ? 'active' : ''}`}>
+                <div className="sale-m-banner">
+                  {sale.bannerUrl ? <img src={sale.bannerUrl} alt="" /> : <div className="no-img"><ImageIcon size={24} /></div>}
+                  <div className="sale-m-badge">
+                    {sale.isActive ? <span className="m-badge success">ĐANG CHẠY</span> : <span className="m-badge info">TẠM DỪNG</span>}
+                  </div>
+                </div>
+                <div className="sale-m-info">
+                  <h3 className="sale-m-name">{sale.name}</h3>
+                  <div className="sale-m-dates">
+                    <div className="date-item">
+                      <Calendar size={12} />
+                      <span>{new Date(sale.startTime).toLocaleDateString('vi-VN')} - {new Date(sale.endTime).toLocaleDateString('vi-VN')}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="sale-m-actions">
+                  {!sale.isActive && (
+                    <button onClick={() => handleActivate(sale.id)} className="sale-m-btn activate">
+                      <Play size={16} fill="currentColor" /> Kích hoạt
+                    </button>
+                  )}
+                  <button onClick={() => navigate(`/admin/sales/edit/${sale.id}`)} className="sale-m-btn edit">Sửa</button>
+                  <button onClick={() => handleDelete(sale.id)} className="sale-m-btn delete">Xóa</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Chưa có đợt sale nào.</div>
+          )}
+        </div>
       </div>
 
       <style dangerouslySetInnerHTML={{
         __html: `
-        .admin-container { padding: 32px; font-family: 'Inter', sans-serif; }
+        .desktop-only { display: block; }
+        .mobile-only { display: none; }
+
+        @media (max-width: 768px) {
+          .admin-container { padding: 16px; }
+          .admin-header-flex { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+          .admin-btn-primary { width: 100%; justify-content: center; }
+          
+          .desktop-only { display: none; }
+          .mobile-only { display: block; }
+          
+          .sale-mobile-card { background: white; border-radius: 16px; overflow: hidden; margin-bottom: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+          .sale-mobile-card.active { border-color: #3b82f6; }
+          .sale-m-banner { height: 120px; position: relative; background: #f8fafc; }
+          .sale-m-banner img { width: 100%; height: 100%; object-fit: cover; }
+          .sale-m-banner .no-img { height: 100%; display: flex; align-items: center; justify-content: center; color: #cbd5e1; }
+          .sale-m-badge { position: absolute; top: 12px; right: 12px; }
+          .m-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; }
+          .m-badge.success { background: #dcfce7; color: #15803d; }
+          .m-badge.info { background: #f1f5f9; color: #64748b; }
+          
+          .sale-m-info { padding: 16px; }
+          .sale-m-name { font-size: 1rem; font-weight: 800; color: #1e293b; margin: 0 0 8px 0; }
+          .sale-m-dates { color: #64748b; font-size: 0.75rem; font-weight: 600; }
+          .date-item { display: flex; align-items: center; gap: 6px; }
+          
+          .sale-m-actions { display: flex; gap: 8px; padding: 12px 16px; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+          .sale-m-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+          .sale-m-btn.activate { background: #eff6ff; color: #3b82f6; }
+          .sale-m-btn.edit { background: #f1f5f9; color: #475569; }
+          .sale-m-btn.delete { background: #fee2e2; color: #ef4444; }
+        }
+        .admin-container { padding: 32px; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         .admin-header-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
         .admin-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
         .admin-subtitle { color: #64748b; margin: 4px 0 0 0; }

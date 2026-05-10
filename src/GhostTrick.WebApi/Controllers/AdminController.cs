@@ -1,9 +1,7 @@
+using GhostTrick.Application.DTOs;
 using GhostTrick.Application.Interfaces;
-using GhostTrick.Domain.Entities;
-using GhostTrick.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GhostTrick.WebApi.Controllers
 {
@@ -12,42 +10,52 @@ namespace GhostTrick.WebApi.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-        private readonly GhostTrickContext _context;
+        private readonly IAdminService _adminService;
+        private readonly IUserService _userService;
 
-        public AdminController(GhostTrickContext context)
+        public AdminController(IAdminService adminService, IUserService userService)
         {
-            _context = context;
+            _adminService = adminService;
+            _userService = userService;
         }
 
         [HttpGet("stats")]
-        public async Task<IActionResult> GetDashboardStats()
+        public async Task<IActionResult> GetStats([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
         {
-            var totalOrders = await _context.Orders.CountAsync();
-            var totalRevenue = await _context.Orders
-                .Where(o => o.Status == OrderStatus.Delivered || o.Status == OrderStatus.Confirmed)
-                .SumAsync(o => o.TotalAmount);
-            
-            var totalProducts = await _context.Products.CountAsync();
-            var lowStockCount = await _context.ProductVariants
-                .Where(v => v.Stock <= v.LowStockThreshold)
-                .CountAsync();
-                
-            var totalCustomers = await _context.Users.CountAsync() - 1; 
+            var stats = await _adminService.GetDashboardStatsAsync(startDate, endDate);
+            return Ok(stats);
+        }
 
-            var orderStats = await _context.Orders
-                .GroupBy(o => o.Status)
-                .Select(g => new { Status = g.Key.ToString(), Count = g.Count() })
-                .ToListAsync();
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null)
+        {
+            var result = await _userService.GetUsersAsync(page, pageSize, q);
+            return Ok(result);
+        }
 
-            return Ok(new
+        [HttpPost("users/{id}/toggle-lock")]
+        public async Task<IActionResult> ToggleUserLock(string id)
+        {
+            var isLocked = await _userService.ToggleUserLockAsync(id);
+            return Ok(new { isLocked });
+        }
+
+        [HttpPut("users/{id}")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserAdminDto dto)
+        {
+            try
             {
-                TotalOrders = totalOrders,
-                TotalRevenue = totalRevenue,
-                TotalProducts = totalProducts,
-                LowStockCount = lowStockCount,
-                TotalCustomers = totalCustomers,
-                OrderStats = orderStats
-            });
+                await _userService.UpdateUserByAdminAsync(id, dto);
+                return Ok(new { message = "Cập nhật người dùng thành công." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

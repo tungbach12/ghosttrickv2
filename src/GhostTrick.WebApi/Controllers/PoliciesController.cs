@@ -1,8 +1,6 @@
 using GhostTrick.Application.Interfaces;
 using GhostTrick.Domain.Entities;
-using GhostTrick.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GhostTrick.WebApi.Controllers
 {
@@ -10,34 +8,47 @@ namespace GhostTrick.WebApi.Controllers
     [ApiController]
     public class PoliciesController : ControllerBase
     {
-        private readonly GhostTrickContext _context;
+        private readonly ICatalogService _catalogService;
 
-        public PoliciesController(GhostTrickContext context)
+        public PoliciesController(ICatalogService catalogService)
         {
-            _context = context;
+            _catalogService = catalogService;
         }
 
-        /// <summary>GET /api/policies</summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<IEnumerable<Policy>>> GetPolicies()
         {
-            var policies = await _context.Policies
-                .Select(p => new { p.Slug, p.Title, p.UpdatedAt })
-                .ToListAsync();
-            return Ok(policies);
+            var result = await _catalogService.GetPoliciesAsync();
+            return Ok(result);
         }
 
-        /// <summary>GET /api/policies/{slug}</summary>
         [HttpGet("{slug}")]
-        public async Task<IActionResult> GetBySlug(string slug)
+        public async Task<ActionResult<Policy>> GetPolicy(string slug)
         {
-            var policy = await _context.Policies
-                .FirstOrDefaultAsync(p => p.Slug == slug);
+            try
+            {
+                var result = await _catalogService.GetPolicyBySlugAsync(slug);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
 
-            if (policy == null)
-                return NotFound(new { message = "Chính sách không tồn tại." });
-
-            return Ok(policy);
+        [HttpPut("{slug}")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdatePolicy(string slug, Policy policy)
+        {
+            try
+            {
+                var result = await _catalogService.UpdatePolicyAsync(slug, policy);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
     }
 }

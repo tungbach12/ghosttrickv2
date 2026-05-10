@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { authService } from '../services/authService'
 import { useToast } from '../context/ToastContext'
-import '../auth.css'
+import '../styles/pages/auth.css'
 
 // Define validation schema
 const registerSchema = z.object({
@@ -123,7 +123,11 @@ export default function SignUpPage() {
 
         {step === 1 ? (
           <form onSubmit={handleSubmit(onSubmitInfo)} className="auth-form">
-            {serverError && <div className="alert alert-danger" style={{ fontSize: '0.9rem', marginBottom: '15px', color: 'red' }}>{serverError}</div>}
+            {serverError && (
+              <div style={{ background: '#fef2f2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #fecaca', fontSize: '0.9rem', textAlign: 'center' }}>
+                {serverError}
+              </div>
+            )}
 
             <div className="form-row" style={{ display: 'flex', gap: '15px' }}>
               <div className="form-group" style={{ flex: 1 }}>
@@ -227,7 +231,11 @@ export default function SignUpPage() {
           </form>
         ) : (
           <form onSubmit={onVerifyOtp} className="auth-form">
-            {serverError && <div className="alert alert-danger" style={{ fontSize: '0.9rem', marginBottom: '15px', color: 'red' }}>{serverError}</div>}
+            {serverError && (
+              <div style={{ background: '#fef2f2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '15px', border: '1px solid #fecaca', fontSize: '0.9rem', textAlign: 'center' }}>
+                {serverError}
+              </div>
+            )}
             
             <div className="form-group">
               <label>Mã OTP (6 chữ số)</label>

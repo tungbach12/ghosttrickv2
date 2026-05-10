@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Tags, Ticket, LogOut, Bell, Search, Percent, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Tags, Ticket, LogOut, Bell, Search, Percent, Menu, X, Palette, Camera, Star, Users } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
-import '../admin.css';
+import '../styles/pages/admin.css';
 
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -15,8 +15,12 @@ const AdminLayout = () => {
     { name: 'Đơn hàng', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Danh mục', href: '/admin/categories', icon: Tags },
     { name: 'Mã giảm giá', href: '/admin/vouchers', icon: Ticket },
+    { name: 'Quản lý màu sắc', href: '/admin/colors', icon: Palette },
     { name: 'Chương trình Sale', href: '/admin/sales', icon: Percent },
     { name: 'Banner Trang chủ', href: '/admin/home-banners', icon: ShoppingBag },
+    { name: 'Khách hàng', href: '/admin/users', icon: Users },
+    { name: 'Visual Feedback', href: '/admin/feedbacks', icon: Camera },
+    { name: 'Đánh giá SP', href: '/admin/reviews', icon: Star },
   ];
 
   return (
@@ -29,7 +33,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className={`admin-sidebar ${isSidebarOpen ? 'active' : ''}`}>
         <div className="admin-sidebar-logo">
-          <Link to="/" style={{ textDecoration: 'none' }} onClick={() => setIsSidebarOpen(false)}>
+          <Link to="/" className="admin-logo-link" onClick={() => setIsSidebarOpen(false)}>
             <span className="admin-logo-text">GHOSTTRICK</span>
             <span className="admin-logo-subtext">Management System</span>
           </Link>

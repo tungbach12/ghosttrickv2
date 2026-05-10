@@ -130,15 +130,23 @@ export default function Layout() {
                   ) : (
                     <User size={18} />
                   )}
-                  <span style={{ fontWeight: '600' }}>{(user.fullName || user.name || '').split(' ').pop()}</span>
+                  <span style={{ fontWeight: '600' }}>
+                    {user.fullName ? (
+                      user.fullName.split(' ').length > 1 
+                        ? `${user.fullName.split(' ')[0]} ${user.fullName.split(' ').pop()}`
+                        : user.fullName
+                    ) : (user.name || 'User')}
+                  </span>
                 </div>
                 <ul className="dropdown-menu">
-                  <li><Link to="/profile">Tài khoản của tôi</Link></li>
-                  <li><Link to="/account">Đơn hàng của tôi</Link></li>
+                  <li><Link to="/account">Thông tin cá nhân</Link></li>
+                  <li><Link to="/account?tab=orders">Đơn hàng của tôi</Link></li>
+                  <li><Link to="/account?tab=password">Đổi mật khẩu</Link></li>
                   {user.role === 'Admin' && (
                     <li><Link to="/admin" style={{ color: 'red', fontWeight: 'bold' }}>Quản trị viên</Link></li>
                   )}
-                  <li><a href="#" onClick={(e) => { e.preventDefault(); logout(); }}>Đăng xuất</a></li>
+                  <li className="menu-divider"></li>
+                  <li><a href="#" onClick={(e) => { e.preventDefault(); logout(); }} style={{ color: '#ef4444' }}>Đăng xuất</a></li>
                 </ul>
               </div>
             ) : (
@@ -205,7 +213,9 @@ export default function Layout() {
             <div className="drawer-auth-btns">
               {user ? (
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ marginBottom: '15px', fontWeight: '600' }}>Chào, {(user.fullName || user.name || '').split(' ').pop()}</p>
+                  <p style={{ marginBottom: '15px', fontWeight: '600' }}>
+                    Chào, {user.fullName || user.name || 'User'}
+                  </p>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <Link to="/account" className="btn-solid" style={{ flex: 1 }} onClick={() => setIsMobileMenuOpen(false)}>TÀI KHOẢN</Link>
                     <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="btn-outline" style={{ flex: 1 }}>ĐĂNG XUẤT</button>

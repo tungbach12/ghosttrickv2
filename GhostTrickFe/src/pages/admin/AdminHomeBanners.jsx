@@ -69,87 +69,157 @@ const AdminHomeBanners = () => {
       </div>
 
       <div className="admin-table-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Hình ảnh & Tiêu đề</th>
-              <th>Thứ tự</th>
-              <th style={{ textAlign: 'center' }}>Trạng thái</th>
-              <th style={{ textAlign: 'right' }}>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="desktop-only">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '100px 0' }}>
-                  <div className="loader"></div>
-                  <p style={{ marginTop: '16px', color: '#64748b' }}>Đang tải dữ liệu...</p>
-                </td>
+                <th>Hình ảnh & Tiêu đề</th>
+                <th>Thứ tự</th>
+                <th style={{ textAlign: 'center' }}>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Hành động</th>
               </tr>
-            ) : banners.length > 0 ? (
-              banners.map((banner) => (
-                <tr key={banner.id}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ 
-                        width: '120px', height: '60px', borderRadius: '12px', 
-                        overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f8fafc'
-                      }}>
-                        <img 
-                          src={banner.imageUrl} 
-                          alt="" 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: '700', color: '#1e293b' }}>{banner.title}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{banner.subtitle || 'Không có phụ đề'}</div>
-                        {banner.linkUrl && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#3b82f6', marginTop: '4px' }}>
-                            <ExternalLink size={12} /> {banner.linkUrl}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: '700', color: '#64748b' }}>#{banner.displayOrder}</span>
-                  </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <span className={`status-badge ${banner.isActive ? 'status-success' : ''}`} style={{
-                      padding: '6px 16px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800',
-                      background: banner.isActive ? '#dcfce7' : '#f1f5f9',
-                      color: banner.isActive ? '#15803d' : '#64748b'
-                    }}>
-                      {banner.isActive ? 'HIỂN THỊ' : 'ẨN'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button onClick={() => navigate(`/admin/home-banners/edit/${banner.id}`)} className="action-btn">
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(banner.id)} className="action-btn delete">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '100px 0' }}>
+                    <div className="loader"></div>
+                    <p style={{ marginTop: '16px', color: '#64748b' }}>Đang tải dữ liệu...</p>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-                  Chưa có banner nào được tạo.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : banners.length > 0 ? (
+                banners.map((banner) => (
+                  <tr key={banner.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ 
+                          width: '120px', height: '60px', borderRadius: '12px', 
+                          overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f8fafc'
+                        }}>
+                          <img 
+                            src={banner.imageUrl} 
+                            alt="" 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: '700', color: '#1e293b' }}>{banner.title}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{banner.subtitle || 'Không có phụ đề'}</div>
+                          {banner.linkUrl && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#3b82f6', marginTop: '4px' }}>
+                              <ExternalLink size={12} /> {banner.linkUrl}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: '700', color: '#64748b' }}>#{banner.displayOrder}</span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className={`status-badge ${banner.isActive ? 'status-success' : ''}`} style={{
+                        padding: '6px 16px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '800',
+                        background: banner.isActive ? '#dcfce7' : '#f1f5f9',
+                        color: banner.isActive ? '#15803d' : '#64748b'
+                      }}>
+                        {banner.isActive ? 'HIỂN THỊ' : 'ẨN'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button onClick={() => navigate(`/admin/home-banners/edit/${banner.id}`)} className="action-btn">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(banner.id)} className="action-btn delete">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
+                    Chưa có banner nào được tạo.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mobile-banner-list mobile-only">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}><div className="loader"></div></div>
+          ) : banners.length > 0 ? (
+            banners.map((banner) => (
+              <div key={banner.id} className="banner-mobile-card">
+                <div className="banner-m-img">
+                  <img src={banner.imageUrl} alt="" />
+                  <div className="banner-m-badge">
+                    <span className={`m-badge ${banner.isActive ? 'success' : 'info'}`}>
+                      {banner.isActive ? 'HIỂN THỊ' : 'ẨN'}
+                    </span>
+                  </div>
+                </div>
+                <div className="banner-m-info">
+                  <div className="banner-m-header">
+                    <h3 className="banner-m-title">{banner.title}</h3>
+                    <span className="banner-m-order">#{banner.displayOrder}</span>
+                  </div>
+                  <p className="banner-m-subtitle">{banner.subtitle}</p>
+                  {banner.linkUrl && (
+                    <div className="banner-m-link">
+                      <ExternalLink size={12} /> {banner.linkUrl}
+                    </div>
+                  )}
+                </div>
+                <div className="banner-m-actions">
+                  <button onClick={() => navigate(`/admin/home-banners/edit/${banner.id}`)} className="banner-m-btn edit">Sửa</button>
+                  <button onClick={() => handleDelete(banner.id)} className="banner-m-btn delete">Xóa</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Chưa có banner nào.</div>
+          )}
+        </div>
       </div>
 
       <style dangerouslySetInnerHTML={{
         __html: `
-        .admin-container { padding: 32px; font-family: 'Inter', sans-serif; }
+        .desktop-only { display: block; }
+        .mobile-only { display: none; }
+
+        @media (max-width: 768px) {
+          .admin-container { padding: 16px; }
+          .admin-header-main { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+          .admin-btn-primary { width: 100%; justify-content: center; }
+          
+          .desktop-only { display: none; }
+          .mobile-only { display: block; }
+          
+          .banner-mobile-card { background: white; border-radius: 16px; overflow: hidden; margin-bottom: 16px; border: 1px solid #f1f5f9; }
+          .banner-m-img { height: 160px; position: relative; }
+          .banner-m-img img { width: 100%; height: 100%; object-fit: cover; }
+          .banner-m-badge { position: absolute; top: 12px; right: 12px; }
+          .m-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; }
+          .m-badge.success { background: #dcfce7; color: #15803d; }
+          .m-badge.info { background: #f1f5f9; color: #64748b; }
+          
+          .banner-m-info { padding: 16px; }
+          .banner-m-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+          .banner-m-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0; }
+          .banner-m-order { font-size: 0.8rem; font-weight: 700; color: #94a3b8; }
+          .banner-m-subtitle { font-size: 0.85rem; color: #64748b; margin-bottom: 12px; }
+          .banner-m-link { font-size: 0.75rem; color: #3b82f6; display: flex; align-items: center; gap: 6px; }
+          
+          .banner-m-actions { display: flex; gap: 8px; padding: 12px 16px; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+          .banner-m-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+          .banner-m-btn.edit { background: #f1f5f9; color: #475569; }
+          .banner-m-btn.delete { background: #fee2e2; color: #ef4444; }
+        }
+        .admin-container { padding: 32px; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         .admin-header-main { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
         .admin-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
         .admin-subtitle { color: #64748b; margin: 4px 0 0 0; }

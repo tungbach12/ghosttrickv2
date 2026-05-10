@@ -318,3 +318,260 @@
   border-bottom: 1px solid #f0f0f0;
   margin-bottom: 30px;
 }
+
+/* --- Reviews Section --- */
+.pd-reviews-section {
+  margin-top: 50px;
+  border-top: 2px solid #eee;
+  padding-top: 30px;
+}
+
+.pd-reviews-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 25px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.review-item {
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.review-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-delete-review {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-review:hover {
+  color: #ef4444;
+  background: #fee2e2;
+}
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-avatar, .review-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.review-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.review-username {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.review-date {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.review-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.review-comment {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+.no-reviews {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px 0;
+  font-style: italic;
+}
+
+/* --- Review Form --- */
+.review-form {
+  background: #f8fafc;
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.review-form h4 {
+  margin-bottom: 20px;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.form-rating {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.form-rating span {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form-rating button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.form-rating button:hover {
+  transform: scale(1.2);
+}
+
+.review-form .form-group {
+  margin-bottom: 15px;
+}
+
+.review-form .form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.review-form .form-control:focus {
+  border-color: #000;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+}
+
+.review-form .btn-industrial {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.user-review-badge {
+  background: #000;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 2px;
+  margin-left: 8px;
+  vertical-align: middle;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.verified-purchase-badge {
+  color: #10b981;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #ecfdf5;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.verified-purchase-badge::before {
+  content: '✓';
+  font-size: 0.8rem;
+}
+
+.unverified-purchase-badge {
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.review-bought-variant {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-edit-review, .btn-delete-review {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-edit-review {
+  color: #64748b;
+}
+
+.btn-edit-review:hover {
+  color: #000;
+  background: #f1f5f9;
+}
+
+.btn-delete-review {
+  color: #ef4444;
+}
+
+.btn-delete-review:hover {
+  background: #fee2e2;
+}
+
+

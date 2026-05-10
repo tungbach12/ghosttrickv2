@@ -324,7 +324,7 @@ const AdminAddHomeBanner = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .admin-page-container { padding: 32px; max-width: 900px; margin: 0 auto; font-family: 'Inter', sans-serif; }
+        .admin-page-container { padding: 32px; max-width: 900px; margin: 0 auto; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
         .admin-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
         .admin-title { font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0; }
         .admin-subtitle { color: #64748b; margin: 4px 0 0 0; }
@@ -364,6 +364,27 @@ const AdminAddHomeBanner = () => {
         .gt-btn-cancel { padding: 12px 24px; border-radius: 14px; font-weight: 700; background: #f1f5f9; color: #475569; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
         .gt-btn-submit { padding: 12px 24px; border-radius: 14px; font-weight: 700; background: #0f172a; color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; min-width: 140px; justify-content: center; }
         .gt-btn-submit:hover { background: #1e293b; transform: translateY(-2px); }
+
+        @media (max-width: 768px) {
+          .admin-page-container { padding: 16px; }
+          .admin-header { flex-direction: column; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+          .admin-title { font-size: 1.5rem; }
+          .admin-actions { width: 100%; flex-direction: column; gap: 8px; }
+          .gt-btn-cancel, .gt-btn-submit { width: 100%; }
+          .admin-card { padding: 20px; border-radius: 16px; }
+          
+          .gt-form-grid { grid-template-columns: 1fr; gap: 16px; }
+          .gt-form-group.span-2 { grid-column: span 1; }
+          
+          .cropper-container { height: 400px; }
+          .cropper-controls { flex-direction: column; gap: 16px; align-items: stretch; }
+          .zoom-control { width: 100%; }
+          .cropper-actions { width: 100%; }
+          .btn-crop-cancel, .btn-crop-save { flex: 1; }
+          
+          .banner-overlay-actions { bottom: 10px; right: 10px; }
+          .change-img-btn { width: 100%; justify-content: center; }
+        }
         `
       }} />
     </div>

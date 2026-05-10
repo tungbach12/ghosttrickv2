@@ -8,8 +8,6 @@ namespace GhostTrick.Domain.Entities
         [MaxLength(150)]
         public string? FullName { get; set; }
 
-        [MaxLength(20)]
-        public string? Phone { get; set; }
 
         public string? AvatarUrl { get; set; }
 
@@ -20,8 +18,9 @@ namespace GhostTrick.Domain.Entities
 
         // Navigation
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-        public ICollection<OtpCode> OtpCodes { get; set; } = new List<OtpCode>();
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        public virtual ICollection<OtpCode> OtpCodes { get; set; } = new List<OtpCode>();
+        public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 
     public class RefreshToken

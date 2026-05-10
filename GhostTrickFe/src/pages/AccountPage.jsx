@@ -1,20 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useGlobalContext } from '../context/GlobalContext';
 import { orderService } from '../services/orderService';
 import { voucherService } from '../services/voucherService';
-import { User, ShoppingBag, LogOut, ChevronRight, Camera, Ticket, Tag, Plus, CheckCircle } from 'lucide-react';
+import { User, ShoppingBag, LogOut, ChevronRight, Camera, Ticket, Tag, Plus, Mail, Phone, MapPin, Save, Loader2, Key, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import api from '../services/api';
+import ReviewModal from '../components/ReviewModal';
+import { Star } from 'lucide-react';
 
 export default function AccountPage() {
-  const { user, logout } = useGlobalContext();
+  const { user, logout, updateUser } = useGlobalContext();
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'vouchers'
+  const fileInputRef = useRef(null);
+  
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'orders', 'vouchers'
   const [orders, setOrders] = useState([]);
   const [myVouchers, setMyVouchers] = useState([]);
   const [publicVouchers, setPublicVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Profile specific state
+  const [isEditing, setIsEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: user?.fullName || user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    address: user?.address || ''
+  });
+
+  const [reviewModal, setReviewModal] = useState({
+    isOpen: false,
+    productId: null,
+    productName: '',
+    orderId: null,
+    existingReview: null
+  });
+
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [profileError, setProfileError] = useState('');
+
+  const location = useLocation();
+
+  // Sync tab with URL query
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && ['profile', 'orders', 'vouchers', 'password'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location]);
+
+
+  // Update formData when user object changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user.fullName || user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || ''
+      });
+    }
+  }, [user]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -23,7 +80,7 @@ export default function AccountPage() {
       if (activeTab === 'orders') {
         const data = await orderService.getUserOrders();
         setOrders(data);
-      } else {
+      } else if (activeTab === 'vouchers') {
         const [wallet, publics] = await Promise.all([
           voucherService.getMyWallet(),
           voucherService.getPublicVouchers()
@@ -52,25 +109,114 @@ export default function AccountPage() {
     }
   };
 
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+    try {
+      const response = await api.put('/account/profile', formData);
+      updateUser(response.data);
+      setIsEditing(false);
+      addToast('Cập nhật thông tin thành công', 'success');
+    } catch (err) {
+      setProfileError(err.response?.data?.message || 'Không thể cập nhật thông tin');
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await api.post('/account/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+      addToast('Đổi mật khẩu thành công', 'success');
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (err) {
+      setPasswordError(err.response?.data?.message || 'Mật khẩu hiện tại không chính xác.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formDataUpload = new FormData();
+    formDataUpload.append('File', file);
+
+    setUploading(true);
+    try {
+      const response = await api.post('/account/avatar', formDataUpload);
+      updateUser({ avatarUrl: response.data.avatarUrl });
+      addToast('Cập nhật ảnh đại diện thành công', 'success');
+    } catch (err) {
+      addToast('Không thể tải ảnh lên', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const openReviewModal = (productId, productName, isReviewed, reviewId, orderId) => {
+    setReviewModal({
+      isOpen: true,
+      productId,
+      productName,
+      orderId,
+      existingReview: isReviewed ? { id: reviewId, productId, rating: 5, comment: '' } : null 
+    });
+
+    
+    // If it's an existing review, we should probably fetch the details or we already have them if we update the API
+    // For now, if existing, the modal will fetch it or we can just pass basic info.
+    // Actually, let's fetch the user's review for this product if existing.
+    if (isReviewed && reviewId) {
+       // We can just find it in the user reviews list if we had one, 
+       // but for now the modal handles it by taking existingReview.
+       // Let's refine this: the modal should probably fetch the review details by ID if we want to be clean.
+       // Or the service can provide it.
+    }
+  };
+
   if (!user) {
     return <Navigate to="/sign-in" replace />;
   }
 
   const formatPrice = (price) => {
+    if (price === null || price === undefined || isNaN(price)) return '0 ₫';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
   return (
-    <div className="account-page">
+    <>
+    <div className="account-page animate-up">
       <div className="container">
         <div className="breadcrumb-bar-alt">
           <nav className="breadcrumb">
             <Link to="/"><span>Trang</span> chủ</Link>
             <ChevronRight size={14} />
-            <Link to="/profile">Tài khoản</Link>
+            <Link to="/account">Tài khoản</Link>
             <ChevronRight size={14} />
             <span className="breadcrumb-current">
-              {activeTab === 'orders' ? 'Đơn hàng của tôi' : 'Ví Voucher'}
+              {activeTab === 'profile' ? 'Thông tin cá nhân' : 
+               activeTab === 'orders' ? 'Đơn hàng của tôi' : 'Ví Voucher'}
             </span>
           </nav>
         </div>
@@ -80,23 +226,40 @@ export default function AccountPage() {
           <div className="account-sidebar">
             <div className="account-user-card">
               <div className="account-avatar-wrapper">
-                <div className="account-avatar">
-                  {(user.fullName || user.name || '?').charAt(0)}
+                <div className="account-avatar" onClick={handleAvatarClick} style={{ cursor: 'pointer', overflow: 'hidden' }}>
+                  {uploading ? (
+                    <Loader2 size={24} className="animate-spin" />
+                  ) : user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    (user.fullName || user.name || '?').charAt(0)
+                  )}
                 </div>
-                <button className="avatar-edit-btn">
+                <button className="avatar-edit-btn" onClick={handleAvatarClick} disabled={uploading}>
                   <Camera size={14} />
                 </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleAvatarChange} 
+                  style={{ display: 'none' }} 
+                  accept="image/*" 
+                />
               </div>
               <div className="account-user-details">
                 <h3 className="account-user-name">{user.fullName || user.name}</h3>
+                <p style={{ fontSize: '12px', color: '#64748b' }}>Thành viên Ghosttrick</p>
               </div>
             </div>
             
             <ul className="account-menu">
               <li>
-                <Link to="/profile" className="account-menu-item">
+                <button 
+                  onClick={() => setActiveTab('profile')} 
+                  className={`account-menu-item ${activeTab === 'profile' ? 'active' : ''}`}
+                >
                   <User size={18} /> Thông tin tài khoản
-                </Link>
+                </button>
               </li>
               <li>
                 <button 
@@ -114,6 +277,14 @@ export default function AccountPage() {
                   <Ticket size={18} /> Ví Voucher
                 </button>
               </li>
+              <li>
+                <button 
+                  onClick={() => setActiveTab('password')} 
+                  className={`account-menu-item ${activeTab === 'password' ? 'active' : ''}`}
+                >
+                  <Key size={18} /> Đổi mật khẩu
+                </button>
+              </li>
               <li className="menu-divider"></li>
               <li>
                 <button onClick={logout} className="account-menu-item logout">
@@ -125,7 +296,105 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="account-main">
-            {activeTab === 'orders' ? (
+            {activeTab === 'profile' && (
+              <>
+                <div className="section-header">
+                  <h2 className="account-section-title">Thông tin tài khoản</h2>
+                  {!isEditing && (
+                    <button className="btn-outline btn-sm" onClick={() => setIsEditing(true)}>
+                      Chỉnh sửa
+                    </button>
+                  )}
+                </div>
+
+                <div className="account-content-card">
+                  {profileError && (
+                    <div className="form-alert error" style={{ marginBottom: '20px', padding: '12px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       <ShieldCheck size={18} /> {profileError}
+                    </div>
+                  )}
+                  <form className="profile-form" onSubmit={handleSaveProfile}>
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>
+                          <User size={16} /> Họ và tên
+                        </label>
+                        <input 
+                          type="text" 
+                          value={formData.fullName} 
+                          readOnly={!isEditing}
+                          placeholder="Nhập họ tên"
+                          onChange={e => setFormData({...formData, fullName: e.target.value})}
+                          className={isEditing ? 'editable' : ''}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>
+                          <Mail size={16} /> Email
+                        </label>
+                        <input 
+                          type="email" 
+                          value={formData.email} 
+                          readOnly={true}
+                          className="bg-light"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>
+                          <Phone size={16} /> Số điện thoại
+                        </label>
+                        <input 
+                          type="text" 
+                          value={formData.phone} 
+                          readOnly={!isEditing}
+                          placeholder="Nhập số điện thoại"
+                          onChange={e => setFormData({...formData, phone: e.target.value})}
+                          className={isEditing ? 'editable' : ''}
+                        />
+                      </div>
+                      <div className="form-group full-width">
+                        <label>
+                          <MapPin size={16} /> Địa chỉ nhận hàng
+                        </label>
+                        <textarea 
+                          value={formData.address} 
+                          readOnly={!isEditing}
+                          placeholder="Nhập địa chỉ"
+                          onChange={e => setFormData({...formData, address: e.target.value})}
+                          className={isEditing ? 'editable' : ''}
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+
+                    {isEditing && (
+                      <div className="form-actions">
+                        <button 
+                          type="button" 
+                          className="btn-text" 
+                          onClick={() => {
+                            setIsEditing(false);
+                            setFormData({
+                              fullName: user.fullName || user.name,
+                              email: user.email,
+                              phone: user.phone,
+                              address: user.address || ''
+                            });
+                          }}
+                        >
+                          Hủy
+                        </button>
+                        <button type="submit" className="btn-solid">
+                          <Save size={18} /> Lưu thay đổi
+                        </button>
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'orders' && (
               <>
                 <div className="section-header">
                   <h2 className="account-section-title">Đơn hàng của tôi</h2>
@@ -137,7 +406,7 @@ export default function AccountPage() {
                   <div className="no-orders">
                     <ShoppingBag size={48} />
                     <p>Bạn chưa có đơn hàng nào.</p>
-                    <Link to="/product" className="btn-solid mt-4">Mua sắm ngay</Link>
+                    <Link to="/product" className="btn-solid">Mua sắm ngay</Link>
                   </div>
                 ) : (
                   <div className="orders-list">
@@ -153,23 +422,57 @@ export default function AccountPage() {
                           </div>
                         </div>
                         <div className="order-body-brutal">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="order-item-brutal">
-                              <div className="item-img-brutal">
-                                <img src={item.productImage || 'https://via.placeholder.com/100'} alt={item.productName} />
-                              </div>
+                        <div className="order-items-list">
+                          {/* Group items by productId for review purposes */}
+                          {Object.values(order.items.reduce((acc, item) => {
+                            if (!acc[item.productId]) {
+                              acc[item.productId] = { ...item, variants: [] };
+                            }
+                            acc[item.productId].variants.push({ color: item.color, size: item.size, quantity: item.quantity });
+                            return acc;
+                          }, {})).map((productGroup, pIdx) => (
+                            <div key={`${order.id}-${productGroup.productId}`} className="order-item-brutal">
+                              <Link to={`/product/${productGroup.productId}`} className="item-img-brutal">
+                                <img src={productGroup.productImage || "/placeholder-product.jpg"} alt={productGroup.productName} />
+                              </Link>
                               <div className="item-details-brutal">
-                                <div className="item-title-brutal">{item.productName}</div>
-                                <div className="item-meta-brutal">
-                                  <span>Size: <strong>{item.size}</strong></span>
-                                  <span className="meta-sep">|</span>
-                                  <span>SL: <strong>{item.quantity}</strong></span>
+                                <Link to={`/product/${productGroup.productId}`} className="item-title-link">
+                                  <h4 className="item-title-brutal">{productGroup.productName}</h4>
+                                </Link>
+
+                                <div className="item-variants-summary" style={{ marginBottom: '8px' }}>
+                                  {productGroup.variants.map((v, vIdx) => (
+                                    <div key={vIdx} className="item-meta-brutal" style={{ marginBottom: '2px', fontSize: '0.8rem' }}>
+                                      {v.color && <span>Màu: <strong>{v.color}</strong></span>}
+                                      {v.size && <span>Size: <strong>{v.size}</strong></span>}
+                                      <span>SL: <strong>{v.quantity}</strong></span>
+                                    </div>
+                                  ))}
                                 </div>
-                                <div className="item-price-brutal">{formatPrice(item.price)}</div>
+                                <div className="item-price-brutal">{formatPrice(productGroup.unitPrice)}</div>
+                                
+                                {order.status?.toLowerCase() === 'delivered' && (
+                                  <button 
+                                    className={`item-review-btn ${productGroup.isReviewed ? 'reviewed' : ''}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      openReviewModal(productGroup.productId, productGroup.productName, productGroup.isReviewed, productGroup.reviewId, order.id);
+
+                                    }}
+                                  >
+                                    {productGroup.isReviewed ? (
+                                      <><Star size={14} fill="#000" /> SỬA ĐÁNH GIÁ</>
+                                    ) : (
+                                      <><Star size={14} /> ĐÁNH GIÁ</>
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             </div>
                           ))}
                         </div>
+                      </div>
                         <div className="order-footer-brutal">
                           <div className="order-total-brutal">
                             <span className="total-label">TỔNG THANH TOÁN:</span>
@@ -184,11 +487,12 @@ export default function AccountPage() {
                   </div>
                 )}
               </>
-            ) : (
+            )}
+
+            {activeTab === 'vouchers' && (
               <>
                 <div className="section-header">
                   <h2 className="account-section-title">Ví Voucher của bạn</h2>
-                  <p className="section-subtitle">Lưu trữ và quản lý các mã giảm giá dành riêng cho bạn.</p>
                 </div>
 
                 <div className="voucher-wallet-grid">
@@ -198,18 +502,29 @@ export default function AccountPage() {
                       <div className="empty-wallet">Bạn chưa lưu mã nào.</div>
                     ) : (
                       <div className="voucher-grid">
-                        {myVouchers.map(v => (
-                          <div key={v.code} className="voucher-card-ui">
+                        {[...myVouchers]
+                          .map(v => ({ ...v, isExpired: v.endDate && new Date(v.endDate) < new Date() }))
+                          .sort((a, b) => {
+                            // Both used/expired items go to bottom
+                            const aInactive = a.isUsed || a.isExpired;
+                            const bInactive = b.isUsed || b.isExpired;
+                            if (aInactive !== bInactive) return aInactive ? 1 : -1;
+                            return 0;
+                          })
+                          .map(v => (
+                          <div key={v.code} className={`voucher-card-ui ${(v.isUsed || v.isExpired) ? 'used-v' : ''}`}>
                             <div className="v-card-top">
-                              <Tag size={20} />
                               <span className="v-card-code">{v.code}</span>
-                            </div>
-                            <div className="v-card-body">
                               <div className="v-card-desc">{v.description}</div>
                               <div className="v-card-min">Đơn tối thiểu {formatPrice(v.minOrderAmount)}</div>
+                              <div className="v-card-validity">
+                                HSD: {new Date(v.startDate).toLocaleDateString('vi-VN')} - {v.endDate ? new Date(v.endDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}
+                              </div>
                             </div>
                             <div className="v-card-footer">
-                               <span className="v-status saved">Đã trong ví</span>
+                               <span className={`v-status ${v.isUsed ? 'used' : v.isExpired ? 'expired' : 'saved'}`}>
+                                 {v.isUsed ? 'Đã sử dụng' : v.isExpired ? 'Đã hết hạn' : 'Đã lưu'}
+                               </span>
                             </div>
                           </div>
                         ))}
@@ -217,7 +532,7 @@ export default function AccountPage() {
                     )}
                   </div>
 
-                  <div className="wallet-section mt-32">
+                  <div className="wallet-section" style={{ marginTop: '40px' }}>
                     <h3 className="sub-section-title">Có thể bạn quan tâm</h3>
                     {publicVouchers.length === 0 ? (
                       <div className="empty-wallet">Không có mã mới nào.</div>
@@ -226,16 +541,16 @@ export default function AccountPage() {
                         {publicVouchers.map(v => (
                           <div key={v.code} className="voucher-card-ui public">
                             <div className="v-card-top">
-                              <Tag size={20} />
                               <span className="v-card-code">{v.code}</span>
-                            </div>
-                            <div className="v-card-body">
                               <div className="v-card-desc">{v.description}</div>
                               <div className="v-card-min">Đơn tối thiểu {formatPrice(v.minOrderAmount)}</div>
+                              <div className="v-card-validity">
+                                HSD: {new Date(v.startDate).toLocaleDateString('vi-VN')} - {v.endDate ? new Date(v.endDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}
+                              </div>
                             </div>
                             <div className="v-card-footer">
                                <button onClick={() => handleSaveVoucher(v.code)} className="save-v-btn">
-                                 <Plus size={14} /> LƯU MÃ
+                                 LƯU MÃ
                                </button>
                             </div>
                           </div>
@@ -246,45 +561,134 @@ export default function AccountPage() {
                 </div>
               </>
             )}
+
+            {activeTab === 'password' && (
+              <>
+                <div className="section-header">
+                  <h2 className="account-section-title">Đổi mật khẩu</h2>
+                </div>
+
+                <div className="account-content-card">
+                  {passwordError && (
+                    <div className="form-alert error" style={{ marginBottom: '20px', padding: '12px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '4px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       <ShieldCheck size={18} /> {passwordError}
+                    </div>
+                  )}
+                  <form className="profile-form" onSubmit={handlePasswordChange}>
+                    <div className="form-grid">
+                      <div className="form-group full-width">
+                        <label>
+                          <Key size={16} /> Mật khẩu hiện tại
+                        </label>
+                        <input 
+                          type="password" 
+                          value={passwordData.currentPassword}
+                          onChange={e => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                          placeholder="Nhập mật khẩu hiện tại"
+                          required
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>
+                          <Key size={16} /> Mật khẩu mới
+                        </label>
+                        <input 
+                          type="password" 
+                          value={passwordData.newPassword}
+                          onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
+                          placeholder="Tối thiểu 8 ký tự"
+                          required
+                          minLength={8}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>
+                          <Key size={16} /> Xác nhận mật khẩu mới
+                        </label>
+                        <input 
+                          type="password" 
+                          value={passwordData.confirmPassword}
+                          onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                          placeholder="Nhập lại mật khẩu mới"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-actions">
+                      <button 
+                        type="submit" 
+                        className={`btn-solid ${passwordLoading ? 'loading' : ''}`}
+                        disabled={passwordLoading}
+                      >
+                        {passwordLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                        {passwordLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .account-page { padding: 40px 0; background: #f8fafc; min-height: 100vh; }
-        .account-layout { display: grid; grid-template-columns: 280px 1fr; gap: 32px; margin-top: 24px; }
-        
-        .account-sidebar { background: white; border-radius: 16px; padding: 24px; border: 1px solid #e2e8f0; height: fit-content; }
-        .account-user-card { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; }
-        .account-avatar { width: 80px; height: 80px; background: #0f172a; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; margin-bottom: 16px; }
-        .account-user-name { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; }
-        
-        .account-menu { list-style: none; padding: 0; margin: 0; }
-        .account-menu-item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: #64748b; font-weight: 700; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.2s; text-align: left; }
-        .account-menu-item:hover, .account-menu-item.active { background: #f1f5f9; color: #0f172a; }
-        .account-menu-item.logout { color: #ef4444; margin-top: 8px; }
-        .menu-divider { height: 1px; background: #f1f5f9; margin: 16px 0; }
-
-        .account-main { background: white; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; }
-        .account-section-title { font-size: 1.5rem; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
-        .section-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 32px; }
-        
-        .voucher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .voucher-card-ui { border: 2px solid #0f172a; border-radius: 16px; padding: 20px; background: white; position: relative; }
-        .voucher-card-ui.public { border-style: dashed; border-color: #cbd5e1; }
-        
-        .v-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .v-card-code { font-weight: 900; letter-spacing: 1px; font-size: 1.1rem; }
-        .v-card-desc { font-size: 0.85rem; color: #475569; font-weight: 600; margin-bottom: 4px; }
-        .v-card-min { font-size: 0.75rem; color: #94a3b8; margin-bottom: 16px; }
-        
-        .v-card-footer { display: flex; justify-content: flex-end; border-top: 1px solid #f1f5f9; padding-top: 12px; }
-        .v-status.saved { font-size: 0.75rem; font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 4px; }
-        .save-v-btn { background: #0f172a; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        
-        .no-orders, .empty-wallet { text-align: center; padding: 60px 0; color: #94a3b8; font-weight: 600; }
-        .sub-section-title { font-size: 1rem; font-weight: 800; margin-bottom: 16px; color: #475569; }
-      `}} />
     </div>
+    <ReviewModal 
+      isOpen={reviewModal.isOpen}
+      productId={reviewModal.productId}
+      productName={reviewModal.productName}
+      orderId={reviewModal.orderId}
+      existingReview={reviewModal.existingReview}
+      onClose={() => setReviewModal({ ...reviewModal, isOpen: false })}
+
+      onSuccess={() => {
+        setReviewModal({ ...reviewModal, isOpen: false });
+        fetchData();
+      }}
+    />
+
+    <style>{`
+      .item-review-btn {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #000;
+        color: #fff;
+        border: none;
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .item-review-btn:hover { background: #333; transform: translate(-2px, -2px); box-shadow: 2px 2px 0 #000; }
+      .item-review-btn.reviewed { background: #fff; color: #000; border: 1px solid #000; }
+      .item-review-btn.reviewed:hover { background: #f8fafc; }
+
+      .item-title-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .item-title-link:hover .item-title-brutal {
+        text-decoration: underline;
+        color: #333;
+      }
+      .item-img-brutal {
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      .item-img-brutal:hover {
+        opacity: 0.8;
+        transform: scale(1.02);
+      }
+    `}</style>
+
+    </>
   );
 }
+

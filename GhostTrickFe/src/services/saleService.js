@@ -8,7 +8,7 @@ const saleService = {
   createSale: (data) => api.post('/sale-events', data),
   updateSale: (id, data) => api.put(`/sale-events/${id}`, data),
   deleteSale: (id) => api.delete(`/sale-events/${id}`),
-  assignProducts: (id, productIds) => api.post(`/sale-events/${id}/products`, productIds),
+   assignProducts: (id, products) => api.post(`/sale-events/${id}/products`, products),
   activateSale: (id) => api.post(`/sale-events/${id}/activate`),
 };
 

@@ -1,12 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { authService } from '../services/authService';
+import { useToast } from './ToastContext';
 
 const GlobalContext = createContext();
 
 export const useGlobalContext = () => useContext(GlobalContext);
 
 export const GlobalProvider = ({ children }) => {
-  // Try to load state from localStorage first
+  const { addToast } = useToast();
+
+  // Helpers
   const loadState = (key, defaultValue) => {
     try {
       const saved = localStorage.getItem(key);
@@ -20,14 +23,44 @@ export const GlobalProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(loadState('ghosttrick_cart', []));
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Save to localStorage whenever state changes
+  // Persistence for user
   useEffect(() => {
     localStorage.setItem('ghosttrick_user', JSON.stringify(user));
   }, [user]);
 
+  // Sync Cart Logic
   useEffect(() => {
-    localStorage.setItem('ghosttrick_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    const fetchAndSyncCart = async () => {
+      if (user) {
+        try {
+          const localCart = loadState('ghosttrick_cart', []);
+          if (localCart.length > 0) {
+            await authService.syncCartToServer(localCart.map(item => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: item.quantity
+            })));
+            localStorage.removeItem('ghosttrick_cart');
+          }
+
+          const serverCart = await authService.getCart();
+          setCartItems(serverCart);
+        } catch (error) {
+          console.error('Error syncing cart:', error);
+        }
+      } else {
+        localStorage.setItem('ghosttrick_cart', JSON.stringify(cartItems));
+      }
+    };
+
+    fetchAndSyncCart();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem('ghosttrick_cart', JSON.stringify(cartItems));
+    }
+  }, [cartItems, user]);
 
   // Auth Functions
   const login = async (identifier, password) => {
@@ -46,41 +79,102 @@ export const GlobalProvider = ({ children }) => {
   const logout = () => {
     authService.logout();
     setUser(null);
+    setCartItems([]);
   };
 
   // Cart Functions
-  const addToCart = (productInfo) => {
-    setCartItems(prev => {
-      // productInfo: { variantId, productId, name, price, mainImageUrl, size, color, quantity }
-      const existingIndex = prev.findIndex(item => 
-        item.variantId === productInfo.variantId
-      );
-
-      if (existingIndex >= 0) {
-        // Increase qty
-        const newCart = [...prev];
-        newCart[existingIndex].quantity += productInfo.quantity;
-        return newCart;
-      } else {
-        // Add new
-        return [...prev, productInfo];
+  const addToCart = async (productInfo) => {
+    // productInfo: { variantId, productId, name, price, mainImageUrl, size, color, quantity, stock }
+    if (user) {
+      try {
+        await authService.addToServerCart(productInfo.productId, productInfo.variantId, productInfo.quantity);
+        const freshCart = await authService.getCart();
+        setCartItems(freshCart);
+        addToast('Đã thêm vào giỏ hàng', 'success');
+      } catch (error) {
+        const msg = error.response?.data?.message || 'Không thể thêm vào giỏ hàng';
+        addToast(msg, 'error');
       }
-    });
-    // Open the cart drawer automatically
+    } else {
+      // Guest Logic
+      let errorOccurred = false;
+      setCartItems(prev => {
+        const existingIndex = prev.findIndex(item => item.variantId === productInfo.variantId);
+        const currentQty = existingIndex >= 0 ? prev[existingIndex].quantity : 0;
+        const newTotal = currentQty + productInfo.quantity;
+
+        if (productInfo.stock !== undefined && newTotal > productInfo.stock) {
+          addToast(`Chỉ còn ${productInfo.stock} sản phẩm trong kho`, 'error');
+          errorOccurred = true;
+          return prev;
+        }
+
+        if (existingIndex >= 0) {
+          const newCart = [...prev];
+          newCart[existingIndex].quantity = newTotal;
+          return newCart;
+        } else {
+          return [...prev, productInfo];
+        }
+      });
+      if (!errorOccurred) {
+        addToast('Đã thêm vào giỏ hàng', 'success');
+      }
+    }
     setIsCartOpen(true);
   };
 
-  const updateCartQty = (index, delta) => {
-    setCartItems(prev => prev.map((item, i) => 
-      i === index ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
+  const updateCartQty = async (index, delta) => {
+    const item = cartItems[index];
+    if (!item) return;
+
+    if (user) {
+      try {
+        // We use the same AddToCart API to increment/decrement by passing delta
+        await authService.addToServerCart(item.productId, item.variantId, delta);
+        const freshCart = await authService.getCart();
+        setCartItems(freshCart);
+      } catch (error) {
+        const msg = error.response?.data?.message || 'Không thể cập nhật số lượng';
+        addToast(msg, 'error');
+      }
+    } else {
+      // Guest Logic
+      setCartItems(prev => prev.map((it, i) => {
+        if (i === index) {
+          const newQty = it.quantity + delta;
+          if (newQty < 1) return it;
+          if (it.stock !== undefined && newQty > it.stock) {
+            addToast(`Chỉ còn ${it.stock} sản phẩm trong kho`, 'error');
+            return it;
+          }
+          return { ...it, quantity: newQty };
+        }
+        return it;
+      }));
+    }
   };
 
-  const removeFromCart = (index) => {
-    setCartItems(prev => prev.filter((_, i) => i !== index));
+  const removeFromCart = async (index) => {
+    const item = cartItems[index];
+    if (!item) return;
+
+    if (user) {
+      try {
+        await authService.removeFromServerCart(item.variantId);
+        const freshCart = await authService.getCart();
+        setCartItems(freshCart);
+        addToast('Đã xóa khỏi giỏ hàng', 'info');
+      } catch (error) {
+        addToast('Không thể xóa sản phẩm', 'error');
+      }
+    } else {
+      setCartItems(prev => prev.filter((_, i) => i !== index));
+      addToast('Đã xóa khỏi giỏ hàng', 'info');
+    }
   };
   
-  const clearCart = () => {
+  const clearCart = async () => {
     setCartItems([]);
   };
 
@@ -88,10 +182,9 @@ export const GlobalProvider = ({ children }) => {
     setUser(prev => ({ ...prev, ...updatedInfo }));
   };
 
-
   return (
     <GlobalContext.Provider value={{
-      user, login, logout, updateUser,
+      user, setUser, login, logout, updateUser,
       cartItems, addToCart, updateCartQty, removeFromCart, clearCart,
       isCartOpen, setIsCartOpen
     }}>

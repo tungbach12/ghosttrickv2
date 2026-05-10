@@ -114,40 +114,91 @@ const AdminCategories = () => {
       </div>
 
       <div className="admin-table-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tên Danh mục</th>
-              <th>Đường dẫn (Slug)</th>
-              <th style={{ textAlign: 'right' }}>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((cat) => (
-              <tr key={cat.id}>
-                <td style={{ color: '#64748b', fontWeight: '600' }}>#{cat.id}</td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
-                      <Tag size={16} />
-                    </div>
-                    <span style={{ fontWeight: '700' }}>{cat.name}</span>
-                  </div>
-                </td>
-                <td><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem' }}>/{cat.slug}</code></td>
-                <td>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button onClick={() => handleDelete(cat.id)} className="action-btn delete" title="Xóa">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
+        <div className="desktop-only">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên Danh mục</th>
+                <th>Đường dẫn (Slug)</th>
+                <th style={{ textAlign: 'right' }}>Hành động</th>
               </tr>
+            </thead>
+            <tbody>
+              {categories.map((cat) => (
+                <tr key={cat.id}>
+                  <td style={{ color: '#64748b', fontWeight: '600' }}>#{cat.id}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6' }}>
+                        <Tag size={16} />
+                      </div>
+                      <span style={{ fontWeight: '700' }}>{cat.name}</span>
+                    </div>
+                  </td>
+                  <td><code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '0.8rem' }}>/{cat.slug}</code></td>
+                  <td>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button onClick={() => handleDelete(cat.id)} className="action-btn delete" title="Xóa">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mobile-only">
+          <div className="category-mobile-list">
+            {categories.map((cat) => (
+              <div key={cat.id} className="category-mobile-card">
+                <div className="cat-card-header">
+                  <div className="cat-info">
+                    <Tag size={16} color="#3b82f6" />
+                    <span className="cat-name">{cat.name}</span>
+                  </div>
+                  <button onClick={() => handleDelete(cat.id)} className="cat-delete-btn">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <div className="cat-card-body">
+                  <div className="cat-meta">
+                    <span className="cat-id">#{cat.id}</span>
+                    <code className="cat-slug">/{cat.slug}</code>
+                  </div>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .admin-form-grid { display: grid; }
+        .desktop-only { display: block; }
+        .mobile-only { display: none; }
+
+        @media (max-width: 768px) {
+          .desktop-only { display: none; }
+          .mobile-only { display: block; }
+          
+          .admin-form-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .admin-form-grid button { margin-top: 8px !important; width: 100%; justify-content: center; height: 48px; }
+          
+          .category-mobile-list { display: flex; flex-direction: column; gap: 12px; }
+          .category-mobile-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+          .cat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+          .cat-info { display: flex; align-items: center; gap: 8px; }
+          .cat-name { font-weight: 800; color: #0f172a; font-size: 1rem; }
+          .cat-delete-btn { width: 36px; height: 36px; border-radius: 50%; background: #fee2e2; color: #ef4444; border: none; display: flex; align-items: center; justify-content: center; }
+          
+          .cat-meta { display: flex; justify-content: space-between; align-items: center; }
+          .cat-id { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
+          .cat-slug { font-size: 0.8rem; background: #fff; padding: 4px 8px; border-radius: 6px; border: 1px solid #f1f5f9; color: #64748b; }
+        }
+      `}} />
     </div>
   );
 };

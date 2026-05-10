@@ -18,12 +18,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%),
+              linear-gradient(to right, rgba(0, 0, 0, 0.6) 0%, transparent 40%);
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
   color: white;
   z-index: 2;
-  padding: 60px;
+  padding: 60px 0; /* Vertical only, horizontal handled by margin-left */
 }
 
 /* Brutal Scanline Effect */
@@ -43,9 +46,10 @@
 }
 
 .hero-content {
-  max-width: 800px;
+  max-width: 600px;
   width: 100%;
-  transform: skewX(-10deg); /* Brutal tilt */
+  text-align: left;
+  margin-left: max(20px, calc((100vw - 1200px) / 2 + 20px)); /* Align with global container */
 }
 
 .hero-title {
@@ -182,149 +186,210 @@
   margin-bottom: 50px;
 }
 
-/* --- Vouchers --- */
-.slider-container {
+/* --- Vouchers Section --- */
+.section-vouchers {
+  padding: 40px 0;
+  overflow: visible;
+}
+
+.gt-voucher-slider-container {
   position: relative;
-  display: flex;
-  align-items: center;
+  width: 100%;
 }
 
-.voucher-grid {
-  display: flex;
-  overflow-x: auto;
+.gt-voucher-slider-track {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 30px !important;
+  overflow-x: auto !important;
+  width: 100% !important;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  gap: 15px;
-  padding: 10px 20px;
-  -ms-overflow-style: none;
+  cursor: grab;
+  user-select: none;
   scrollbar-width: none;
-  flex: 1;
 }
 
-.voucher-grid::-webkit-scrollbar {
+.gt-voucher-slider-track::-webkit-scrollbar {
   display: none;
 }
 
-.voucher-card {
-  flex: 0 0 calc(25% - 12px);
-  scroll-snap-align: start;
-  border: 3px solid #000;
-  background-color: #fff;
-  border-radius: 0;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
-  position: relative;
-  overflow: visible; /* Changed from hidden for ticket circles */
-  transition: all 0.2s;
+.gt-voucher-slider-track.grabbing {
+  cursor: grabbing;
 }
 
-.voucher-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* Minimalist Scrollbar - Forced Visibility */
+.voucher-grid::-webkit-scrollbar {
+  height: 6px !important;
+  display: block !important;
+}
+
+.voucher-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 10px !important;
+  margin: 0 20px !important;
+}
+
+.voucher-grid::-webkit-scrollbar-thumb {
+  background: #ccc !important;
+  border-radius: 10px !important;
+  transition: background 0.3s !important;
+}
+
+.voucher-grid:hover::-webkit-scrollbar-thumb {
+  background: #000 !important;
+}
+
+/* Force show for all browsers */
+.voucher-grid {
+  scrollbar-width: auto !important;
+  -ms-overflow-style: auto !important;
+}
+
+.voucher-card {
+  flex: 0 0 350px !important;
+  width: 350px !important;
+  min-width: 350px !important;
+  height: 115px;
+  scroll-snap-align: start;
+  background: #000;
+  border: 1px solid #333;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 6px 6px 0px #eee;
+  flex-shrink: 0 !important;
+}
+
+.voucher-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 10px 10px 0px #000;
+  border-color: #fff;
 }
 
 .voucher-card::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  width: 20px;
-  height: 20px;
-  background: #fcfcfc; /* Match body bg */
-  border-radius: 50%;
-  border: 3px solid #000;
-  z-index: 2;
+  display: none; /* Remove scanlines */
 }
 
-.voucher-card::after {
-  content: "";
-  position: absolute;
-  bottom: -10px;
-  right: -10px;
-  width: 20px;
-  height: 20px;
-  background: #fcfcfc; /* Match body bg */
-  border-radius: 50%;
-  border: 3px solid #000;
-  z-index: 2;
+.voucher-left {
+  flex: 1;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px dashed #333;
+  height: 70%;
+  overflow: hidden; /* Prevent child from pushing width */
 }
 
 .voucher-code {
+  font-family: 'Inter', sans-serif;
   font-weight: 900;
-  font-size: 1.3rem;
-  color: #000;
-  display: block;
+  font-size: 1.4rem;
+  color: #fff;
+  letter-spacing: -0.5px;
+  line-height: 1;
   text-transform: uppercase;
-  letter-spacing: -1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Added for long codes */
 }
 
 .voucher-desc {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.voucher-min {
+  font-size: 0.6rem;
   color: #666;
   font-weight: 600;
-  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.voucher-validity {
+  font-size: 0.6rem;
+  color: #aaa;
+  font-weight: 500;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
 }
 
 .voucher-btn {
-  background: #000;
-  color: white;
+  width: 90px;
+  height: 100%;
+  background: transparent;
+  color: #fff;
   border: none;
-  border-radius: 0;
-  padding: 10px 15px;
-  font-weight: 800;
-  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif; /* Better Vietnamese support */
+  font-weight: 900;
   font-size: 0.75rem;
   text-transform: uppercase;
-  transition: all 0.2s;
-  position: relative;
-  z-index: 3;
+  cursor: pointer;
+  writing-mode: vertical-lr;
+  display: flex;
+  flex-shrink: 0; /* Ensure button never shrinks */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  letter-spacing: 1px;
 }
 
-.voucher-btn:hover {
+.voucher-btn.saved {
+  background: #fff !important;
+  color: #000 !important;
+  cursor: default;
+}
+
+.voucher-card:hover .voucher-btn {
   background: #fff;
   color: #000;
-  box-shadow: inset 0 0 0 2px #000;
 }
 
-.nav-btn {
-  background: #fff;
+/* Reset Section Background */
+.slider-container {
+  padding: 30px 0;
+  background: transparent;
+  margin: 20px 0;
+}
+
+/* Hidden elements from old design */
+.notch-tl, .notch-bl { display: none; }
+
+.gt-voucher-slider-container .nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
   border: 2px solid #000;
-  border-radius: 0;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  position: absolute;
   z-index: 10;
-  transition: all 0.2s;
-  box-shadow: 4px 4px 0px #000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s;
 }
 
-.nav-btn:hover {
-  background: #000;
-  color: #fff;
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px #000;
+.gt-voucher-slider-container .nav-btn:hover {
+  background: #fff;
+  color: #000;
+  transform: translateY(-50%) scale(1.1);
 }
 
-.nav-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px #000;
-}
-
-.nav-btn.prev {
-  left: -18px;
-}
-
-.nav-btn.next {
-  right: -18px;
-}
+.gt-voucher-slider-container .nav-btn.prev { left: -22px; }
+.gt-voucher-slider-container .nav-btn.next { right: -22px; }
 
 /* --- Product Section --- */
 .tabs {
@@ -536,12 +601,136 @@
   position: relative;
 }
 
-.btn-text::after {
-  content: '';
+/* --- Feedback Section (Brutalist Style) --- */
+.section-feedback {
+  padding: 80px 0;
+  background-color: #fff;
+  border-top: 1px solid var(--border-color);
+}
+
+.feedback-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.feedback-desc {
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 10px;
+  color: #666;
+}
+
+.feedback-desc .highlight {
+  color: #000;
+  font-weight: 900;
+  border-bottom: 2px solid #000;
+}
+
+.feedback-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 50px;
+}
+
+.feedback-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid #000;
+  background-color: #f5f5f5;
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.feedback-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 10px 10px 0px #000;
+  border-width: 2px;
+}
+
+.feedback-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.feedback-item:hover .feedback-img {
+  transform: scale(1.05);
+}
+
+.feedback-overlay {
   position: absolute;
-  bottom: -2px;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: 1px;
-  background-color: var(--primary-text);
+  background: #000;
+  color: #fff;
+  padding: 8px 15px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.feedback-item:hover .feedback-overlay {
+  transform: translateY(0);
+}
+
+.customer-name {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* Placeholder Styling */
+.feedback-item.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+}
+
+.placeholder-content {
+  font-size: 0.7rem;
+  color: #ccc;
+  font-weight: 900;
+  transform: rotate(-45deg);
+  letter-spacing: 2px;
+}
+
+.feedback-footer {
+  text-align: center;
+}
+
+.btn-industrial {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 15px 40px;
+  font-weight: 900;
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.btn-industrial:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 6px 6px 0px #000;
+  transform: translate(-3px, -3px);
+  outline: 2px solid #000;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feedback-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .section-feedback {
+    padding: 50px 0;
+  }
 }

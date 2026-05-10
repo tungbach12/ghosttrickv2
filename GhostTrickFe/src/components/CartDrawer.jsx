@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, Trash2, ShoppingBag } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
+import ColorTag from './common/ColorTag';
 
 export default function CartDrawer() {
   const { cartItems, isCartOpen, setIsCartOpen, removeFromCart, updateCartQty } = useGlobalContext();
@@ -57,7 +58,11 @@ export default function CartDrawer() {
                   </div>
                   <div className="item-info">
                     <h4 className="item-name">{item.name}</h4>
-                    <p className="item-meta">{item.color} / {item.size}</p>
+                    <div className="item-meta">
+                      <ColorTag name={typeof item.color === 'object' ? item.color.name : item.color} hex={item.colorHex} size="sm" />
+                      <span style={{ margin: '0 8px', color: '#cbd5e1' }}>|</span>
+                      <span>Size: {item.size}</span>
+                    </div>
                     <div className="item-qty-price">
                       <div className="qty-controls">
                         <button onClick={() => updateCartQty(idx, -1)}>-</button>

@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Pointing correctly from src/styles/base/ to src/styles/ */
+@import "../variables.css";
+@import "../base.css";
+@import "../components.css";
+@import "../layout.css";
+@import "../pages/home.css";
+@import "../pages/product-listing.css";
+@import "../pages/product-detail.css";
+@import "../pages/cart.css";
+@import "../pages/checkout.css";
+@import "../pages/auth.css";
+@import "../pages/about.css";
+@import "../pages/blog.css";
+@import "../pages/policy.css";
+@import "../pages/profile.css";
+@import "../pages/sale.css";
+@import "../responsive.css";
+
+/* Base and Variables */
+/* Components and Layout (Base) */
+/* Page-specific Styles */
+/* Global Responsive Overrides */

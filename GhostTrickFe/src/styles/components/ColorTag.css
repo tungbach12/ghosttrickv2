@@ -1,0 +1,63 @@
+.color-tag-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8f8f8;
+  border: 1px solid #eee;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.color-tag-container:hover {
+  border-color: #000;
+}
+
+.color-swatch {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.color-label {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* Sizes */
+.color-tag-container.md {
+  padding: 6px 12px;
+  gap: 10px;
+}
+.color-tag-container.md .color-swatch {
+  width: 18px;
+  height: 18px;
+}
+.color-tag-container.md .color-label {
+  font-size: 0.95rem;
+}
+
+.color-tag-container.lg {
+  padding: 8px 16px;
+  gap: 12px;
+}
+.color-tag-container.lg .color-swatch {
+  width: 24px;
+  height: 24px;
+}
+.color-tag-container.lg .color-label {
+  font-size: 1.1rem;
+}
+
+/* Dark mode support if parent is dark */
+.dark .color-tag-container {
+  background: #222;
+  border-color: #333;
+  color: #fff;
+}

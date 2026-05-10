@@ -46,7 +46,11 @@ namespace GhostTrick.Application.Services
             var itemList = items.ToList();
             var variantIds = itemList.Select(i => i.variantId).ToList();
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            // Use existing transaction if provided by caller (e.g. OrdersController), otherwise create new
+            var transaction = _context.Database.CurrentTransaction == null 
+                ? await _context.Database.BeginTransactionAsync() 
+                : null;
+
             try
             {
                 var variants = await _context.ProductVariants
@@ -76,12 +80,22 @@ namespace GhostTrick.Application.Services
                 }
 
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+                
+                if (transaction != null) await transaction.CommitAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (transaction != null) await transaction.RollbackAsync();
+                throw new InvalidOperationException("Hệ thống đang bận do có nhiều người cùng đặt hàng. Vui lòng thử lại sau giây lát.");
             }
             catch
             {
-                await transaction.RollbackAsync();
+                if (transaction != null) await transaction.RollbackAsync();
                 throw;
+            }
+            finally
+            {
+                if (transaction != null) await transaction.DisposeAsync();
             }
         }
 

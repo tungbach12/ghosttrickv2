@@ -31,7 +31,14 @@ builder.Services.AddDbContext<GhostTrickContext>(options =>
 builder.Services.AddScoped<IGhostTrickContext>(provider => provider.GetRequiredService<GhostTrickContext>());
 
 // Configure Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => {
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 8;
+    options.Password.RequiredUniqueChars = 0;
+})
     .AddEntityFrameworkStores<GhostTrickContext>()
     .AddDefaultTokenProviders();
 
@@ -41,7 +48,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -77,6 +84,15 @@ builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddScoped<ICatalogService, CatalogService>();
+builder.Services.AddScoped<IMarketingService, MarketingService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var app = builder.Build();
 
@@ -100,6 +116,12 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline.
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    await next();
+});
+
 app.UseCors("AllowReactApp");
 
 app.UseMiddleware<ExceptionMiddleware>();
@@ -114,7 +136,9 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseStaticFiles();
 app.UseAuthentication();
+app.UseMiddleware<UserStatusMiddleware>();
 app.UseAuthorization();
 
 // Auto migrate database

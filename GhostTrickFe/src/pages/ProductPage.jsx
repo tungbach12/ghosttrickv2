@@ -3,17 +3,22 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { Heart, ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react'
 import { getCategories } from '../services/categoryService'
 import { productService } from '../services/productService'
+import ColorTag from '../components/common/ColorTag'
 
 export default function ProductPage() {
   const { categorySlug } = useParams();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q');
+  const initialSort = searchParams.get('sort') || 'default';
   const onSale = searchParams.get('onSale') === 'true';
   
-  const [sortBy, setSortBy] = useState('default');
+  const [sortBy, setSortBy] = useState(initialSort);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 12;
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -35,10 +40,13 @@ export default function ProductPage() {
           category: categorySlug,
           sort: sortBy,
           onSale: onSale || undefined,
-          q: searchQuery || undefined
+          q: searchQuery || undefined,
+          page: currentPage,
+          pageSize: pageSize
         };
         const data = await productService.getProducts(params);
         setProducts(data.items);
+        setTotalCount(data.totalCount);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -46,6 +54,11 @@ export default function ProductPage() {
       }
     };
     fetchProducts();
+  }, [categorySlug, sortBy, onSale, searchQuery, currentPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [categorySlug, sortBy, onSale, searchQuery]);
 
   const currentCategory = categorySlug 
@@ -67,6 +80,7 @@ export default function ProductPage() {
     { value: 'price-desc', label: 'Giá giảm dần' },
     { value: 'name-asc', label: 'Tên A-Z' },
     { value: 'name-desc', label: 'Tên Z-A' },
+    { value: 'best-sellers', label: 'Bán chạy nhất' },
   ];
 
   return (
@@ -169,7 +183,7 @@ export default function ProductPage() {
                       >
                         <Heart size={20}/>
                       </button>
-                      {p.isOnSale && (
+                      {p.isOnSale && p.originalPrice > p.price && (
                         <span className="product-badge sale">SALE</span>
                       )}
                     </div>
@@ -177,14 +191,19 @@ export default function ProductPage() {
                       <h3 className="product-title">{p.name}</h3>
                       <div className="product-price-row">
                         <span className="product-price">{formatPrice(p.price)}</span>
-                        {p.originalPrice && (
+                        {p.originalPrice > 0 && p.originalPrice > p.price && (
                           <span className="product-original-price">{formatPrice(p.originalPrice)}</span>
                         )}
                       </div>
-                      <div className="color-swatches">
-                        {p.colors.map((c, i) => (
-                          <span key={i} className="swatch" style={{ background: c, border: c === '#ffffff' ? '1px solid #ddd' : 'none' }}></span>
-                        ))}
+                      <div className="product-meta-row">
+                        <div className="color-swatches">
+                          {p.colors.map((c) => (
+                            <ColorTag key={c.id} name={c.name} hex={c.hexCode} size="sm" showLabel={false} />
+                          ))}
+                        </div>
+                        {p.salesCount > 0 && (
+                          <span className="product-sales-count">Đã bán {p.salesCount}</span>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -199,6 +218,37 @@ export default function ProductPage() {
         ) : (
           <div className="loading-state">
             <p>Đang tải sản phẩm...</p>
+          </div>
+        )}
+
+        {/* Pagination UI */}
+        {!loading && totalCount > pageSize && (
+          <div className="pagination">
+            <button 
+              className="pagination-btn" 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              Trang trước
+            </button>
+            <div className="pagination-numbers">
+              {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, i) => i + 1).map(num => (
+                <button 
+                  key={num}
+                  className={`page-number ${currentPage === num ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(num)}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+            <button 
+              className="pagination-btn" 
+              disabled={currentPage === Math.ceil(totalCount / pageSize)}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              Trang sau
+            </button>
           </div>
         )}
       </div>
