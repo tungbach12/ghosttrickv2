@@ -13,7 +13,7 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-# Build the application
+# Cache bust 1
 RUN npm run build
 
 # Stage 2: Serve the application with Nginx
