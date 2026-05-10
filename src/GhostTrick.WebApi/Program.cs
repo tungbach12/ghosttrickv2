@@ -96,6 +96,23 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 
 var app = builder.Build();
 
+// Auto migrate database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<GhostTrickContext>();
+        context.Database.Migrate();
+        Console.WriteLine("Database migration completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+    }
+}
+
 // Seed database
 using (var scope = app.Services.CreateScope())
 {
@@ -141,22 +158,7 @@ app.UseAuthentication();
 app.UseMiddleware<UserStatusMiddleware>();
 app.UseAuthorization();
 
-// Auto migrate database
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<GhostTrickContext>();
-        context.Database.Migrate();
-        Console.WriteLine("Database migration completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-    }
-}
+
 
 app.MapControllers();
 

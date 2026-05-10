@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ghosttrick_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ghosttrick_api
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Connection string uses the container name 'db' instead of localhost
+      - ConnectionStrings__DefaultConnection=Server=db;Database=GhostTrickDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true
+      - Jwt__Key=${Jwt__Key}
+      - Jwt__Issuer=${Jwt__Issuer}
+      - Jwt__Audience=${Jwt__Audience}
+      - Jwt__AccessTokenExpiryMinutes=${Jwt__AccessTokenExpiryMinutes}
+      - Jwt__RefreshTokenExpiryDays=${Jwt__RefreshTokenExpiryDays}
+      - Cloudinary__CloudName=${Cloudinary__CloudName}
+      - Cloudinary__ApiKey=${Cloudinary__ApiKey}
+      - Cloudinary__ApiSecret=${Cloudinary__ApiSecret}
+      - Email__Username=${Email__Username}
+      - Email__Password=${Email__Password}
+      - Google__ClientId=${Google__ClientId}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./GhostTrickFe
+      dockerfile: Dockerfile
+      # We need to pass the VITE_API_URL to the build process so it's baked into the React app
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: ghosttrick_web
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
