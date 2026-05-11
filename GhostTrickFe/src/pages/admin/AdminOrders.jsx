@@ -50,6 +50,8 @@ const AdminOrders = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [orderBy, setOrderBy] = useState('newest');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categories, setCategories] = useState([]);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -72,6 +74,7 @@ const AdminOrders = () => {
       if (dateRange.start) params.append('startDate', dateRange.start);
       if (dateRange.end) params.append('endDate', dateRange.end);
       if (orderBy) params.append('orderBy', orderBy);
+      if (categoryFilter) params.append('category', categoryFilter);
 
       const response = await api.get(`/orders/all?${params.toString()}`);
       setOrders(response.data.items);
@@ -83,11 +86,24 @@ const AdminOrders = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, statusFilter, paymentMethodFilter, paymentStatusFilter, dateRange, orderBy, pageSize, addToast]);
+  }, [searchTerm, statusFilter, paymentMethodFilter, paymentStatusFilter, dateRange, orderBy, categoryFilter, pageSize, addToast]);
 
   useEffect(() => {
     fetchOrders(1);
-  }, [statusFilter, paymentMethodFilter, paymentStatusFilter, dateRange, orderBy]);
+  }, [statusFilter, paymentMethodFilter, paymentStatusFilter, dateRange, orderBy, categoryFilter]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/categories');
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch categories');
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -174,6 +190,7 @@ const AdminOrders = () => {
     setPaymentMethodFilter('All');
     setPaymentStatusFilter('All');
     setDateRange({ start: '', end: '' });
+    setCategoryFilter('');
   };
 
   const renderPagination = () => {
@@ -250,7 +267,7 @@ const AdminOrders = () => {
             >
               <Filter size={18} />
               <span>Bộ lọc nâng cao</span>
-              { (statusFilter !== 'All' || paymentMethodFilter !== 'All' || dateRange.start) && <span className="filter-dot"></span> }
+              { (statusFilter !== 'All' || paymentMethodFilter !== 'All' || dateRange.start || categoryFilter) && <span className="filter-dot"></span> }
             </button>
             <button className="sort-select" onClick={() => fetchOrders()}>
               <Activity size={18} /> <span className="hide-mobile">Làm mới dữ liệu</span>
@@ -279,6 +296,15 @@ const AdminOrders = () => {
                   <option value="All">Tất cả phương thức</option>
                   <option value="COD">COD</option>
                   <option value="BankTransfer">Chuyển khoản</option>
+                </select>
+              </div>
+              <div className="filter-item">
+                <label>DANH MỤC SẢN PHẨM</label>
+                <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  <option value="">Tất cả danh mục</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.slug}>{cat.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="filter-item">

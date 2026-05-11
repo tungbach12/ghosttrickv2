@@ -7,17 +7,20 @@ namespace GhostTrick.Application.Services
     public class CatalogService : ICatalogService
     {
         private readonly IGenericRepository<Category> _categoryRepo;
+        private readonly IGenericRepository<Product> _productRepo;
         private readonly IGenericRepository<ProductColor> _colorRepo;
         private readonly IGenericRepository<Policy> _policyRepo;
         private readonly IUnitOfWork _uow;
 
         public CatalogService(
             IGenericRepository<Category> categoryRepo,
+            IGenericRepository<Product> productRepo,
             IGenericRepository<ProductColor> colorRepo,
             IGenericRepository<Policy> policyRepo,
             IUnitOfWork uow)
         {
             _categoryRepo = categoryRepo;
+            _productRepo = productRepo;
             _colorRepo = colorRepo;
             _policyRepo = policyRepo;
             _uow = uow;
@@ -38,12 +41,19 @@ namespace GhostTrick.Application.Services
         public async Task DeleteCategoryAsync(int id)
         {
             var category = await _categoryRepo.GetByIdAsync(id);
-            if (category != null)
+            if (category == null) return;
+
+            // Kiểm tra xem còn sản phẩm nào thuộc danh mục này không (bao gồm cả sản phẩm đã xóa nếu cần, 
+            // nhưng chuyên nghiệp nhất là kiểm tra sản phẩm hiện hữu)
+            var hasProducts = (await _productRepo.FindAsync(p => p.CategoryId == id && !p.IsDeleted)).Any();
+            if (hasProducts)
             {
-                category.IsDeleted = true;
-                _categoryRepo.Update(category);
-                await _uow.CompleteAsync();
+                throw new InvalidOperationException("Không thể xóa danh mục này vì vẫn còn sản phẩm bên trong. Vui lòng chuyển sản phẩm sang danh mục khác hoặc xóa sản phẩm trước.");
             }
+
+            category.IsDeleted = true;
+            _categoryRepo.Update(category);
+            await _uow.CompleteAsync();
         }
 
         public async Task<List<ProductColor>> GetColorsAsync()

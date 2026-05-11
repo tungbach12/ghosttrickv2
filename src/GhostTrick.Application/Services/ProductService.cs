@@ -13,6 +13,7 @@ namespace GhostTrick.Application.Services
         private readonly IGenericRepository<Order> _orderRepo;
         private readonly IGenericRepository<OrderItem> _orderItemRepo;
         private readonly IGenericRepository<CartItem> _cartRepo;
+        private readonly IGenericRepository<Category> _categoryRepo;
         private readonly IUnitOfWork _uow;
         private readonly IPhotoService _photoService;
 
@@ -23,6 +24,7 @@ namespace GhostTrick.Application.Services
             IGenericRepository<Order> orderRepo,
             IGenericRepository<OrderItem> orderItemRepo,
             IGenericRepository<CartItem> cartRepo,
+            IGenericRepository<Category> categoryRepo,
             IUnitOfWork uow,
             IPhotoService photoService)
         {
@@ -32,6 +34,7 @@ namespace GhostTrick.Application.Services
             _orderRepo = orderRepo;
             _orderItemRepo = orderItemRepo;
             _cartRepo = cartRepo;
+            _categoryRepo = categoryRepo;
             _uow = uow;
             _photoService = photoService;
         }
@@ -40,14 +43,6 @@ namespace GhostTrick.Application.Services
         {
             var (items, totalCount) = await _productRepo.GetPagedAsync(page, pageSize, query => 
             {
-                if (status == "Deleted")
-                {
-                    // For now, Repo doesn't support IgnoreQueryFilters easily. 
-                    // I'll need to add a way or just use FindAsync for deletions.
-                    // But for this refactor, I'll assume status != "Deleted" or 
-                    // I'll need to modify the repository to support IgnoreQueryFilters.
-                }
-
                 query = query
                     .AsNoTracking()
                     .AsSplitQuery()
@@ -55,16 +50,27 @@ namespace GhostTrick.Application.Services
                     .Include(p => p.Variants).ThenInclude(v => v.Color)
                     .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent);
 
-                if (!isAdmin)
+                // Nếu lọc 'Deleted', ưu tiên lấy các bản ghi đã xóa (cần ignoreQueryFilters: true)
+                if (isAdmin && status == "Deleted")
                 {
-                    query = query.Where(p => p.Status == ProductStatus.Active);
+                    query = query.Where(p => p.IsDeleted);
+                }
+                else if (!isAdmin)
+                {
+                    // Khách hàng bình thường chỉ thấy sản phẩm Active và chưa xóa
+                    query = query.Where(p => p.Status == ProductStatus.Active && !p.IsDeleted);
                 }
                 else if (!string.IsNullOrEmpty(status))
                 {
                     if (Enum.TryParse<ProductStatus>(status, true, out var productStatus))
                     {
-                        query = query.Where(p => p.Status == productStatus);
+                        query = query.Where(p => p.Status == productStatus && !p.IsDeleted);
                     }
+                }
+                else 
+                {
+                    // Admin mặc định thấy các sản phẩm chưa xóa (Active, Draft, Archived)
+                    query = query.Where(p => !p.IsDeleted);
                 }
 
                 if (!string.IsNullOrEmpty(category))
@@ -100,18 +106,18 @@ namespace GhostTrick.Application.Services
 
                 query = sort switch
                 {
-                    "price-asc" => query.OrderBy(p => p.Price),
-                    "price-desc" => query.OrderByDescending(p => p.Price),
-                    "name-asc" => query.OrderBy(p => p.Name),
-                    "name-desc" => query.OrderByDescending(p => p.Name),
-                    "newest" => query.OrderByDescending(p => p.CreatedAt),
-                    "best-sellers" => query.OrderByDescending(p => p.ManualSalesCount ?? p.ActualSalesCount),
-                    "best-sellers-actual" when isAdmin => query.OrderByDescending(p => p.ActualSalesCount),
-                    _ => query.OrderByDescending(p => p.CreatedAt)
+                    "price-asc" => query.OrderBy(p => p.Price).ThenByDescending(p => p.Id),
+                    "price-desc" => query.OrderByDescending(p => p.Price).ThenByDescending(p => p.Id),
+                    "name-asc" => query.OrderBy(p => p.Name).ThenByDescending(p => p.Id),
+                    "name-desc" => query.OrderByDescending(p => p.Name).ThenByDescending(p => p.Id),
+                    "newest" => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id),
+                    "best-sellers" => query.OrderByDescending(p => p.ManualSalesCount ?? p.ActualSalesCount).ThenByDescending(p => p.Id),
+                    "best-sellers-actual" when isAdmin => query.OrderByDescending(p => p.ActualSalesCount).ThenByDescending(p => p.Id),
+                    _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
                 };
 
                 return query;
-            });
+            }, ignoreQueryFilters: isAdmin && status == "Deleted");
 
             var dtos = new List<ProductListDto>();
             foreach (var item in items)
@@ -136,7 +142,9 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
+                .Where(p => p.Status == ProductStatus.Active)
                 .OrderByDescending(p => p.ManualSalesCount ?? p.ActualSalesCount)
+                .ThenByDescending(p => p.Id)
                 .Take(top)
             );
 
@@ -156,7 +164,9 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
+                .Where(p => p.Status == ProductStatus.Active)
                 .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.Id)
                 .Take(top)
             );
 
@@ -398,6 +408,27 @@ namespace GhostTrick.Application.Services
             await _uow.CompleteAsync();
         }
 
+        public async Task RestoreProductAsync(int id)
+        {
+            // Repo query filter is active, but GetByIdAsync uses FindAsync which might respect it.
+            // Let's use FindAsync with IgnoreQueryFilters if needed, but here we assume the product was soft deleted.
+            var results = await _productRepo.FindAsync(p => p.Id == id);
+            var product = results.FirstOrDefault();
+            
+            if (product == null) throw new KeyNotFoundException("Sản phẩm không tồn tại.");
+
+            // Kiểm tra category của sản phẩm có đang bị xóa không
+            var category = await _categoryRepo.GetByIdAsync(product.CategoryId);
+            if (category == null || category.IsDeleted)
+            {
+                throw new InvalidOperationException("Không thể khôi phục sản phẩm này vì danh mục của nó đã bị xóa. Vui lòng khôi phục danh mục trước.");
+            }
+
+            product.IsDeleted = false;
+            _productRepo.Update(product);
+            await _uow.CompleteAsync();
+        }
+
         private async Task<ProductListDto> MapToListDto(Product p)
         {
             var price = p.Price;
@@ -464,7 +495,7 @@ namespace GhostTrick.Application.Services
                 IsOnSale = isOnSale,
                 IsNewArrival = p.IsNewArrival,
                 IsTrending = p.IsTrending,
-                Status = p.Status.ToString(),
+                Status = p.IsDeleted ? "Deleted" : p.Status.ToString(),
                 IsDeleted = p.IsDeleted,
                 TotalStock = p.Variants.Sum(v => v.Stock),
                 FlashStock = flashStock,

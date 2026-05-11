@@ -4,6 +4,56 @@ import api from '../../services/api';
 import colorService from '../../services/colorService';
 import { Save, X, Plus, Trash2, Upload, AlertCircle, Palette } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+const SortableImageItem = ({ id, url, onRemove }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 0,
+    cursor: 'grab'
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="image-grid-item" {...attributes} {...listeners}>
+      <img src={url} alt="Gallery" />
+      <button type="button" className="remove-img-overlay" onClick={(e) => {
+        e.stopPropagation();
+        onRemove(id);
+      }} onPointerDown={(e) => e.stopPropagation()}>
+        <X size={14} />
+      </button>
+    </div>
+  );
+};
+
 
 const AdminAddProduct = () => {
   const { id } = useParams();
@@ -34,10 +84,8 @@ const AdminAddProduct = () => {
   const [mainImage, setMainImage] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState(null);
   
-  // Multiple images
-  const [otherImages, setOtherImages] = useState([]);
-  const [otherImagePreviews, setOtherImagePreviews] = useState([]);
-  const [existingImages, setExistingImages] = useState([]);
+  // Combined images for DnD
+  const [combinedImages, setCombinedImages] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,7 +135,12 @@ const AdminAddProduct = () => {
           setGroupedVariants(groups.length > 0 ? groups : [{ colorId: '', sizes: [{ size: '', stock: 0, lowStockThreshold: 5 }] }]);
           
           setMainImagePreview(p.mainImageUrl);
-          setExistingImages(p.images || []);
+          setCombinedImages((p.images || []).map((url, i) => ({
+            id: `existing-${i}-${Date.now()}`,
+            type: 'existing',
+            url: url,
+            file: null
+          })));
         } catch (err) {
           addToast('Không thể tải thông tin sản phẩm', 'error');
         }
@@ -95,6 +148,23 @@ const AdminAddProduct = () => {
       fetchProduct();
     }
   }, [id, isEdit]);
+
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setCombinedImages((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -145,18 +215,18 @@ const AdminAddProduct = () => {
       return true;
     });
 
-    setOtherImages(prev => [...prev, ...validFiles]);
-    const newPreviews = validFiles.map(file => URL.createObjectURL(file));
-    setOtherImagePreviews(prev => [...prev, ...newPreviews]);
+    const newItems = validFiles.map((file, i) => ({
+      id: `new-${Date.now()}-${i}`,
+      type: 'new',
+      url: URL.createObjectURL(file),
+      file: file
+    }));
+    
+    setCombinedImages(prev => [...prev, ...newItems]);
   };
 
-  const removeExistingImage = (url) => {
-    setExistingImages(prev => prev.filter(img => img !== url));
-  };
-
-  const removeOtherImage = (index) => {
-    setOtherImages(prev => prev.filter((_, i) => i !== index));
-    setOtherImagePreviews(prev => prev.filter((_, i) => i !== index));
+  const removeCombinedImage = (id) => {
+    setCombinedImages(prev => prev.filter(img => img.id !== id));
   };
 
   const validate = () => {
@@ -241,12 +311,15 @@ const AdminAddProduct = () => {
         data.append('MainImage', mainImage);
       }
 
-      otherImages.forEach(file => {
-        data.append('OtherImages', file);
-      });
-
-      existingImages.forEach((url, index) => {
-        data.append(`ExistingImages[${index}]`, url);
+      // Preserve the order established by drag-and-drop
+      let existingIndex = 0;
+      combinedImages.forEach((img) => {
+        if (img.type === 'existing') {
+          data.append(`ExistingImages[${existingIndex}]`, img.url);
+          existingIndex++;
+        } else if (img.type === 'new' && img.file) {
+          data.append('OtherImages', img.file);
+        }
       });
 
       if (isEdit) {
@@ -374,14 +447,14 @@ const AdminAddProduct = () => {
 
             <div className="form-group full-width">
               <label className="form-label">Mô tả sản phẩm</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="form-control"
-                rows="4"
-                placeholder="Mô tả chi tiết về sản phẩm..."
-              ></textarea>
+              <div className="quill-wrapper">
+                <ReactQuill 
+                  theme="snow" 
+                  value={formData.description} 
+                  onChange={(val) => setFormData(prev => ({ ...prev, description: val }))}
+                  placeholder="Mô tả chi tiết về sản phẩm..."
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -412,25 +485,13 @@ const AdminAddProduct = () => {
             <p style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '16px' }}>Ảnh chi tiết khác</p>
             
             <div className="images-grid">
-              {/* Existing Images */}
-              {existingImages.map((url, idx) => (
-                <div key={`existing-${idx}`} className="image-grid-item">
-                  <img src={url} alt="Existing" />
-                  <button type="button" className="remove-img-overlay" onClick={() => removeExistingImage(url)}>
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-
-              {/* New Image Previews */}
-              {otherImagePreviews.map((url, idx) => (
-                <div key={`new-${idx}`} className="image-grid-item new">
-                  <img src={url} alt="New" />
-                  <button type="button" className="remove-img-overlay" onClick={() => removeOtherImage(idx)}>
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={combinedImages.map(img => img.id)} strategy={rectSortingStrategy}>
+                  {combinedImages.map((img) => (
+                    <SortableImageItem key={img.id} id={img.id} url={img.url} onRemove={removeCombinedImage} />
+                  ))}
+                </SortableContext>
+              </DndContext>
 
               {/* Add More Button */}
               <label className="add-image-box">
@@ -640,7 +701,11 @@ const AdminAddProduct = () => {
           .duplicate-row { background: #fff1f2; }
 
           .other-images-section { border-top: 1px solid #f1f5f9; padding-top: 24px; }
-          .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; margin-top: 12px; }
+          .images-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+          .image-grid-item { width: 120px; position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: white; }
+          .quill-wrapper .ql-container { min-height: 150px; font-size: 0.95rem; font-family: inherit; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-color: #e2e8f0; }
+          .quill-wrapper .ql-toolbar { border-top-left-radius: 12px; border-top-right-radius: 12px; border-color: #e2e8f0; background: #f8fafc; }
+          .quill-wrapper .ql-editor { min-height: 150px; padding: 16px; }
           .image-grid-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
           .image-grid-item img { width: 100%; height: 100%; object-fit: cover; }
           .image-grid-item.new { border-color: #3b82f6; border-style: dashed; }

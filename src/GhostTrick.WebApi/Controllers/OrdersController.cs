@@ -68,9 +68,10 @@ namespace GhostTrick.WebApi.Controllers
             [FromQuery] decimal? maxAmount = null,
             [FromQuery] string? paymentMethod = null,
             [FromQuery] string? paymentStatus = null,
-            [FromQuery] string? orderBy = null)
+            [FromQuery] string? orderBy = null,
+            [FromQuery] string? category = null)
         {
-            var result = await _orderService.GetAllOrdersAsync(page, pageSize, q, status, startDate, endDate, minAmount, maxAmount, paymentMethod, paymentStatus, orderBy);
+            var result = await _orderService.GetAllOrdersAsync(page, pageSize, q, status, startDate, endDate, minAmount, maxAmount, paymentMethod, paymentStatus, orderBy, category);
             return Ok(result);
         }
 

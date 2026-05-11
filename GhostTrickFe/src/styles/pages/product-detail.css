@@ -82,6 +82,18 @@
 
 .pd-info {
   flex: 1;
+  min-width: 0;
+}
+
+.pd-desc-html {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.pd-desc-html img {
+  max-width: 100%;
+  height: auto;
 }
 
 .pd-title {
@@ -257,6 +269,46 @@
 
 .pd-desc-section {
   margin-top: 30px;
+}
+
+.pd-desc-content {
+  position: relative;
+  overflow: hidden;
+  max-height: 350px;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.pd-desc-content.expanded {
+  max-height: 5000px;
+}
+
+.pd-desc-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+  pointer-events: none;
+}
+
+.btn-toggle-desc {
+  display: block;
+  margin: 15px auto 0;
+  padding: 8px 24px;
+  background: white;
+  border: 1px solid #000;
+  border-radius: 20px;
+  color: #000;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-desc:hover {
+  background: #000;
+  color: white;
 }
 
 .pd-desc-section h3 {

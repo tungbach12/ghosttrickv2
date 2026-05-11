@@ -15,5 +15,6 @@ namespace GhostTrick.Application.Interfaces
         Task<ProductDetailDto> UpdateProductAsync(int id, CreateProductDto dto);
         Task UpdateStatusAsync(int id, string status);
         Task DeleteProductAsync(int id);
+        Task RestoreProductAsync(int id);
     }
 }

@@ -752,7 +752,7 @@ const AdminProducts = () => {
                 <td>
                   <div className="quick-status-wrapper">
                     <select
-                      className={`quick-status-select ${product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
+                      className={`quick-status-select ${product.isDeleted || product.status === 'Deleted' ? 'deleted' : product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
                       value={product.status}
                       onChange={(e) => handleQuickStatusUpdate(product.id, e.target.value)}
                       disabled={statusUpdateLoading === product.id || product.isDeleted}
@@ -761,7 +761,7 @@ const AdminProducts = () => {
                       <option value="Draft">Bản nháp</option>
                       <option value="Archived">Lưu trữ</option>
                     </select>
-                    {product.isDeleted && <span className="deleted-badge">Đã xóa</span>}
+                    {(product.isDeleted || product.status === 'Deleted') && <span className="deleted-badge">Đã xóa</span>}
                   </div>
                 </td>
                 <td>
@@ -809,7 +809,7 @@ const AdminProducts = () => {
                 <span className="stat-label">TRẠNG THÁI</span>
                 <div className="quick-status-wrapper" style={{ width: '100%', marginTop: '4px' }}>
                   <select
-                    className={`quick-status-select ${product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
+                    className={`quick-status-select ${product.isDeleted || product.status === 'Deleted' ? 'deleted' : product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
                     value={product.status}
                     onChange={(e) => handleQuickStatusUpdate(product.id, e.target.value)}
                     disabled={statusUpdateLoading === product.id || product.isDeleted}
@@ -819,7 +819,7 @@ const AdminProducts = () => {
                     <option value="Draft">Bản nháp</option>
                     <option value="Archived">Lưu trữ</option>
                   </select>
-                  {product.isDeleted && <span className="deleted-badge" style={{ fontSize: '0.65rem' }}>Đã xóa</span>}
+                  {(product.isDeleted || product.status === 'Deleted') && <span className="deleted-badge" style={{ fontSize: '0.65rem' }}>Đã xóa</span>}
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Heart, ChevronRight, Minus, Plus, Share2, AlertCircle, Star, User, Trash2, Edit2 } from 'lucide-react'
 import { productService } from '../services/productService'
@@ -22,6 +22,10 @@ export default function ProductDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
+  
+  const descRef = useRef(null);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showDescToggle, setShowDescToggle] = useState(false);
 
 
 
@@ -54,6 +58,28 @@ export default function ProductDetailPage() {
     };
     fetchProduct();
   }, [productId, user?.id]);
+
+  useEffect(() => {
+    const checkHeight = () => {
+      if (descRef.current) {
+        if (descRef.current.scrollHeight > 350) {
+          setShowDescToggle(true);
+        } else {
+          setShowDescToggle(false);
+        }
+      }
+    };
+
+    checkHeight();
+    // Re-check after DOM paints and images potentially load
+    const timer1 = setTimeout(checkHeight, 100);
+    const timer2 = setTimeout(checkHeight, 500);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [product?.description]);
 
   const availableSizes = product?.variants
     ? [...new Set(product.variants.filter(v => v.colorId === selectedColor?.id).map(v => v.size))]
@@ -288,7 +314,24 @@ export default function ProductDetailPage() {
 
           <div className="pd-desc-section">
             <h3>Mô tả sản phẩm</h3>
-            <p>{product.description || 'Chưa có mô tả cho sản phẩm này.'}</p>
+            {product.description ? (
+              <>
+                <div className={`pd-desc-content ${isDescExpanded ? 'expanded' : ''}`} ref={descRef}>
+                  <div className="pd-desc-html" dangerouslySetInnerHTML={{ __html: product.description }} />
+                  {!isDescExpanded && showDescToggle && <div className="pd-desc-overlay"></div>}
+                </div>
+                {showDescToggle && (
+                  <button 
+                    className="btn-toggle-desc"
+                    onClick={() => setIsDescExpanded(!isDescExpanded)}
+                  >
+                    {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
+                  </button>
+                )}
+              </>
+            ) : (
+              <p>Chưa có mô tả cho sản phẩm này.</p>
+            )}
           </div>
 
           <div className="pd-reviews-section">

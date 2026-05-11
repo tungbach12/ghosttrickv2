@@ -332,7 +332,8 @@ namespace GhostTrick.Application.Services
             decimal? maxAmount = null,
             string? paymentMethod = null,
             string? paymentStatus = null,
-            string? orderBy = null)
+            string? orderBy = null,
+            string? category = null)
         {
             var (items, totalCount) = await _orderRepo.GetPagedAsync(page, pageSize, query => 
             {
@@ -371,6 +372,11 @@ namespace GhostTrick.Application.Services
 
                 if (!string.IsNullOrEmpty(paymentStatus) && Enum.TryParse<PaymentStatus>(paymentStatus, true, out var ps))
                     query = query.Where(o => o.PaymentStatus == ps);
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    query = query.Where(o => o.Items!.Any(i => i.Product!.Category!.Slug == category));
+                }
 
                 if (orderBy == "oldest")
                     query = query.OrderBy(o => o.CreatedAt);

@@ -15,6 +15,6 @@ namespace GhostTrick.Application.Interfaces
         void Update(T entity);
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
-        Task<(List<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryConfig = null);
+        Task<(List<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryConfig = null, bool ignoreQueryFilters = false);
     }
 }

@@ -13,3 +13,7 @@ src/GhostTrick.WebApi/bin/Debug/net9.0/appsettings.json
 
 # Environment variables
 .env
+
+# Logs
+logs/
+*.log

@@ -91,9 +91,15 @@ namespace GhostTrick.Infrastructure.Persistence.Repositories
             _dbSet.RemoveRange(entities);
         }
 
-        public async Task<(List<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryConfig = null)
+        public async Task<(List<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, Func<IQueryable<T>, IQueryable<T>>? queryConfig = null, bool ignoreQueryFilters = false)
         {
             IQueryable<T> query = _dbSet;
+            
+            if (ignoreQueryFilters)
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
             if (queryConfig != null)
             {
                 query = queryConfig(query);

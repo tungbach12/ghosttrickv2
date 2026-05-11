@@ -21,7 +21,8 @@ namespace GhostTrick.Application.Interfaces
             decimal? maxAmount = null,
             string? paymentMethod = null,
             string? paymentStatus = null,
-            string? orderBy = null);
+            string? orderBy = null,
+            string? category = null);
         Task UpdateOrderStatusAsync(int id, UpdateOrderStatusDto dto);
         Task UpdatePaymentStatusAsync(int id, UpdatePaymentStatusDto dto);
         Task SoftDeleteOrderAsync(int id);
