@@ -11,6 +11,10 @@ src/GhostTrick.WebApi/bin/Debug/net9.0/appsettings.json
 *.userosscache
 *.sln.docstates
 
+# Logs
+**/logs/
+*.log
+
 # Environment variables
 .env
 
