@@ -6,16 +6,26 @@ namespace GhostTrick.Application.Services
 {
     public class StockService : IStockService
     {
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<ProductVariant> _variantRepo;
+        private readonly IGenericRepository<InventoryTransaction> _transactionRepo;
+        private readonly IGenericRepository<OrderItem> _orderItemRepo;
+        private readonly IUnitOfWork _uow;
 
-        public StockService(IGhostTrickContext context)
+        public StockService(
+            IGenericRepository<ProductVariant> variantRepo,
+            IGenericRepository<InventoryTransaction> transactionRepo,
+            IGenericRepository<OrderItem> orderItemRepo,
+            IUnitOfWork uow)
         {
-            _context = context;
+            _variantRepo = variantRepo;
+            _transactionRepo = transactionRepo;
+            _orderItemRepo = orderItemRepo;
+            _uow = uow;
         }
 
         public async Task<bool> CheckStockAsync(int variantId, int quantity)
         {
-            var variant = await _context.ProductVariants.FindAsync(variantId);
+            var variant = await _variantRepo.GetByIdAsync(variantId);
             return variant != null && variant.Stock >= quantity;
         }
 
@@ -27,9 +37,8 @@ namespace GhostTrick.Application.Services
             var itemList = items.ToList();
             var variantIds = itemList.Select(i => i.variantId).ToList();
 
-            var variants = await _context.ProductVariants
-                .Where(v => variantIds.Contains(v.Id))
-                .ToDictionaryAsync(v => v.Id, v => v.Stock);
+            var variantsResults = await _variantRepo.FindAsync(v => variantIds.Contains(v.Id));
+            var variants = variantsResults.ToDictionary(v => v.Id, v => v.Stock);
 
             return itemList.ToDictionary(
                 i => i.variantId,
@@ -46,16 +55,9 @@ namespace GhostTrick.Application.Services
             var itemList = items.ToList();
             var variantIds = itemList.Select(i => i.variantId).ToList();
 
-            // Use existing transaction if provided by caller (e.g. OrdersController), otherwise create new
-            var transaction = _context.Database.CurrentTransaction == null 
-                ? await _context.Database.BeginTransactionAsync() 
-                : null;
-
             try
             {
-                var variants = await _context.ProductVariants
-                    .Where(v => variantIds.Contains(v.Id))
-                    .ToListAsync();
+                var variants = await _variantRepo.FindAsync(v => variantIds.Contains(v.Id));
 
                 foreach (var item in itemList)
                 {
@@ -67,9 +69,9 @@ namespace GhostTrick.Application.Services
                             $"Sản phẩm '{variant.Size}/{variant.Color}' chỉ còn {variant.Stock} sản phẩm.");
 
                     variant.Stock -= item.quantity;
+                    _variantRepo.Update(variant);
 
-                    // Log transaction
-                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    await _transactionRepo.AddAsync(new InventoryTransaction
                     {
                         VariantId = variant.Id,
                         Quantity = -item.quantity,
@@ -79,41 +81,29 @@ namespace GhostTrick.Application.Services
                     });
                 }
 
-                await _context.SaveChangesAsync();
-                
-                if (transaction != null) await transaction.CommitAsync();
+                await _uow.CompleteAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (transaction != null) await transaction.RollbackAsync();
                 throw new InvalidOperationException("Hệ thống đang bận do có nhiều người cùng đặt hàng. Vui lòng thử lại sau giây lát.");
-            }
-            catch
-            {
-                if (transaction != null) await transaction.RollbackAsync();
-                throw;
-            }
-            finally
-            {
-                if (transaction != null) await transaction.DisposeAsync();
             }
         }
 
         public async Task RestoreStockAsync(int orderId)
         {
-            var orderItems = await _context.OrderItems
-                .Where(oi => oi.OrderId == orderId)
-                .Include(oi => oi.Variant)
-                .ToListAsync();
+            var orderItems = await _orderItemRepo.FindAsync(
+                oi => oi.OrderId == orderId,
+                q => q.Include(oi => oi.Variant!)
+            );
 
             foreach (var item in orderItems)
             {
                 if (item.Variant != null)
                 {
                     item.Variant.Stock += item.Quantity;
+                    _variantRepo.Update(item.Variant);
 
-                    // Log transaction
-                    _context.InventoryTransactions.Add(new InventoryTransaction
+                    await _transactionRepo.AddAsync(new InventoryTransaction
                     {
                         VariantId = item.VariantId,
                         Quantity = item.Quantity,
@@ -124,7 +114,7 @@ namespace GhostTrick.Application.Services
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await _uow.CompleteAsync();
         }
     }
 }

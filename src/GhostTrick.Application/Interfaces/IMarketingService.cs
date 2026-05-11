@@ -19,5 +19,10 @@ namespace GhostTrick.Application.Interfaces
         Task<HomeBanner> CreateBannerAsync(HomeBannerDto dto);
         Task<HomeBanner> UpdateBannerAsync(int id, HomeBannerDto dto);
         Task DeleteBannerAsync(int id);
+        // TopBarPromos
+        Task<List<TopBarPromo>> GetTopBarPromosAsync(bool activeOnly = true);
+        Task<TopBarPromo> CreateTopBarPromoAsync(TopBarPromoDto dto);
+        Task<TopBarPromo> UpdateTopBarPromoAsync(int id, TopBarPromoDto dto);
+        Task DeleteTopBarPromoAsync(int id);
     }
 }

@@ -2,6 +2,7 @@ using GhostTrick.Application.Interfaces;
 using GhostTrick.Application.Services;
 using GhostTrick.Domain.Entities;
 using GhostTrick.Infrastructure.Persistence;
+using GhostTrick.Infrastructure.Persistence.Repositories;
 using GhostTrick.Infrastructure.Services;
 using GhostTrick.WebApi.Middlewares;
 using FluentValidation;
@@ -93,6 +94,12 @@ builder.Services.AddScoped<IMarketingService, MarketingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+
+// Register Repositories & UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 var app = builder.Build();
 

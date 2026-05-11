@@ -96,7 +96,27 @@ namespace GhostTrick.Infrastructure.Persistence
             }
 
 
+            // ── TopBarPromos ──────────────────────────────────────────
+            if (!context.TopBarPromos.IgnoreQueryFilters().Any())
+            {
+                context.TopBarPromos.AddRange(
+                    new TopBarPromo { Content = "Chào mừng bạn đến với Ghosttrick!", DisplayOrder = 1, IsActive = true },
+                    new TopBarPromo { Content = "Freeship cho đơn hàng từ 500K", DisplayOrder = 2, IsActive = true },
+                    new TopBarPromo { Content = "Giảm ngay 10% khi đăng ký thành viên", DisplayOrder = 3, IsActive = true },
+                    new TopBarPromo { Content = "Hàng mới về - Mua ngay kẻo lỡ!", DisplayOrder = 4, IsActive = true }
+                );
+                context.SaveChanges();
+            }
+
+            // ── SystemSettings ─────────────────────────────────────────
+            if (!context.SystemSettings.IgnoreQueryFilters().Any())
+            {
+                context.SystemSettings.AddRange(
+                    new SystemSetting { Key = "OrderNotificationEmail", Value = "admin@ghosttrick.com", Description = "Email nhận thông báo khi có đơn hàng mới" }
+                );
+                context.SaveChanges();
+            }
+        }
     }
-}
 }
 

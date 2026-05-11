@@ -7,78 +7,69 @@ namespace GhostTrick.Application.Services
 {
     public class VoucherService : IVoucherService
     {
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<Voucher> _voucherRepo;
+        private readonly IGenericRepository<UserVoucher> _userVoucherRepo;
+        private readonly IGenericRepository<VoucherUsage> _usageRepo;
+        private readonly IUnitOfWork _uow;
 
-        public VoucherService(IGhostTrickContext context)
+        public VoucherService(
+            IGenericRepository<Voucher> voucherRepo,
+            IGenericRepository<UserVoucher> userVoucherRepo,
+            IGenericRepository<VoucherUsage> usageRepo,
+            IUnitOfWork uow)
         {
-            _context = context;
+            _voucherRepo = voucherRepo;
+            _userVoucherRepo = userVoucherRepo;
+            _usageRepo = usageRepo;
+            _uow = uow;
         }
 
         public async Task<PagedResult<object>> GetVouchersAsync(int page, int pageSize, string? q, string? status, string? category = null, string? orderBy = null)
         {
-            var query = _context.Vouchers.AsNoTracking();
-
-            if (status == "Deleted")
+            var (items, totalCount) = await _voucherRepo.GetPagedAsync(page, pageSize, query => 
             {
-                query = _context.Vouchers.IgnoreQueryFilters().Where(v => v.IsDeleted).AsNoTracking();
-            }
-            else if (status == "Active")
-            {
-                query = query.Where(v => v.IsActive);
-            }
-            else if (status == "Inactive")
-            {
-                query = query.Where(v => !v.IsActive);
-            }
-
-            if (!string.IsNullOrEmpty(category) && Enum.TryParse<VoucherCategory>(category, true, out var cat))
-            {
-                query = query.Where(v => v.Category == cat);
-            }
-
-            if (!string.IsNullOrEmpty(q))
-            {
-                query = query.Where(v => v.Code.Contains(q) || v.Description.Contains(q));
-            }
-
-            var totalCount = await query.CountAsync();
-
-            if (orderBy == "oldest")
-            {
-                query = query.OrderBy(v => v.Id);
-            }
-            else
-            {
-                query = query.OrderByDescending(v => v.Id);
-            }
-
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(v => new
+                if (status == "Deleted")
                 {
-                    v.Id,
-                    v.Code,
-                    v.Description,
-                    v.Category,
-                    v.DiscountType,
-                    v.DiscountValue,
-                    v.MinOrderAmount,
-                    v.MaxDiscountAmount,
-                    v.UsageLimit,
-                    v.LimitPerUser,
-                    UsedCount = v.Usages.Count,
-                    RemainingCount = v.UsageLimit > 0 ? (v.UsageLimit - v.Usages.Count) : (int?)null,
-                    v.StartDate,
-                    v.EndDate,
-                    v.IsActive,
-                    v.IsDeleted
-                })
-                .ToListAsync();
+                    query = query.Where(v => v.IsDeleted);
+                }
+                else if (status == "Active") query = query.Where(v => v.IsActive);
+                else if (status == "Inactive") query = query.Where(v => !v.IsActive);
+
+                if (!string.IsNullOrEmpty(category) && Enum.TryParse<VoucherCategory>(category, true, out var cat))
+                    query = query.Where(v => v.Category == cat);
+
+                if (!string.IsNullOrEmpty(q))
+                    query = query.Where(v => v.Code.Contains(q) || v.Description.Contains(q));
+
+                if (orderBy == "oldest") query = query.OrderBy(v => v.Id);
+                else query = query.OrderByDescending(v => v.Id);
+
+                return query.Include(v => v.Usages!);
+            });
+
+            var resultItems = items.Select(v => new
+            {
+                v.Id,
+                v.Code,
+                v.Description,
+                v.Category,
+                v.DiscountType,
+                v.DiscountValue,
+                v.MinOrderAmount,
+                v.MaxDiscountAmount,
+                v.UsageLimit,
+                v.LimitPerUser,
+                UsedCount = v.Usages?.Count ?? 0,
+                RemainingCount = v.UsageLimit > 0 ? (v.UsageLimit - (v.Usages?.Count ?? 0)) : (int?)null,
+                v.StartDate,
+                v.EndDate,
+                v.IsActive,
+                v.IsDeleted
+            }).Cast<object>().ToList();
 
             return new PagedResult<object>
             {
-                Items = items.Cast<object>().ToList(),
+                Items = resultItems,
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize
@@ -88,44 +79,51 @@ namespace GhostTrick.Application.Services
         public async Task<object> GetPublicVouchersAsync()
         {
             var now = DateTime.UtcNow;
-            return await _context.Vouchers
-                .AsNoTracking()
+            var vouchers = await _voucherRepo.GetAsync(q => q
+                .Include(v => v.Usages)
                 .Where(v => !v.IsDeleted && 
                            v.IsActive && 
                            (v.StartDate == null || v.StartDate <= now) && 
                            (v.EndDate == null || v.EndDate >= now) &&
-                           (v.UsageLimit == 0 || v.Usages.Count < v.UsageLimit))
+                           (v.UsageLimit == 0 || v.Usages!.Count < v.UsageLimit))
                 .OrderByDescending(v => v.Id)
-                .Select(v => new
-                {
-                    v.Id,
-                    v.Code,
-                    v.Description,
-                    v.Category,
-                    v.DiscountType,
-                    v.DiscountValue,
-                    v.MinOrderAmount,
-                    v.MaxDiscountAmount,
-                    v.UsageLimit,
-                    v.LimitPerUser,
-                    UsedCount = v.Usages.Count,
-                    RemainingCount = v.UsageLimit > 0 ? (v.UsageLimit - v.Usages.Count) : (int?)null,
-                    v.StartDate,
-                    v.EndDate
-                })
-                .ToListAsync();
+            );
+
+            return vouchers.Select(v => new
+            {
+                v.Id,
+                v.Code,
+                v.Description,
+                v.Category,
+                v.DiscountType,
+                v.DiscountValue,
+                v.MinOrderAmount,
+                v.MaxDiscountAmount,
+                v.UsageLimit,
+                v.LimitPerUser,
+                UsedCount = v.Usages?.Count ?? 0,
+                RemainingCount = v.UsageLimit > 0 ? (v.UsageLimit - (v.Usages?.Count ?? 0)) : (int?)null,
+                v.StartDate,
+                v.EndDate
+            }).ToList();
         }
 
         public async Task<object> GetMyWalletAsync(string userId)
         {
             var now = DateTime.UtcNow;
-            return await _context.UserVouchers
-                .Include(uv => uv.Voucher)
+            var userVouchers = await _userVoucherRepo.GetAsync(q => q
+                .Include(uv => uv.Voucher!).ThenInclude(v => v.Usages!)
                 .Where(uv => uv.UserId == userId && 
                            !uv.Voucher!.IsDeleted && 
                            uv.Voucher.IsActive &&
                            (uv.Voucher.StartDate == null || uv.Voucher.StartDate <= now))
-                .Select(uv => new
+            );
+
+            var walletItems = new List<object>();
+            foreach (var uv in userVouchers)
+            {
+                var usageResults = await _usageRepo.FindAsync(vu => vu.VoucherId == uv.VoucherId && vu.UserId == userId);
+                walletItems.Add(new
                 {
                     uv.Voucher!.Id,
                     uv.Voucher.Code,
@@ -136,29 +134,31 @@ namespace GhostTrick.Application.Services
                     uv.Voucher.MinOrderAmount,
                     uv.Voucher.MaxDiscountAmount,
                     uv.Voucher.EndDate,
-                    UsedCount = uv.Voucher.Usages.Count,
-                    RemainingCount = uv.Voucher.UsageLimit > 0 ? (uv.Voucher.UsageLimit - uv.Voucher.Usages.Count) : (int?)null,
-                    IsUsed = _context.VoucherUsages.Any(vu => vu.VoucherId == uv.VoucherId && vu.UserId == userId),
+                    UsedCount = uv.Voucher.Usages?.Count ?? 0,
+                    RemainingCount = uv.Voucher.UsageLimit > 0 ? (uv.Voucher.UsageLimit - (uv.Voucher.Usages?.Count ?? 0)) : (int?)null,
+                    IsUsed = usageResults.Any(),
                     uv.SavedAt
-                })
-                .ToListAsync();
+                });
+            }
+            return walletItems;
         }
 
         public async Task SaveToWalletAsync(string code, string userId)
         {
-            var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == code && !v.IsDeleted && v.IsActive);
+            var result = await _voucherRepo.FindAsync(v => v.Code == code && !v.IsDeleted && v.IsActive);
+            var voucher = result.FirstOrDefault();
             if (voucher == null) throw new KeyNotFoundException("Mã giảm giá không tồn tại.");
 
-            var existing = await _context.UserVouchers.AnyAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.Id);
-            if (existing) throw new InvalidOperationException("Bạn đã lưu mã này rồi.");
+            var existingResults = await _userVoucherRepo.FindAsync(uv => uv.UserId == userId && uv.VoucherId == voucher.Id);
+            if (existingResults.Any()) throw new InvalidOperationException("Bạn đã lưu mã này rồi.");
 
-            _context.UserVouchers.Add(new UserVoucher { UserId = userId, VoucherId = voucher.Id });
-            await _context.SaveChangesAsync();
+            await _userVoucherRepo.AddAsync(new UserVoucher { UserId = userId, VoucherId = voucher.Id });
+            await _uow.CompleteAsync();
         }
 
         public async Task<Voucher> GetVoucherAsync(int id)
         {
-            var voucher = await _context.Vouchers.FindAsync(id);
+            var voucher = await _voucherRepo.GetByIdAsync(id);
             if (voucher == null || voucher.IsDeleted) throw new KeyNotFoundException("Voucher not found.");
             return voucher;
         }
@@ -166,22 +166,23 @@ namespace GhostTrick.Application.Services
         public async Task<VoucherResultDto> ValidateVoucherAsync(ValidateVoucherDto dto, string? userId)
         {
             var now = DateTime.UtcNow;
-            var voucher = await _context.Vouchers
+            var voucherList = await _voucherRepo.GetAsync(q => q
                 .Include(v => v.Usages)
-                .FirstOrDefaultAsync(v =>
+                .Where(v =>
                     v.Code == dto.Code &&
                     v.IsActive &&
                     !v.IsDeleted &&
                     (v.StartDate == null || v.StartDate <= now) &&
                     (v.EndDate == null || v.EndDate >= now) &&
-                    (v.UsageLimit == 0 || v.Usages.Count < v.UsageLimit));
+                    (v.UsageLimit == 0 || v.Usages.Count < v.UsageLimit)));
+            
+            var voucher = voucherList.FirstOrDefault();
 
             if (voucher == null) throw new InvalidOperationException("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
 
             if (userId != null && voucher.LimitPerUser > 0)
             {
-                var userUsageCount = await _context.VoucherUsages
-                    .CountAsync(vu => vu.VoucherId == voucher.Id && vu.UserId == userId);
+                var userUsageCount = (await _usageRepo.FindAsync(vu => vu.VoucherId == voucher.Id && vu.UserId == userId)).Count();
                 
                 if (userUsageCount >= voucher.LimitPerUser)
                     throw new InvalidOperationException($"Bạn đã hết lượt sử dụng mã này (Tối đa {voucher.LimitPerUser} lần).");
@@ -209,7 +210,8 @@ namespace GhostTrick.Application.Services
 
         public async Task<Voucher> CreateVoucherAsync(CreateVoucherDto dto)
         {
-            if (await _context.Vouchers.AnyAsync(v => v.Code == dto.Code && !v.IsDeleted))
+            var results = await _voucherRepo.FindAsync(v => v.Code == dto.Code && !v.IsDeleted);
+            if (results.Any())
                 throw new InvalidOperationException("Mã giảm giá này đã tồn tại.");
 
             var voucher = new Voucher
@@ -228,17 +230,18 @@ namespace GhostTrick.Application.Services
                 EndDate = dto.EndDate
             };
 
-            _context.Vouchers.Add(voucher);
-            await _context.SaveChangesAsync();
+            await _voucherRepo.AddAsync(voucher);
+            await _uow.CompleteAsync();
             return voucher;
         }
 
         public async Task<Voucher> UpdateVoucherAsync(int id, CreateVoucherDto dto)
         {
-            var voucher = await _context.Vouchers.FindAsync(id);
+            var voucher = await _voucherRepo.GetByIdAsync(id);
             if (voucher == null || voucher.IsDeleted) throw new KeyNotFoundException();
 
-            if (await _context.Vouchers.AnyAsync(v => v.Code == dto.Code && v.Id != id && !v.IsDeleted))
+            var results = await _voucherRepo.FindAsync(v => v.Code == dto.Code && v.Id != id && !v.IsDeleted);
+            if (results.Any())
                 throw new InvalidOperationException("Mã giảm giá này đã tồn tại.");
 
             voucher.Code = dto.Code;
@@ -254,17 +257,19 @@ namespace GhostTrick.Application.Services
             voucher.StartDate = dto.StartDate;
             voucher.EndDate = dto.EndDate;
 
-            await _context.SaveChangesAsync();
+            _voucherRepo.Update(voucher);
+            await _uow.CompleteAsync();
             return voucher;
         }
 
         public async Task DeleteVoucherAsync(int id)
         {
-            var voucher = await _context.Vouchers.FindAsync(id);
+            var voucher = await _voucherRepo.GetByIdAsync(id);
             if (voucher == null) throw new KeyNotFoundException();
 
             voucher.IsDeleted = true;
-            await _context.SaveChangesAsync();
+            _voucherRepo.Update(voucher);
+            await _uow.CompleteAsync();
         }
     }
 }

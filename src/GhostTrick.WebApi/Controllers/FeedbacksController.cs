@@ -10,21 +10,19 @@ namespace GhostTrick.WebApi.Controllers
     [ApiController]
     public class FeedbacksController : ControllerBase
     {
-        private readonly IGhostTrickContext _context;
+        private readonly IFeedbackService _feedbackService;
 
-        public FeedbacksController(IGhostTrickContext context)
+        public FeedbacksController(IFeedbackService feedbackService)
         {
-            _context = context;
+            _feedbackService = feedbackService;
         }
 
         // GET: api/Feedbacks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks()
         {
-            return await _context.Feedbacks
-                .Where(f => f.IsActive && !f.IsDeleted)
-                .OrderBy(f => f.DisplayOrder)
-                .ToListAsync();
+            var results = await _feedbackService.GetActiveFeedbacksAsync();
+            return Ok(results);
         }
 
         // GET: api/Feedbacks/admin
@@ -32,10 +30,8 @@ namespace GhostTrick.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacksAdmin()
         {
-            return await _context.Feedbacks
-                .Where(f => !f.IsDeleted)
-                .OrderBy(f => f.DisplayOrder)
-                .ToListAsync();
+            var results = await _feedbackService.GetAllFeedbacksAdminAsync();
+            return Ok(results);
         }
 
         [HttpPost("upload")]
@@ -66,10 +62,7 @@ namespace GhostTrick.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Feedback>> PostFeedback(Feedback feedback)
         {
-            feedback.CreatedAt = DateTime.UtcNow;
-            _context.Feedbacks.Add(feedback);
-            await _context.SaveChangesAsync();
-
+            await _feedbackService.CreateFeedbackAsync(feedback);
             return CreatedAtAction("GetFeedbacks", new { id = feedback.Id }, feedback);
         }
 
@@ -83,22 +76,17 @@ namespace GhostTrick.WebApi.Controllers
                 return BadRequest();
             }
 
-            var existingFeedback = await _context.Feedbacks.FindAsync(id);
-            if (existingFeedback == null) return NotFound();
-
-            existingFeedback.ImageUrl = feedback.ImageUrl;
-            existingFeedback.CustomerName = feedback.CustomerName;
-            existingFeedback.IsActive = feedback.IsActive;
-            existingFeedback.DisplayOrder = feedback.DisplayOrder;
-            existingFeedback.UpdatedAt = DateTime.UtcNow;
-
             try
             {
-                await _context.SaveChangesAsync();
+                await _feedbackService.UpdateFeedbackAsync(id, feedback);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FeedbackExists(id))
+                if (!_feedbackService.FeedbackExists(id))
                 {
                     return NotFound();
                 }
@@ -116,22 +104,8 @@ namespace GhostTrick.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteFeedback(int id)
         {
-            var feedback = await _context.Feedbacks.FindAsync(id);
-            if (feedback == null)
-            {
-                return NotFound();
-            }
-
-            feedback.IsDeleted = true;
-            feedback.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
+            await _feedbackService.DeleteFeedbackAsync(id);
             return NoContent();
-        }
-
-        private bool FeedbackExists(int id)
-        {
-            return _context.Feedbacks.Any(e => e.Id == id);
         }
     }
 }

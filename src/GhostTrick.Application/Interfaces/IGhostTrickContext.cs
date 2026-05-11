@@ -28,6 +28,8 @@ namespace GhostTrick.Application.Interfaces
         DbSet<OrderTimeline> OrderTimelines { get; }
         DbSet<Feedback> Feedbacks { get; }
         DbSet<ProductReview> ProductReviews { get; }
+        DbSet<TopBarPromo> TopBarPromos { get; }
+        DbSet<SystemSetting> SystemSettings { get; }
         DbSet<ApplicationUser> Users { get; }
 
         DatabaseFacade Database { get; }

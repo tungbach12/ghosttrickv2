@@ -154,53 +154,58 @@ export default function OrderDetailPage() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .order-detail-page { padding: 40px 0 80px; background: #fdfdfd; min-height: 100vh; }
+        .order-detail-page { padding: 40px 0 80px; background: #f8fafc; min-height: 100vh; }
         .detail-header { margin-bottom: 30px; }
-        .back-link { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; font-weight: 600; color: #666; margin-bottom: 20px; text-decoration: none; transition: color 0.2s; }
-        .back-link:hover { color: #000; }
+        .back-link { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; font-weight: 500; color: #64748b; margin-bottom: 20px; text-decoration: none; transition: color 0.2s; }
+        .back-link:hover { color: #0f172a; }
         
         .header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .page-title { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase; margin: 0; }
-        .order-date { color: #94a3b8; font-size: 0.9rem; font-weight: 500; }
+        .page-title { font-size: 1.8rem; font-weight: 600; color: #0f172a; margin: 0; }
+        .order-date { color: #64748b; font-size: 0.9rem; font-weight: 400; margin: 0; }
 
-        .status-badge { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #fff; border: 3px solid #000; box-shadow: 4px 4px 0 #000; font-weight: 800; font-size: 0.9rem; }
-        .status-badge.pending { border-color: #f59e0b; box-shadow: 4px 4px 0 #f59e0b; }
-        .status-badge.delivered { border-color: #10b981; box-shadow: 4px 4px 0 #10b981; }
+        .status-badge { display: flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 100px; font-weight: 600; font-size: 0.85rem; background: #f1f5f9; color: #475569; }
+        .status-badge.pending { background: #fefce8; color: #ca8a04; }
+        .status-badge.delivered { background: #f0fdf4; color: #16a34a; }
+        .status-badge.processing, .status-badge.shipping { background: #eff6ff; color: #2563eb; }
+        .status-badge.cancelled { background: #fef2f2; color: #dc2626; }
 
         .order-grid { display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
         
-        .detail-card { background: #fff; border: 3px solid #000; box-shadow: 8px 8px 0 #000; padding: 24px; }
-        .card-title { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 900; text-transform: uppercase; margin: 0 0 20px 0; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; }
+        .detail-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); padding: 24px; }
+        .card-title { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 600; color: #0f172a; margin: 0 0 20px 0; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
         
         .detail-item-row { display: flex; align-items: center; gap: 20px; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
-        .detail-item-row:last-child { border-bottom: none; }
-        .item-img { width: 80px; height: 100px; background: #f8fafc; border: 2px solid #000; overflow: hidden; }
+        .detail-item-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .item-img { width: 80px; height: 100px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
         .item-img img { width: 100%; height: 100%; object-fit: cover; }
         
         .item-info { flex: 1; }
-        .item-name { font-size: 1rem; font-weight: 800; margin: 0 0 5px 0; }
+        .item-name { font-size: 1rem; font-weight: 500; color: #0f172a; margin: 0 0 5px 0; }
         .item-meta { font-size: 0.85rem; color: #64748b; margin-bottom: 8px; }
-        .item-meta strong { color: #000; }
+        .item-meta strong { color: #0f172a; font-weight: 500; }
         .sep { margin: 0 8px; color: #cbd5e1; }
         
         .item-pricing { font-size: 0.9rem; }
-        .unit-price { font-weight: 600; }
-        .qty { color: #94a3b8; margin-left: 8px; }
-        .item-subtotal { font-weight: 800; font-size: 1.1rem; }
+        .unit-price { font-weight: 500; color: #0f172a; }
+        .qty { color: #64748b; margin-left: 8px; }
+        .item-subtotal { font-weight: 600; font-size: 1.05rem; color: #0f172a; }
 
         .summary-rows { display: flex; flex-direction: column; gap: 12px; }
-        .summary-row { display: flex; justify-content: space-between; font-weight: 600; color: #64748b; }
-        .summary-row.total { margin-top: 15px; padding-top: 15px; border-top: 2px solid #000; color: #000; font-size: 1.3rem; font-weight: 900; }
-        .total-val { color: var(--primary-color); }
+        .summary-row { display: flex; justify-content: space-between; font-weight: 500; color: #475569; }
+        .summary-row.total { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; color: #0f172a; font-size: 1.2rem; font-weight: 600; }
+        .total-val { color: #0f172a; }
         .discount { color: #ef4444; }
 
-        .info-label { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
-        .info-val { font-size: 0.95rem; font-weight: 700; line-height: 1.5; color: #1e293b; }
+        .info-label { font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px; }
+        .info-val { font-size: 0.95rem; font-weight: 500; line-height: 1.5; color: #0f172a; margin: 0; }
         
-        .payment-status-tag { display: inline-block; margin-top: 12px; font-size: 0.7rem; font-weight: 900; padding: 4px 8px; border: 2px solid #000; }
+        .payment-status-tag { display: inline-block; margin-top: 12px; font-size: 0.75rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
         .payment-status-tag.paid { background: #dcfce7; color: #166534; }
         .payment-status-tag.unpaid { background: #fee2e2; color: #991b1b; }
 
+        .order-note-text { color: #475569; line-height: 1.5; margin: 0; }
+
+        .mt-10 { margin-top: 10px; }
         .mt-20 { margin-top: 20px; }
         
         @media (max-width: 992px) {

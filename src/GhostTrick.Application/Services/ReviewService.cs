@@ -11,21 +11,30 @@ namespace GhostTrick.Application.Services
 {
     public class ReviewService : IReviewService
     {
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<ProductReview> _reviewRepo;
+        private readonly IGenericRepository<Order> _orderRepo;
+        private readonly IGenericRepository<ApplicationUser> _userRepo;
+        private readonly IUnitOfWork _uow;
 
-        public ReviewService(IGhostTrickContext context)
+        public ReviewService(
+            IGenericRepository<ProductReview> reviewRepo,
+            IGenericRepository<Order> orderRepo,
+            IGenericRepository<ApplicationUser> userRepo,
+            IUnitOfWork uow)
         {
-            _context = context;
+            _reviewRepo = reviewRepo;
+            _orderRepo = orderRepo;
+            _userRepo = userRepo;
+            _uow = uow;
         }
 
         public async Task<List<ProductReviewDto>> GetProductReviewsAsync(int productId)
         {
-            var reviews = await _context.ProductReviews
-                .AsNoTracking()
+            var reviews = await _reviewRepo.GetAsync(q => q
                 .Where(r => r.ProductId == productId && r.IsApproved)
-                .Include(r => r.Order).ThenInclude(o => o.Items).ThenInclude(i => i.Variant).ThenInclude(v => v.Color)
+                .Include(r => r.Order!).ThenInclude(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
                 .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
+            );
                 
             return reviews.Select(r => MapToDto(r)).ToList();
         }
@@ -39,55 +48,28 @@ namespace GhostTrick.Application.Services
             bool? isVerified = null,
             string? orderBy = null)
         {
-            var query = _context.ProductReviews.IgnoreQueryFilters().AsNoTracking();
+            var (items, totalCount) = await _reviewRepo.GetPagedAsync(page, pageSize, query => 
+            {
+                if (showDeleted == true) query = query.Where(r => r.IsDeleted);
+                else if (showDeleted == false) query = query.Where(r => !r.IsDeleted);
 
-            if (showDeleted == true)
-            {
-                query = query.Where(r => r.IsDeleted);
-            }
-            else if (showDeleted == false)
-            {
-                query = query.Where(r => !r.IsDeleted);
-            }
+                if (rating.HasValue) query = query.Where(r => r.Rating == rating.Value);
+                if (isFake.HasValue) query = query.Where(r => r.IsFake == isFake.Value);
+                if (isVerified.HasValue) query = query.Where(r => r.IsVerifiedPurchase == isVerified.Value);
 
-            if (rating.HasValue)
-            {
-                query = query.Where(r => r.Rating == rating.Value);
-            }
+                if (!string.IsNullOrEmpty(searchTerm))
+                    query = query.Where(r => r.UserName.Contains(searchTerm) || r.Comment.Contains(searchTerm) || (r.Product != null && r.Product.Name.Contains(searchTerm)));
 
-            if (isFake.HasValue)
-            {
-                query = query.Where(r => r.IsFake == isFake.Value);
-            }
+                if (orderBy == "oldest") query = query.OrderBy(r => r.CreatedAt);
+                else query = query.OrderByDescending(r => r.CreatedAt);
 
-            if (isVerified.HasValue)
-            {
-                query = query.Where(r => r.IsVerifiedPurchase == isVerified.Value);
-            }
-
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(r => r.UserName.Contains(searchTerm) || r.Comment.Contains(searchTerm) || (r.Product != null && r.Product.Name.Contains(searchTerm)));
-            }
-
-            if (orderBy == "oldest")
-            {
-                query = query.OrderBy(r => r.CreatedAt);
-            }
-            else
-            {
-                query = query.OrderByDescending(r => r.CreatedAt);
-            }
-            var total = await query.CountAsync();
-            var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
-                .Include(r => r.Order).ThenInclude(o => o.Items).ThenInclude(i => i.Variant).ThenInclude(v => v.Color)
-                .ToListAsync();
+                return query.Include(r => r.Order!).ThenInclude(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color);
+            });
 
             return new PagedResult<ProductReviewDto>
             {
-                Items = items.Select(r => MapToDto(r)).ToList(),
-
-                TotalCount = total,
+                Items = items.Select(MapToDto).ToList(),
+                TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize
             };
@@ -95,28 +77,25 @@ namespace GhostTrick.Application.Services
 
         public async Task<ProductReviewDto> CreateReviewAsync(CreateReviewDto dto, string? userId, bool isAdmin = false)
         {
-            // If not admin, check if user already reviewed this product
             if (!isAdmin && !string.IsNullOrEmpty(userId))
             {
-                var existingReview = await _context.ProductReviews
-                    .FirstOrDefaultAsync(r => r.ProductId == dto.ProductId && r.UserId == userId && r.OrderId == dto.OrderId);
+                var existingResults = await _reviewRepo.FindAsync(r => r.ProductId == dto.ProductId && r.UserId == userId && r.OrderId == dto.OrderId);
+                var existingReview = existingResults.FirstOrDefault();
 
-                
                 if (existingReview != null)
                 {
-                    // Update existing instead of creating new
                     existingReview.Rating = dto.Rating;
                     existingReview.Comment = dto.Comment;
                     existingReview.UpdatedAt = DateTime.UtcNow;
                     
-                    // Re-check verified purchase if not already true
                     if (!existingReview.IsVerifiedPurchase)
                     {
-                        existingReview.IsVerifiedPurchase = await _context.Orders
-                            .AnyAsync(o => o.UserId == userId && o.Status == OrderStatus.Delivered && o.Items.Any(i => i.ProductId == dto.ProductId));
+                        var orderResults = await _orderRepo.FindAsync(o => o.UserId == userId && o.Status == OrderStatus.Delivered && o.Items!.Any(i => i.ProductId == dto.ProductId));
+                        existingReview.IsVerifiedPurchase = orderResults.Any();
                     }
 
-                    await _context.SaveChangesAsync();
+                    _reviewRepo.Update(existingReview);
+                    await _uow.CompleteAsync();
                     return MapToDto(existingReview);
                 }
             }
@@ -129,8 +108,7 @@ namespace GhostTrick.Application.Services
                 Comment = dto.Comment,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                UserName = "Pending..." // Temporary value until set below
-
+                UserName = "Pending..."
             };
 
             if (isAdmin && !string.IsNullOrEmpty(dto.FakeUserName))
@@ -142,20 +120,20 @@ namespace GhostTrick.Application.Services
             }
             else if (!string.IsNullOrEmpty(userId))
             {
-                var user = await _context.Users.FindAsync(userId);
+                var userResults = await _userRepo.FindAsync(u => u.Id == userId);
+                var user = userResults.FirstOrDefault();
                 review.UserName = user?.FullName ?? "User";
                 review.UserAvatarUrl = user?.AvatarUrl;
                 
-                // Automatic Verified Purchase detection
                 if (dto.OrderId.HasValue)
                 {
-                    review.IsVerifiedPurchase = await _context.Orders
-                        .AnyAsync(o => o.Id == dto.OrderId && o.UserId == userId && o.Status == OrderStatus.Delivered);
+                    var orderResults = await _orderRepo.FindAsync(o => o.Id == dto.OrderId && o.UserId == userId && o.Status == OrderStatus.Delivered);
+                    review.IsVerifiedPurchase = orderResults.Any();
                 }
                 else
                 {
-                    review.IsVerifiedPurchase = await _context.Orders
-                        .AnyAsync(o => o.UserId == userId && o.Status == OrderStatus.Delivered && o.Items.Any(i => i.ProductId == dto.ProductId));
+                    var orderResults = await _orderRepo.FindAsync(o => o.UserId == userId && o.Status == OrderStatus.Delivered && o.Items!.Any(i => i.ProductId == dto.ProductId));
+                    review.IsVerifiedPurchase = orderResults.Any();
                 }
 
                 if (!review.IsVerifiedPurchase)
@@ -168,28 +146,29 @@ namespace GhostTrick.Application.Services
                 throw new UnauthorizedAccessException("Khách vãng lai không được phép đánh giá sản phẩm. Vui lòng đăng nhập và mua hàng để thực hiện đánh giá.");
             }
 
-            _context.ProductReviews.Add(review);
-            await _context.SaveChangesAsync();
+            await _reviewRepo.AddAsync(review);
+            await _uow.CompleteAsync();
 
             return MapToDto(review);
         }
 
         public async Task<bool> DeleteReviewAsync(int id, string? userId = null, bool isAdmin = false)
         {
-            var review = await _context.ProductReviews.FindAsync(id);
+            var review = await _reviewRepo.GetByIdAsync(id);
             if (review == null) return false;
 
             if (!isAdmin && review.UserId != userId)
                 throw new UnauthorizedAccessException("You can only delete your own reviews");
 
             review.IsDeleted = true;
-            await _context.SaveChangesAsync();
+            _reviewRepo.Update(review);
+            await _uow.CompleteAsync();
             return true;
         }
 
         public async Task<ProductReviewDto> UpdateReviewAsync(int id, CreateReviewDto dto, string? userId = null, bool isAdmin = false)
         {
-            var review = await _context.ProductReviews.FindAsync(id);
+            var review = await _reviewRepo.GetByIdAsync(id);
             if (review == null) throw new Exception("Review not found");
 
             if (!isAdmin && review.UserId != userId)
@@ -201,7 +180,8 @@ namespace GhostTrick.Application.Services
             if (isAdmin && !string.IsNullOrEmpty(dto.FakeAvatarUrl)) review.UserAvatarUrl = dto.FakeAvatarUrl;
             if (isAdmin && dto.ForceVerifiedPurchase.HasValue) review.IsVerifiedPurchase = dto.ForceVerifiedPurchase.Value;
 
-            await _context.SaveChangesAsync();
+            _reviewRepo.Update(review);
+            await _uow.CompleteAsync();
             return MapToDto(review);
         }
 

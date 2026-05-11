@@ -96,8 +96,7 @@ export default function HomePage() {
     <div className="home-page">
       {/* Hero Banner */}
       <section className="hero">
-        {banners.length > 0 ? (
-          banners.map((banner, index) => (
+        {banners.length > 0 && banners.map((banner, index) => (
             <div key={banner.id} className="hero-slide" style={{ display: index === 0 ? 'block' : 'none' }}>
               <Link to={banner.linkUrl || '#'}>
                 <img src={banner.imageUrl} alt={banner.title} className="hero-img" />
@@ -110,10 +109,7 @@ export default function HomePage() {
                 </div>
               </Link>
             </div>
-          ))
-        ) : (
-          <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=2000" alt="Hero Banner" className="hero-img" />
-        )}
+          ))}
       </section>
 
       {/* Vouchers Section */}
@@ -204,11 +200,6 @@ export default function HomePage() {
                     )}
                   </div>
                   <div className="product-meta-row">
-                    <div className="color-swatches">
-                      {p.colors.map((c) => (
-                        <ColorTag key={c.id} name={c.name} hex={c.hexCode} size="sm" showLabel={false} />
-                      ))}
-                    </div>
                     {p.salesCount > 0 && (
                       <span className="product-sales-count">Đã bán {p.salesCount}</span>
                     )}

@@ -43,6 +43,8 @@ namespace GhostTrick.Infrastructure.Persistence
         public DbSet<OrderTimeline> OrderTimelines { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<ProductReview> ProductReviews { get; set; }
+        public DbSet<TopBarPromo> TopBarPromos { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -262,6 +264,10 @@ namespace GhostTrick.Infrastructure.Persistence
                 .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<ProductReview>().HasQueryFilter(pr => !pr.IsDeleted);
+
+            builder.Entity<TopBarPromo>().HasQueryFilter(p => !p.IsDeleted);
+
+            builder.Entity<SystemSetting>().HasQueryFilter(s => !s.IsDeleted);
         }
     }
 }

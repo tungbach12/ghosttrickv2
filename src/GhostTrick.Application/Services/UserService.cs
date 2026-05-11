@@ -11,13 +11,22 @@ namespace GhostTrick.Application.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IPhotoService _photoService;
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<ApplicationUser> _userRepo;
+        private readonly IGenericRepository<RefreshToken> _tokenRepo;
+        private readonly IUnitOfWork _uow;
 
-        public UserService(UserManager<ApplicationUser> userManager, IPhotoService photoService, IGhostTrickContext context)
+        public UserService(
+            UserManager<ApplicationUser> userManager, 
+            IPhotoService photoService, 
+            IGenericRepository<ApplicationUser> userRepo,
+            IGenericRepository<RefreshToken> tokenRepo,
+            IUnitOfWork uow)
         {
             _userManager = userManager;
             _photoService = photoService;
-            _context = context;
+            _userRepo = userRepo;
+            _tokenRepo = tokenRepo;
+            _uow = uow;
         }
 
         public async Task<string> UpdateAvatarAsync(string userId, IFormFile file)
@@ -122,16 +131,15 @@ namespace GhostTrick.Application.Services
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
                 
                 // Revoke all refresh tokens for this user
-                var tokens = await _context.RefreshTokens
-                    .Where(rt => rt.UserId == userId && !rt.IsRevoked)
-                    .ToListAsync();
+                var tokens = await _tokenRepo.FindAsync(rt => rt.UserId == userId && !rt.IsRevoked);
                 
                 foreach (var token in tokens)
                 {
                     token.IsRevoked = true;
+                    _tokenRepo.Update(token);
                 }
                 
-                await _context.SaveChangesAsync();
+                await _uow.CompleteAsync();
                 
                 return true; // Locked
             }

@@ -3,9 +3,10 @@ import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { Search, ShoppingBag, Menu, X, User, ChevronDown, Share2, Camera, Play, MapPin, Mail, Phone, Heart, MessageCircle, LogOut } from 'lucide-react'
 
 
-import { promotions, saleEvents } from '../data'
+import { saleEvents } from '../data'
 import { useGlobalContext } from '../context/GlobalContext'
 import { getCategories } from '../services/categoryService'
+import topBarService from '../services/topBarService'
 
 
 export default function Layout() {
@@ -14,15 +15,35 @@ export default function Layout() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [categories, setCategories] = useState([])
+  const [promotions, setPromotions] = useState([])
   
   const { cartItems, user, logout, setIsCartOpen } = useGlobalContext()
   const navigate = useNavigate()
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setPromoIndex((prev) => (prev + 1) % promotions.length);
-    }, 3000);
-    return () => clearInterval(timer);
+    if (promotions.length > 0) {
+      const timer = setInterval(() => {
+        setPromoIndex((prev) => (prev + 1) % promotions.length);
+      }, 3000);
+      return () => clearInterval(timer);
+    }
+  }, [promotions]);
+
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const data = await topBarService.getPromos();
+        if (data && data.length > 0) {
+          setPromotions(data.map(p => p.content));
+        } else {
+          setPromotions(["Chào mừng bạn đến với Ghosttrick!"]);
+        }
+      } catch (error) {
+        console.error("Error fetching promos:", error);
+        setPromotions(["Chào mừng bạn đến với Ghosttrick!"]);
+      }
+    };
+    fetchPromos();
   }, []);
 
   useEffect(() => {

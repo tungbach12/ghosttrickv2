@@ -300,11 +300,6 @@ export default function AccountPage() {
               <>
                 <div className="section-header">
                   <h2 className="account-section-title">Thông tin tài khoản</h2>
-                  {!isEditing && (
-                    <button className="btn-outline btn-sm" onClick={() => setIsEditing(true)}>
-                      Chỉnh sửa
-                    </button>
-                  )}
                 </div>
 
                 <div className="account-content-card">
@@ -367,7 +362,7 @@ export default function AccountPage() {
                       </div>
                     </div>
 
-                    {isEditing && (
+                    {isEditing ? (
                       <div className="form-actions">
                         <button 
                           type="button" 
@@ -386,6 +381,16 @@ export default function AccountPage() {
                         </button>
                         <button type="submit" className="btn-solid">
                           <Save size={18} /> Lưu thay đổi
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="form-actions">
+                        <button 
+                          type="button" 
+                          className="btn-outline" 
+                          onClick={() => setIsEditing(true)}
+                        >
+                          Chỉnh sửa
                         </button>
                       </div>
                     )}
@@ -651,23 +656,22 @@ export default function AccountPage() {
     <style>{`
       .item-review-btn {
         margin-top: 10px;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
         padding: 6px 12px;
-        background: #000;
+        background: #0f172a;
         color: #fff;
         border: none;
-        font-family: 'Inter', sans-serif;
-        font-weight: 800;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.8rem;
         cursor: pointer;
         transition: all 0.2s;
       }
-      .item-review-btn:hover { background: #333; transform: translate(-2px, -2px); box-shadow: 2px 2px 0 #000; }
-      .item-review-btn.reviewed { background: #fff; color: #000; border: 1px solid #000; }
-      .item-review-btn.reviewed:hover { background: #f8fafc; }
+      .item-review-btn:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+      .item-review-btn.reviewed { background: #fff; color: #0f172a; border: 1px solid #cbd5e1; }
+      .item-review-btn.reviewed:hover { background: #f8fafc; border-color: #94a3b8; }
 
       .item-title-link {
         text-decoration: none;
@@ -675,15 +679,14 @@ export default function AccountPage() {
         display: block;
       }
       .item-title-link:hover .item-title-brutal {
-        text-decoration: underline;
-        color: #333;
+        color: #3b82f6;
       }
       .item-img-brutal {
         transition: all 0.2s;
         cursor: pointer;
       }
       .item-img-brutal:hover {
-        opacity: 0.8;
+        opacity: 0.9;
         transform: scale(1.02);
       }
     `}</style>

@@ -87,26 +87,26 @@ export default function ReviewModal({ isOpen, onClose, productId, productName, o
           <button className="close-btn" onClick={onClose}><X /></button>
         </div>
         <form onSubmit={handleSubmit} className="modal-body">
-          <div className="review-product-info" style={{ marginBottom: '20px', padding: '15px', background: '#f8fafc', borderRadius: '8px' }}>
-            <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>Sản phẩm:</p>
-            <p style={{ fontWeight: 800, fontSize: '1rem' }}>{productName}</p>
+          <div className="review-product-info" style={{ marginBottom: '24px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '4px' }}>Sản phẩm:</p>
+            <p style={{ fontWeight: 600, fontSize: '1rem', color: '#0f172a', margin: 0 }}>{productName}</p>
           </div>
 
           <div className="form-group text-center" style={{ marginBottom: '24px' }}>
-            <label className="form-label" style={{ display: 'block', marginBottom: '12px' }}>Chất lượng sản phẩm</label>
-            <div className="star-rating-input" style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <label className="form-label" style={{ display: 'block', marginBottom: '12px', fontWeight: 500, color: '#475569', fontSize: '0.95rem' }}>Chất lượng sản phẩm</label>
+            <div className="star-rating-input" style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
               {[1, 2, 3, 4, 5].map(star => (
                 <button 
                   key={star} 
                   type="button" 
                   onClick={() => setRating(star)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                 >
                   <Star 
-                    size={32} 
-                    fill={star <= rating ? '#000' : 'none'} 
-                    color={star <= rating ? '#000' : '#cbd5e1'} 
-                    style={{ transition: 'all 0.2s' }}
+                    size={36} 
+                    fill={star <= rating ? '#f59e0b' : 'none'} 
+                    color={star <= rating ? '#f59e0b' : '#cbd5e1'} 
+                    style={{ transition: 'all 0.2s', filter: star <= rating ? 'drop-shadow(0 2px 4px rgba(245,158,11,0.2))' : 'none' }}
                   />
                 </button>
               ))}
@@ -114,10 +114,10 @@ export default function ReviewModal({ isOpen, onClose, productId, productName, o
           </div>
 
           <div className="form-group">
-            <label className="form-label">Nhận xét của bạn</label>
+            <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#475569', fontSize: '0.95rem' }}>Nhận xét của bạn</label>
             <textarea 
               className="form-control"
-              rows="4"
+              style={{ width: '100%', padding: '14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.95rem', color: '#1e293b', outline: 'none', minHeight: '120px', resize: 'vertical', fontFamily: 'inherit' }}
               value={comment}
               onChange={e => setComment(e.target.value)}
               placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
@@ -125,16 +125,16 @@ export default function ReviewModal({ isOpen, onClose, productId, productName, o
             ></textarea>
           </div>
 
-          <div className="modal-footer" style={{ justifyContent: existingReview ? 'space-between' : 'flex-end' }}>
+          <div className="modal-footer" style={{ justifyContent: existingReview ? 'space-between' : 'flex-end', marginTop: '10px' }}>
             {existingReview && (
-              <button type="button" className="btn-delete-modal" onClick={handleDelete} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Trash2 size={18} /> XÓA
+              <button type="button" className="btn-delete-modal" onClick={handleDelete} style={{ color: '#ef4444', background: '#fef2f2', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'background 0.2s' }}>
+                <Trash2 size={18} /> Xóa
               </button>
             )}
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" className="btn-text" onClick={onClose}>HỦY</button>
-              <button type="submit" className="admin-btn-primary" disabled={submitting}>
-                <Save size={18} /> {submitting ? 'ĐANG GỬI...' : (existingReview ? 'CẬP NHẬT' : 'GỬI ĐÁNH GIÁ')}
+              <button type="button" className="btn-text" onClick={onClose} style={{ fontWeight: 500 }}>Hủy</button>
+              <button type="submit" className="btn-solid" disabled={submitting}>
+                <Save size={18} /> {submitting ? 'Đang gửi...' : (existingReview ? 'Cập nhật' : 'Gửi đánh giá')}
               </button>
             </div>
           </div>

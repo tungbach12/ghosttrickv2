@@ -252,11 +252,6 @@ export default function SaleEventPage() {
                     )}
                   </div>
                   <div className="product-meta-row">
-                    <div className="color-swatches">
-                      {p.colors.map((c) => (
-                        <ColorTag key={c.id} name={c.name} hex={c.hexCode} size="sm" showLabel={false} />
-                      ))}
-                    </div>
                     {p.salesCount > 0 && (
                       <span className="product-sales-count">Đã bán {p.salesCount}</span>
                     )}

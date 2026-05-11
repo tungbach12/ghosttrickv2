@@ -6,58 +6,60 @@ namespace GhostTrick.Application.Services
 {
     public class AdminService : IAdminService
     {
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<Order> _orderRepo;
+        private readonly IGenericRepository<Product> _productRepo;
+        private readonly IGenericRepository<ApplicationUser> _userRepo;
+        private readonly IGenericRepository<OrderItem> _orderItemRepo;
 
-        public AdminService(IGhostTrickContext context)
+        public AdminService(
+            IGenericRepository<Order> orderRepo,
+            IGenericRepository<Product> productRepo,
+            IGenericRepository<ApplicationUser> userRepo,
+            IGenericRepository<OrderItem> orderItemRepo)
         {
-            _context = context;
+            _orderRepo = orderRepo;
+            _productRepo = productRepo;
+            _userRepo = userRepo;
+            _orderItemRepo = orderItemRepo;
         }
 
         public async Task<object> GetDashboardStatsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
-            var query = _context.Orders.AsQueryable();
+            var orders = await _orderRepo.GetAsync(q => {
+                var query = q.Include(o => o.User).AsQueryable();
+                if (startDate.HasValue) query = query.Where(o => o.CreatedAt >= startDate.Value);
+                if (endDate.HasValue) query = query.Where(o => o.CreatedAt <= endDate.Value);
+                return query;
+            });
 
-            if (startDate.HasValue)
-                query = query.Where(o => o.CreatedAt >= startDate.Value);
-            if (endDate.HasValue)
-                query = query.Where(o => o.CreatedAt <= endDate.Value);
-
-            var totalOrders = await query.CountAsync();
-            var totalRevenue = await query
-                .Where(o => o.Status == OrderStatus.Delivered)
-                .SumAsync(o => o.TotalAmount);
+            var totalOrders = orders.Count;
+            var totalRevenue = orders.Where(o => o.Status == OrderStatus.Delivered).Sum(o => o.TotalAmount);
             
-            var totalProducts = await _context.Products.CountAsync();
-            
-            // Stock details (Product-based, consistent with AdminProducts)
-            var outOfStockCount = await _context.Products
-                .CountAsync(p => !p.Variants.Any(v => v.Stock > 0));
-            var lowStockCount = await _context.Products
-                .CountAsync(p => p.Variants.Any(v => v.Stock > 0 && v.Stock <= v.LowStockThreshold));
-                
-            // Customers joined in this period or total? User asked for "Overview", usually total customers is fine.
-            // But let's show customers joined in this period if filter is active for consistency.
-            var customerQuery = _context.Users.AsQueryable();
-            if (startDate.HasValue) customerQuery = customerQuery.Where(u => u.CreatedAt >= startDate.Value);
-            if (endDate.HasValue) customerQuery = customerQuery.Where(u => u.CreatedAt <= endDate.Value);
-            var totalCustomers = await customerQuery.CountAsync() - (startDate.HasValue ? 0 : 1); // Subtract 1 for admin if no filter
+            var products = await _productRepo.GetAsync(q => q.Include(p => p.Variants));
+            var totalProducts = products.Count;
+            var outOfStockCount = products.Count(p => !p.Variants.Any(v => v.Stock > 0));
+            var lowStockCount = products.Count(p => p.Variants.Any(v => v.Stock > 0 && v.Stock <= v.LowStockThreshold));
 
-            // Order Status Breakdown
-            var orderStats = await query
+            var customers = await _userRepo.GetAsync(q => {
+                var query = q.AsQueryable();
+                if (startDate.HasValue) query = query.Where(u => u.CreatedAt >= startDate.Value);
+                if (endDate.HasValue) query = query.Where(u => u.CreatedAt <= endDate.Value);
+                return query;
+            });
+            var totalCustomers = customers.Count - (startDate.HasValue ? 0 : 1);
+
+            var orderStats = orders
                 .GroupBy(o => o.Status)
                 .Select(g => new { Status = g.Key.ToString(), Count = g.Count() })
-                .ToListAsync();
+                .ToList();
 
-            // Revenue Trend
-            // If range is <= 31 days, group by Day. Otherwise Month.
             var isShortRange = startDate.HasValue && endDate.HasValue && (endDate.Value - startDate.Value).TotalDays <= 31;
-            
-            var trendQuery = query.Where(o => o.Status == OrderStatus.Delivered);
-            
+            var deliveredOrders = orders.Where(o => o.Status == OrderStatus.Delivered);
+
             object revenueTrend;
             if (isShortRange)
             {
-                revenueTrend = await trendQuery
+                revenueTrend = deliveredOrders
                     .GroupBy(o => new { o.CreatedAt.Date })
                     .Select(g => new 
                     { 
@@ -67,11 +69,11 @@ namespace GhostTrick.Application.Services
                         Revenue = g.Sum(o => o.TotalAmount) 
                     })
                     .OrderBy(x => x.Year).ThenBy(x => x.Month).ThenBy(x => x.Day)
-                    .ToListAsync();
+                    .ToList();
             }
             else
             {
-                revenueTrend = await trendQuery
+                revenueTrend = deliveredOrders
                     .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
                     .Select(g => new 
                     { 
@@ -80,15 +82,17 @@ namespace GhostTrick.Application.Services
                         Revenue = g.Sum(o => o.TotalAmount) 
                     })
                     .OrderBy(x => x.Year).ThenBy(x => x.Month)
-                    .ToListAsync();
+                    .ToList();
             }
 
-            // Top 5 Selling Products in this period
-            var topProducts = await _context.OrderItems
+            var orderItems = await _orderItemRepo.GetAsync(q => q
                 .Include(oi => oi.Order)
                 .Include(oi => oi.Product)
                 .Where(oi => (!startDate.HasValue || oi.Order!.CreatedAt >= startDate.Value) && 
                              (!endDate.HasValue || oi.Order!.CreatedAt <= endDate.Value))
+            );
+
+            var topProducts = orderItems
                 .GroupBy(oi => new { oi.ProductId, oi.Product!.Name, oi.Product!.MainImageUrl })
                 .Select(g => new 
                 { 
@@ -100,22 +104,20 @@ namespace GhostTrick.Application.Services
                 })
                 .OrderByDescending(x => x.Sales)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
-            // Recent 5 Orders in this period
-            var recentOrders = await query
-                .Include(o => o.User)
+            var recentOrders = orders
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
                 .Select(o => new 
                 {
                     o.Id,
-                    CustomerName = o.User!.FullName,
+                    CustomerName = o.User?.FullName,
                     o.TotalAmount,
                     Status = o.Status.ToString(),
                     o.CreatedAt
                 })
-                .ToListAsync();
+                .ToList();
 
             return new
             {

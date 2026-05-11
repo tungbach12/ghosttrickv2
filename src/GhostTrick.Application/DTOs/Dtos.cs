@@ -463,4 +463,11 @@ namespace GhostTrick.Application.DTOs
         public string? FakeAvatarUrl { get; set; }
         public bool? ForceVerifiedPurchase { get; set; }
     }
+
+    public class TopBarPromoDto
+    {
+        public required string Content { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
 }

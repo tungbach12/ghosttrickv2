@@ -16,18 +16,24 @@ namespace GhostTrick.Application.Services
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IGhostTrickContext _context;
+        private readonly IGenericRepository<RefreshToken> _refreshTokenRepo;
+        private readonly IGenericRepository<OtpCode> _otpRepo;
+        private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
         private readonly IEmailService _emailService;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            IGhostTrickContext context,
+            IGenericRepository<RefreshToken> refreshTokenRepo,
+            IGenericRepository<OtpCode> otpRepo,
+            IUnitOfWork uow,
             IConfiguration config,
             IEmailService emailService)
         {
             _userManager = userManager;
-            _context = context;
+            _refreshTokenRepo = refreshTokenRepo;
+            _otpRepo = otpRepo;
+            _uow = uow;
             _config = config;
             _emailService = emailService;
         }
@@ -77,9 +83,11 @@ namespace GhostTrick.Application.Services
 
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
         {
-            var stored = await _context.RefreshTokens
-                .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            var result = await _refreshTokenRepo.FindAsync(
+                rt => rt.Token == refreshToken,
+                q => q.Include(rt => rt.User!)
+            );
+            var stored = result.FirstOrDefault();
 
             if (stored == null || stored.IsRevoked || stored.ExpiresAt < DateTime.UtcNow)
                 throw new UnauthorizedAccessException("Refresh token không hợp lệ hoặc đã hết hạn.");
@@ -89,20 +97,22 @@ namespace GhostTrick.Application.Services
 
             // Rotate: revoke old, issue new
             stored.IsRevoked = true;
-            await _context.SaveChangesAsync();
+            _refreshTokenRepo.Update(stored);
+            await _uow.CompleteAsync();
 
             return await BuildAuthResponseAsync(stored.User!);
         }
 
         public async Task RevokeRefreshTokenAsync(string refreshToken)
         {
-            var stored = await _context.RefreshTokens
-                .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+            var result = await _refreshTokenRepo.FindAsync(rt => rt.Token == refreshToken);
+            var stored = result.FirstOrDefault();
 
             if (stored != null && !stored.IsRevoked)
             {
                 stored.IsRevoked = true;
-                await _context.SaveChangesAsync();
+                _refreshTokenRepo.Update(stored);
+                await _uow.CompleteAsync();
             }
         }
 
@@ -173,8 +183,8 @@ namespace GhostTrick.Application.Services
                     int.Parse(_config["Jwt:RefreshTokenExpiryDays"] ?? "30"))
             };
 
-            _context.RefreshTokens.Add(refreshToken);
-            await _context.SaveChangesAsync();
+            await _refreshTokenRepo.AddAsync(refreshToken);
+            await _uow.CompleteAsync();
 
             return token;
         }
@@ -187,10 +197,12 @@ namespace GhostTrick.Application.Services
             var otp = new Random().Next(100000, 999999).ToString();
             
             // Invalidate old OTPs
-            var oldOtps = await _context.OtpCodes
-                .Where(o => o.UserId == user.Id && !o.IsUsed)
-                .ToListAsync();
-            foreach (var o in oldOtps) o.IsUsed = true;
+            var oldOtps = await _otpRepo.FindAsync(o => o.UserId == user.Id && !o.IsUsed);
+            foreach (var o in oldOtps) 
+            {
+                o.IsUsed = true;
+                _otpRepo.Update(o);
+            }
 
             var otpEntity = new OtpCode
             {
@@ -199,8 +211,8 @@ namespace GhostTrick.Application.Services
                 ExpiresAt = DateTime.UtcNow.AddMinutes(10)
             };
 
-            _context.OtpCodes.Add(otpEntity);
-            await _context.SaveChangesAsync();
+            await _otpRepo.AddAsync(otpEntity);
+            await _uow.CompleteAsync();
 
             await _emailService.SendOtpEmailAsync(email, otp);
         }
@@ -210,17 +222,19 @@ namespace GhostTrick.Application.Services
             var user = await _userManager.FindByEmailAsync(email)
                 ?? throw new InvalidOperationException("Người dùng không tồn tại.");
 
-            var otpEntity = await _context.OtpCodes
-                .Where(o => o.UserId == user.Id && o.Code == code && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
-                .OrderByDescending(o => o.CreatedAt)
-                .FirstOrDefaultAsync();
+            var otpResults = await _otpRepo.FindAsync(
+                o => o.UserId == user.Id && o.Code == code && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow,
+                q => q.OrderByDescending(o => o.CreatedAt)
+            );
+            var otpEntity = otpResults.FirstOrDefault();
 
             if (otpEntity == null) return false;
 
             otpEntity.IsUsed = true;
             user.EmailConfirmed = true;
             
-            await _context.SaveChangesAsync();
+            _otpRepo.Update(otpEntity);
+            await _uow.CompleteAsync();
             await _userManager.UpdateAsync(user);
 
             return true;
@@ -231,17 +245,19 @@ namespace GhostTrick.Application.Services
             var user = await _userManager.FindByEmailAsync(dto.Email)
                 ?? throw new InvalidOperationException("Người dùng không tồn tại.");
 
-            var otpEntity = await _context.OtpCodes
-                .Where(o => o.UserId == user.Id && o.Code == dto.Code && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
-                .OrderByDescending(o => o.CreatedAt)
-                .FirstOrDefaultAsync();
+            var otpResults = await _otpRepo.FindAsync(
+                o => o.UserId == user.Id && o.Code == dto.Code && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow,
+                q => q.OrderByDescending(o => o.CreatedAt)
+            );
+            var otpEntity = otpResults.FirstOrDefault();
 
             if (otpEntity == null)
                 throw new InvalidOperationException("Mã OTP không hợp lệ hoặc đã hết hạn.");
 
             // Mark OTP as used
             otpEntity.IsUsed = true;
-            await _context.SaveChangesAsync();
+            _otpRepo.Update(otpEntity);
+            await _uow.CompleteAsync();
 
             // Reset password
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);

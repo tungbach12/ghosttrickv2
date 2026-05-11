@@ -25,6 +25,7 @@ jobs:
             git pull origin main || git pull origin master
             
             # Khởi động lại Docker (Tự động build lại những phần có code thay đổi)
+            docker-compose down
             docker-compose up -d --build
             
             # Dọn dẹp các file rác của Docker (tùy chọn để giải phóng bộ nhớ)
