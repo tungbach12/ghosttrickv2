@@ -22,3 +22,4 @@ src/GhostTrick.WebApi/logs/
 # Logs
 logs/
 *.log
+src/GhostTrick.WebApi/logs/log-20260511.txt
