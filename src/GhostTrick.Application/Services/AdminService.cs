@@ -26,7 +26,7 @@ namespace GhostTrick.Application.Services
         public async Task<object> GetDashboardStatsAsync(DateTime? startDate = null, DateTime? endDate = null)
         {
             var orders = await _orderRepo.GetAsync(q => {
-                var query = q.Include(o => o.User).AsQueryable();
+                var query = q.AsNoTracking().Include(o => o.User).AsQueryable();
                 if (startDate.HasValue) query = query.Where(o => o.CreatedAt >= startDate.Value);
                 if (endDate.HasValue) query = query.Where(o => o.CreatedAt <= endDate.Value);
                 return query;
@@ -35,13 +35,13 @@ namespace GhostTrick.Application.Services
             var totalOrders = orders.Count;
             var totalRevenue = orders.Where(o => o.Status == OrderStatus.Delivered).Sum(o => o.TotalAmount);
             
-            var products = await _productRepo.GetAsync(q => q.Include(p => p.Variants));
+            var products = await _productRepo.GetAsync(q => q.AsNoTracking().Include(p => p.Variants));
             var totalProducts = products.Count;
             var outOfStockCount = products.Count(p => !p.Variants.Any(v => v.Stock > 0));
             var lowStockCount = products.Count(p => p.Variants.Any(v => v.Stock > 0 && v.Stock <= v.LowStockThreshold));
 
             var customers = await _userRepo.GetAsync(q => {
-                var query = q.AsQueryable();
+                var query = q.AsNoTracking().AsQueryable();
                 if (startDate.HasValue) query = query.Where(u => u.CreatedAt >= startDate.Value);
                 if (endDate.HasValue) query = query.Where(u => u.CreatedAt <= endDate.Value);
                 return query;

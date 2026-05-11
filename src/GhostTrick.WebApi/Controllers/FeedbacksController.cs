@@ -76,26 +76,7 @@ namespace GhostTrick.WebApi.Controllers
                 return BadRequest();
             }
 
-            try
-            {
-                await _feedbackService.UpdateFeedbackAsync(id, feedback);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_feedbackService.FeedbackExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _feedbackService.UpdateFeedbackAsync(id, feedback);
             return NoContent();
         }
 

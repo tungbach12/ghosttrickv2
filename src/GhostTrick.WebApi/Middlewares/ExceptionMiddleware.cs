@@ -35,6 +35,21 @@ namespace GhostTrick.WebApi.Middlewares
                     statusCode = (int)HttpStatusCode.Unauthorized;
                     message = ex.Message;
                 }
+                else if (ex is KeyNotFoundException)
+                {
+                    statusCode = (int)HttpStatusCode.NotFound;
+                    message = ex.Message;
+                }
+                else if (ex is InvalidOperationException)
+                {
+                    statusCode = (int)HttpStatusCode.BadRequest;
+                    message = ex.Message;
+                }
+                else if (ex is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+                {
+                    statusCode = (int)HttpStatusCode.Conflict;
+                    message = "Hệ thống đang bận hoặc dữ liệu đã bị thay đổi. Vui lòng thử lại.";
+                }
 
                 context.Response.StatusCode = statusCode;
 

@@ -53,86 +53,43 @@ namespace GhostTrick.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductDetailDto>> GetProduct(int id)
         {
-            try
-            {
-                var isAdmin = User.IsInRole("Admin");
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var product = await _productService.GetProductAsync(id, isAdmin, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var product = await _productService.GetProductAsync(id, isAdmin, userId);
 
-                return Ok(product);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            return Ok(product);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ProductDetailDto>> CreateProduct([FromForm] CreateProductDto dto)
         {
-            try
-            {
-                var product = await _productService.CreateProductAsync(dto);
-                return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var product = await _productService.CreateProductAsync(dto);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
         }
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ProductDetailDto>> UpdateProduct(int id, [FromForm] CreateProductDto dto)
         {
-            try
-            {
-                var product = await _productService.UpdateProductAsync(id, dto);
-                return Ok(product);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var product = await _productService.UpdateProductAsync(id, dto);
+            return Ok(product);
         }
 
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
         {
-            try
-            {
-                await _productService.UpdateStatusAsync(id, status);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            await _productService.UpdateStatusAsync(id, status);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            try
-            {
-                await _productService.DeleteProductAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            await _productService.DeleteProductAsync(id);
+            return NoContent();
         }
     }
 }

@@ -52,7 +52,9 @@ namespace GhostTrick.Application.Services
         {
             var orders = await _orderRepo.FindAsync(
                 o => o.UserId == userId,
-                q => q.Include(o => o.Items!).ThenInclude(i => i.Product)
+                q => q.AsNoTracking()
+                      .AsSplitQuery()
+                      .Include(o => o.Items!).ThenInclude(i => i.Product)
                       .Include(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
                       .Include(o => o.Timeline!.OrderByDescending(t => t.CreatedAt))
             );
@@ -75,7 +77,9 @@ namespace GhostTrick.Application.Services
         {
             var result = await _orderRepo.FindAsync(
                 o => o.Id == id && o.UserId == userId,
-                q => q.Include(o => o.Items!).ThenInclude(i => i.Product)
+                q => q.AsNoTracking()
+                      .AsSplitQuery()
+                      .Include(o => o.Items!).ThenInclude(i => i.Product)
                       .Include(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
                       .Include(o => o.Timeline!.OrderByDescending(t => t.CreatedAt))
             );

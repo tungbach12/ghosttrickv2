@@ -64,6 +64,7 @@ namespace GhostTrick.Application.Services
         public async Task<PagedResult<UserAdminDto>> GetUsersAsync(int page, int pageSize, string? searchTerm)
         {
             var query = _userManager.Users
+                .AsNoTracking()
                 .Include(u => u.Orders)
                 .Where(u => !u.IsDeleted);
 

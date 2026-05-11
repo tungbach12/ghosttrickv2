@@ -49,6 +49,8 @@ namespace GhostTrick.Application.Services
                 }
 
                 query = query
+                    .AsNoTracking()
+                    .AsSplitQuery()
                     .Include(p => p.Category)
                     .Include(p => p.Variants).ThenInclude(v => v.Color)
                     .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent);
@@ -129,6 +131,8 @@ namespace GhostTrick.Application.Services
         public async Task<List<ProductListDto>> GetBestSellersAsync(int top)
         {
             var products = await _productRepo.GetAsync(q => q
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
@@ -147,6 +151,8 @@ namespace GhostTrick.Application.Services
         public async Task<List<ProductListDto>> GetNewArrivalsAsync(int top)
         {
             var products = await _productRepo.GetAsync(q => q
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
@@ -166,7 +172,9 @@ namespace GhostTrick.Application.Services
         {
             var result = await _productRepo.FindAsync(
                 p => p.Id == id,
-                q => q.Include(p => p.Category)
+                q => q.AsNoTracking()
+                      .AsSplitQuery()
+                      .Include(p => p.Category)
                       .Include(p => p.Variants).ThenInclude(v => v.Color)
                       .Include(p => p.Images.OrderBy(i => i.SortOrder))
                       .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
