@@ -13,6 +13,7 @@ src/GhostTrick.WebApi/bin/Debug/net9.0/appsettings.json
 
 # Logs
 **/logs/
+src/GhostTrick.WebApi/logs/
 *.log
 
 # Environment variables
@@ -21,3 +22,4 @@ src/GhostTrick.WebApi/bin/Debug/net9.0/appsettings.json
 # Logs
 logs/
 *.log
+src/GhostTrick.WebApi/logs/log-20260511.txt
