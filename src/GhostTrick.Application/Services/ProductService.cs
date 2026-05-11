@@ -209,6 +209,12 @@ namespace GhostTrick.Application.Services
 
         public async Task<ProductDetailDto> CreateProductAsync(CreateProductDto dto)
         {
+            var existingSku = await _productRepo.FindAsync(p => p.SKU == dto.SKU);
+            if (existingSku.Any())
+            {
+                throw new InvalidOperationException($"Mã SKU '{dto.SKU}' đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.");
+            }
+
             string? mainImageUrl = null;
             if (dto.MainImage != null)
             {
@@ -261,6 +267,12 @@ namespace GhostTrick.Application.Services
 
         public async Task<ProductDetailDto> UpdateProductAsync(int id, CreateProductDto dto)
         {
+            var existingSku = await _productRepo.FindAsync(p => p.SKU == dto.SKU && p.Id != id);
+            if (existingSku.Any())
+            {
+                throw new InvalidOperationException($"Mã SKU '{dto.SKU}' đã tồn tại trong hệ thống. Vui lòng sử dụng mã khác.");
+            }
+
             var result = await _productRepo.FindAsync(
                 p => p.Id == id,
                 q => q.Include(p => p.Variants).ThenInclude(v => v.Color)

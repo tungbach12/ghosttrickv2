@@ -168,7 +168,33 @@ const AdminAddProduct = () => {
     if (!isEdit && !mainImage) newErrors.mainImage = 'Vui lòng chọn ảnh đại diện';
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    if (Object.keys(newErrors).length > 0) return false;
+
+    // Validate Variants
+    if (groupedVariants.length === 0) {
+      addToast('Vui lòng thêm ít nhất một biến thể (nhóm màu)', 'error');
+      return false;
+    }
+    for (let i = 0; i < groupedVariants.length; i++) {
+      const g = groupedVariants[i];
+      if (!g.colorId) {
+        addToast('Vui lòng chọn màu sắc cho tất cả các nhóm', 'error');
+        return false;
+      }
+      if (g.sizes.length === 0) {
+        addToast('Vui lòng thêm ít nhất một kích thước cho mỗi màu', 'error');
+        return false;
+      }
+      for (let j = 0; j < g.sizes.length; j++) {
+        if (!g.sizes[j].size.trim()) {
+          addToast('Vui lòng nhập tên kích thước (S, M, L...)', 'error');
+          return false;
+        }
+      }
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
@@ -234,7 +260,17 @@ const AdminAddProduct = () => {
       navigate('/admin/products');
     } catch (error) {
       console.error('Submit failed:', error);
-      const msg = error.response?.data?.message || 'Có lỗi xảy ra khi lưu sản phẩm';
+      let msg = 'Có lỗi xảy ra khi lưu sản phẩm';
+      if (error.response?.data?.errors) {
+        // Lấy lỗi đầu tiên từ object errors của .NET
+        const firstErrorKey = Object.keys(error.response.data.errors)[0];
+        const firstErrorList = error.response.data.errors[firstErrorKey];
+        msg = Array.isArray(firstErrorList) ? firstErrorList[0] : firstErrorList;
+      } else if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (error.response?.data?.title) {
+        msg = error.response.data.title;
+      }
       addToast(msg, 'error');
     } finally {
       setLoading(false);
