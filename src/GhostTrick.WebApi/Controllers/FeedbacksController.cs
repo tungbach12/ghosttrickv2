@@ -11,10 +11,12 @@ namespace GhostTrick.WebApi.Controllers
     public class FeedbacksController : ControllerBase
     {
         private readonly IFeedbackService _feedbackService;
+        private readonly IPhotoService _photoService;
 
-        public FeedbacksController(IFeedbackService feedbackService)
+        public FeedbacksController(IFeedbackService feedbackService, IPhotoService photoService)
         {
             _feedbackService = feedbackService;
+            _photoService = photoService;
         }
 
         // GET: api/Feedbacks
@@ -38,23 +40,12 @@ namespace GhostTrick.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+            var result = await _photoService.AddPhotoAsync(file);
+            
+            if (!result.Success)
+                return BadRequest(result.Error);
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "feedbacks");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
-
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            var url = $"{Request.Scheme}://{Request.Host}/uploads/feedbacks/{fileName}";
-            return Ok(new { url });
+            return Ok(new { url = result.Url, publicId = result.PublicId });
         }
 
         // POST: api/Feedbacks

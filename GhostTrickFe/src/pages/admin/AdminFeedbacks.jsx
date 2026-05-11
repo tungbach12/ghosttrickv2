@@ -10,7 +10,7 @@ export default function AdminFeedbacks() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [formData, setFormData] = useState({
     imageUrl: '',
-    customerName: '',
+    publicId: '',
     isActive: true
   });
 
@@ -39,6 +39,7 @@ export default function AdminFeedbacks() {
     }
   };
 
+  const getFeedbacksBySlot = (slot) => feedbacks.filter(f => f.displayOrder === slot);
   const getFeedbackBySlot = (slot) => feedbacks.find(f => f.displayOrder === slot);
 
   const handleOpenModal = (slot, existing) => {
@@ -48,11 +49,11 @@ export default function AdminFeedbacks() {
       setFormData({
         id: existing.id,
         imageUrl: existing.imageUrl,
-        customerName: existing.customerName,
+        publicId: existing.publicId,
         isActive: existing.isActive
       });
     } else {
-      setFormData({ imageUrl: '', customerName: '', isActive: true });
+      setFormData({ imageUrl: '', publicId: '', isActive: true });
     }
   };
 
@@ -102,12 +103,14 @@ export default function AdminFeedbacks() {
     setUploading(true);
     try {
       let finalImageUrl = formData.imageUrl;
+      let finalPublicId = formData.publicId;
 
       if (image && croppedAreaPixels) {
         const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
         const file = new File([croppedBlob], "feedback.jpg", { type: "image/jpeg" });
         const uploadRes = await feedbackService.uploadImage(file);
         finalImageUrl = uploadRes.url;
+        finalPublicId = uploadRes.publicId;
       }
 
       if (!finalImageUrl) {
@@ -120,6 +123,7 @@ export default function AdminFeedbacks() {
         await feedbackService.updateFeedback(formData.id, {
           ...formData,
           imageUrl: finalImageUrl,
+          publicId: finalPublicId,
           displayOrder: selectedSlot
         });
         addToast(`Cập nhật slot ${selectedSlot} thành công`, 'success');
@@ -127,6 +131,7 @@ export default function AdminFeedbacks() {
         await feedbackService.createFeedback({
           ...formData,
           imageUrl: finalImageUrl,
+          publicId: finalPublicId,
           displayOrder: selectedSlot
         });
         addToast(`Đã thêm feedback vào slot ${selectedSlot}`, 'success');
@@ -163,19 +168,21 @@ export default function AdminFeedbacks() {
 
       <div className="feedback-admin-grid">
         {[1, 2, 3, 4, 5, 6].map((slot) => {
-          const fb = getFeedbackBySlot(slot);
+          const slotFbs = getFeedbacksBySlot(slot);
+          const fb = slotFbs[0];
+          const hasMultiple = slotFbs.length > 1;
           return (
             <div 
               key={slot} 
-              className={`feedback-slot ${fb ? 'filled' : 'empty'}`}
+              className={`feedback-slot ${fb ? 'filled' : 'empty'} ${hasMultiple ? 'multiple-conflict' : ''}`}
               onClick={() => handleOpenModal(slot, fb)}
             >
               <div className="slot-number">POS_{slot}</div>
+              {hasMultiple && <div className="conflict-badge">CONFLICT ({slotFbs.length})</div>}
               {fb ? (
                 <>
-                  <img src={fb.imageUrl} alt={fb.customerName} className="slot-preview" />
+                  <img src={fb.imageUrl} alt="Feedback" className="slot-preview" />
                   <div className="slot-info">
-                    <span className="slot-username">@{fb.customerName}</span>
                     <div className="slot-badge">ACTIVE</div>
                   </div>
                 </>
@@ -238,25 +245,30 @@ export default function AdminFeedbacks() {
                 </div>
               )}
 
-              <div className="form-group" style={{marginTop: '20px'}}>
-                <label>INSTAGRAM USERNAME</label>
-                <input 
-                  type="text" 
-                  className="admin-input" 
-                  value={formData.customerName}
-                  onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                  placeholder="e.g. ghost_member"
-                />
-              </div>
+
 
               <div className="modal-footer">
                 <button type="submit" className="btn-solid full-width" disabled={uploading}>
                   {uploading ? 'UPLOADING...' : (formData.id ? 'SAVE CHANGES' : 'UPLOAD & SAVE')}
                 </button>
-                {formData.id && (
-                  <button type="button" className="btn-text danger-text" onClick={() => handleDelete(formData.id)}>
-                    REMOVE FROM THIS SLOT
-                  </button>
+                
+                {getFeedbacksBySlot(selectedSlot).length > 0 && (
+                  <div className="manage-all-slot-items">
+                    <p className="section-small-title">ALL FEEDBACKS IN THIS SLOT:</p>
+                    {getFeedbacksBySlot(selectedSlot).map(item => (
+                      <div key={item.id} className="slot-item-row">
+                        <img src={item.imageUrl} alt="" className="tiny-preview" />
+                        <span className="item-id">ID: {item.id}</span>
+                        <button 
+                          type="button" 
+                          className="btn-text danger-text sm" 
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          REMOVE
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </form>
@@ -273,7 +285,7 @@ export default function AdminFeedbacks() {
         .slot-preview { width: 100%; height: 100%; object-fit: cover; }
         .slot-add { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #999; font-weight: 800; gap: 10px; }
         .slot-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: rgba(0,0,0,0.8); color: #fff; display: flex; justify-content: space-between; align-items: center; }
-        .slot-username { font-size: 0.7rem; font-weight: 700; }
+
         .slot-badge { font-size: 0.5rem; background: #fff; color: #000; padding: 2px 4px; font-weight: 900; }
 
         .admin-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }
@@ -293,7 +305,17 @@ export default function AdminFeedbacks() {
         .current-image-preview:hover .btn-solid { display: block; }
 
         .full-width { width: 100%; padding: 15px; margin-top: 20px; }
-        .danger-text { color: red; font-size: 0.8rem; width: 100%; text-align: center; margin-top: 10px; }
+        .danger-text { color: red; font-size: 0.8rem; font-weight: 700; }
+        .danger-text.sm { padding: 5px; }
+        
+        .conflict-badge { position: absolute; top: 10px; right: 10px; background: red; color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; z-index: 2; border: 2px solid white; }
+        .multiple-conflict { border-color: red !important; }
+        
+        .manage-all-slot-items { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+        .section-small-title { font-size: 0.6rem; font-weight: 900; color: #999; margin-bottom: 15px; }
+        .slot-item-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #eee; }
+        .tiny-preview { width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd; }
+        .item-id { font-size: 0.7rem; font-family: monospace; flex: 1; }
 
         @media (max-width: 768px) {
           .admin-container { padding: 16px; }
@@ -302,7 +324,7 @@ export default function AdminFeedbacks() {
           
           .feedback-admin-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
           .slot-number { font-size: 0.5rem; }
-          .slot-username { font-size: 0.6rem; }
+
           
           .admin-modal-overlay { padding: 16px; }
           .feedback-modal { width: 100%; padding: 20px; border-width: 3px; }

@@ -7,11 +7,13 @@ namespace GhostTrick.Application.Services
     {
         private readonly IGenericRepository<Feedback> _feedbackRepo;
         private readonly IUnitOfWork _uow;
+        private readonly IPhotoService _photoService;
 
-        public FeedbackService(IGenericRepository<Feedback> feedbackRepo, IUnitOfWork uow)
+        public FeedbackService(IGenericRepository<Feedback> feedbackRepo, IUnitOfWork uow, IPhotoService photoService)
         {
             _feedbackRepo = feedbackRepo;
             _uow = uow;
+            _photoService = photoService;
         }
 
         public async Task<IEnumerable<Feedback>> GetActiveFeedbacksAsync()
@@ -43,8 +45,14 @@ namespace GhostTrick.Application.Services
             var existing = await _feedbackRepo.GetByIdAsync(id);
             if (existing == null) throw new KeyNotFoundException("Feedback not found");
 
+            // If image is changing, delete the old one
+            if (!string.IsNullOrEmpty(existing.PublicId) && existing.ImageUrl != feedback.ImageUrl)
+            {
+                await _photoService.DeletePhotoAsync(existing.PublicId);
+            }
+
             existing.ImageUrl = feedback.ImageUrl;
-            existing.CustomerName = feedback.CustomerName;
+            existing.PublicId = feedback.PublicId;
             existing.IsActive = feedback.IsActive;
             existing.DisplayOrder = feedback.DisplayOrder;
             existing.UpdatedAt = DateTime.UtcNow;
@@ -58,6 +66,11 @@ namespace GhostTrick.Application.Services
             var feedback = await _feedbackRepo.GetByIdAsync(id);
             if (feedback != null)
             {
+                if (!string.IsNullOrEmpty(feedback.PublicId))
+                {
+                    await _photoService.DeletePhotoAsync(feedback.PublicId);
+                }
+
                 feedback.IsDeleted = true;
                 feedback.UpdatedAt = DateTime.UtcNow;
                 _feedbackRepo.Update(feedback);

@@ -142,16 +142,34 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = services.GetRequiredService<GhostTrickContext>();
+
+    int retryCount = 0;
+    int maxRetries = 5;
+    bool migrationSucceeded = false;
+
+    while (retryCount < maxRetries && !migrationSucceeded)
     {
-        var context = services.GetRequiredService<GhostTrickContext>();
-        context.Database.Migrate();
-        Console.WriteLine("Database migration completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        try
+        {
+            context.Database.Migrate();
+            logger.LogInformation("Database migration completed successfully.");
+            migrationSucceeded = true;
+        }
+        catch (Exception ex)
+        {
+            retryCount++;
+            logger.LogWarning(ex, "Attempt {RetryCount} to migrate database failed. Retrying in 5 seconds...", retryCount);
+            if (retryCount >= maxRetries)
+            {
+                logger.LogError(ex, "Database migration failed after {MaxRetries} attempts. Application may be in a broken state.", maxRetries);
+            }
+            else
+            {
+                Thread.Sleep(5000);
+            }
+        }
     }
 }
 
