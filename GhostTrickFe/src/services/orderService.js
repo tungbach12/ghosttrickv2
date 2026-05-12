@@ -7,8 +7,8 @@ export const orderService = {
     return response.data;
   },
 
-  getUserOrders: async () => {
-    const response = await api.get('/orders');
+  getUserOrders: async (page = 1, pageSize = 5) => {
+    const response = await api.get(`/orders?page=${page}&pageSize=${pageSize}`);
     return response.data;
   },
 

@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import settingsService from '../../services/settingsService';
-import { Save, Mail, Settings, Shield, Bell, RefreshCw, MessageSquare, Send, Database, AlertCircle } from 'lucide-react';
+import api from '../../services/api';
+import Cropper from 'react-easy-crop';
+import { createPortal } from 'react-dom';
+import { Save, Mail, Settings, Shield, Bell, RefreshCw, MessageSquare, Send, Database, AlertCircle, QrCode, Upload, Trash2, Crop, X, Check } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 const AdminSettings = () => {
@@ -9,6 +12,14 @@ const AdminSettings = () => {
   const [saving, setSaving] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
   const { addToast } = useToast();
+
+  // QR Crop states
+  const [qrRawImage, setQrRawImage] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [uploadingQr, setUploadingQr] = useState(false);
 
   const fetchSettings = async () => {
     try {
@@ -75,6 +86,66 @@ const AdminSettings = () => {
         return [...prev, { key, value }];
       }
     });
+  };
+
+  // --- QR Crop helpers ---
+  const onCropComplete = useCallback((_, croppedPixels) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
+
+  const handleQrFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { addToast('File quá lớn, tối đa 5MB', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setQrRawImage(reader.result);
+      setShowCropper(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const getCroppedImg = async (imageSrc, pixelCrop) => {
+    const image = new Image();
+    image.src = imageSrc;
+    await new Promise(resolve => { image.onload = resolve; });
+    const canvas = document.createElement('canvas');
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
+    return new Promise(resolve => {
+      canvas.toBlob(blob => resolve(blob), 'image/png', 1);
+    });
+  };
+
+  const handleCropConfirm = async () => {
+    if (!croppedAreaPixels || !qrRawImage) return;
+    setUploadingQr(true);
+    try {
+      const blob = await getCroppedImg(qrRawImage, croppedAreaPixels);
+      const formData = new FormData();
+      formData.append('file', blob, 'qr-payment.png');
+      const uploadRes = await api.post('/photos/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const url = uploadRes.data.url;
+      await handleUpdateSetting('PaymentQRCodeUrl', url);
+      setShowCropper(false);
+      setQrRawImage(null);
+      addToast('Đã cập nhật ảnh QR thanh toán!', 'success');
+    } catch (err) {
+      addToast('Lỗi khi tải ảnh QR lên', 'error');
+    } finally {
+      setUploadingQr(false);
+    }
+  };
+
+  const handleDeleteQr = async () => {
+    if (!window.confirm('Bạn có chắc muốn xóa ảnh QR thanh toán?')) return;
+    await handleUpdateSetting('PaymentQRCodeUrl', '');
+    addToast('Đã xóa ảnh QR thanh toán', 'success');
   };
 
   if (loading) return (
@@ -235,6 +306,42 @@ const AdminSettings = () => {
           </div>
         </div>
 
+        {/* QR Payment Card */}
+        <div className="settings-card">
+          <div className="card-header">
+            <div className="card-icon" style={{ background: '#6366f1', color: 'white' }}><QrCode size={20} /></div>
+            <div className="card-info">
+              <h3>Thanh toán Chuyển khoản</h3>
+              <p>Upload ảnh QR ngân hàng để khách hàng quét khi chọn thanh toán chuyển khoản.</p>
+            </div>
+          </div>
+          <div className="card-body">
+            {getSettingValue('PaymentQRCodeUrl') ? (
+              <div className="qr-preview-zone">
+                <div className="qr-preview-img">
+                  <img src={getSettingValue('PaymentQRCodeUrl')} alt="QR thanh toán" />
+                </div>
+                <div className="qr-preview-actions">
+                  <label className="qr-change-btn">
+                    <Upload size={16} /> Đổi ảnh QR
+                    <input type="file" accept="image/*" onChange={handleQrFileSelect} style={{ display: 'none' }} />
+                  </label>
+                  <button className="qr-delete-btn" onClick={handleDeleteQr}>
+                    <Trash2 size={16} /> Xóa
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="qr-upload-dropzone">
+                <Upload size={32} />
+                <p className="dropzone-title">Tải ảnh QR lên</p>
+                <p className="dropzone-hint">Hỗ trợ JPG, PNG. Tối đa 5MB. Bạn sẽ được cắt ảnh trước khi lưu.</p>
+                <input type="file" accept="image/*" onChange={handleQrFileSelect} style={{ display: 'none' }} />
+              </label>
+            )}
+          </div>
+        </div>
+
         <div className="settings-card disabled">
           <div className="card-header">
             <div className="card-icon"><Shield size={20} /></div>
@@ -248,6 +355,67 @@ const AdminSettings = () => {
           </div>
         </div>
       </div>
+
+      {/* QR Cropper Modal — rendered via portal to document.body */}
+      {showCropper && createPortal(
+        <div className="crop-modal-overlay" onClick={() => { setShowCropper(false); setQrRawImage(null); }}>
+          <div className="crop-modal" onClick={e => e.stopPropagation()}>
+            <div className="crop-modal-header">
+              <h3><Crop size={20} /> Cắt ảnh QR</h3>
+              <button className="crop-close-btn" onClick={() => { setShowCropper(false); setQrRawImage(null); }}><X size={20} /></button>
+            </div>
+            <div className="crop-container">
+              <Cropper
+                image={qrRawImage}
+                crop={crop}
+                zoom={zoom}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+                style={{ containerStyle: { width: '100%', height: '100%', position: 'relative' } }}
+              />
+            </div>
+            <div className="crop-controls">
+              <label className="zoom-label">Zoom</label>
+              <input type="range" min="1" max="3" step="0.1" value={zoom} onChange={e => setZoom(Number(e.target.value))} className="zoom-slider" />
+            </div>
+            <div className="crop-actions">
+              <button className="crop-cancel" onClick={() => { setShowCropper(false); setQrRawImage(null); }}>Hủy</button>
+              <button className="crop-confirm" onClick={handleCropConfirm} disabled={uploadingQr}>
+                {uploadingQr ? 'Đang tải...' : <><Check size={18} /> Xác nhận &amp; Lưu</>}
+              </button>
+            </div>
+          </div>
+          <style dangerouslySetInnerHTML={{ __html: `
+            .crop-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.7); backdrop-filter: blur(8px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 24px; animation: cropFadeIn 0.25s ease; }
+            .crop-modal { background: white; border-radius: 24px; width: 100%; max-width: 560px; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: cropSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
+            .crop-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; }
+            .crop-modal-header h3 { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; margin: 0; color: #0f172a; }
+            .crop-close-btn { background: #f8fafc; border: none; cursor: pointer; color: #64748b; padding: 8px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+            .crop-close-btn:hover { color: #0f172a; background: #f1f5f9; }
+            .crop-container { position: relative; width: 100%; height: 400px; background: #0f172a; flex-shrink: 0; }
+            .crop-controls { padding: 16px 24px; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+            .zoom-label { font-size: 0.8rem; font-weight: 700; color: #64748b; white-space: nowrap; }
+            .zoom-slider { flex: 1; accent-color: #0f172a; height: 4px; }
+            .crop-actions { padding: 16px 24px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+            .crop-cancel { padding: 12px 24px; background: #f1f5f9; color: #475569; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+            .crop-cancel:hover { background: #e2e8f0; }
+            .crop-confirm { padding: 12px 24px; background: #0f172a; color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; font-size: 0.9rem; }
+            .crop-confirm:hover { background: #1e293b; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.15); }
+            .crop-confirm:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+            @keyframes cropFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes cropSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            @media (max-width: 640px) {
+              .crop-modal { max-width: 100%; border-radius: 16px; margin: 0 8px; }
+              .crop-container { height: 280px; }
+              .crop-modal-header { padding: 16px 20px; }
+              .crop-actions { padding: 14px 20px; flex-direction: column; }
+              .crop-cancel, .crop-confirm { width: 100%; justify-content: center; }
+            }
+          `}} />
+        </div>,
+        document.body
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         .admin-settings-page { padding: 32px; max-width: 1000px; }
@@ -301,13 +469,47 @@ const AdminSettings = () => {
         .slider.round:before { border-radius: 50%; }
 
         .field-desc { color: #94a3b8; font-size: 0.75rem; margin-top: 12px; font-style: italic; }
-        
         .coming-soon { text-align: center; color: #94a3b8; font-size: 0.9rem; padding: 20px; border: 2px dashed #f1f5f9; border-radius: 16px; }
+
+        /* QR Preview & Upload */
+        .qr-preview-zone { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .qr-preview-img { width: 280px; border-radius: 20px; overflow: hidden; border: 2px solid #f1f5f9; background: #f8fafc; box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
+        .qr-preview-img img { width: 100%; height: auto; display: block; }
+        .qr-preview-actions { display: flex; gap: 12px; }
+        .qr-change-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: #f1f5f9; color: #475569; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+        .qr-change-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .qr-delete-btn { display: flex; align-items: center; gap: 8px; padding: 10px 20px; background: #fee2e2; color: #ef4444; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+        .qr-delete-btn:hover { background: #fecaca; }
+
+        .qr-upload-dropzone { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 40px; border: 2px dashed #e2e8f0; border-radius: 20px; cursor: pointer; transition: all 0.2s; color: #94a3b8; background: #f8fafc; }
+        .qr-upload-dropzone:hover { border-color: #6366f1; color: #6366f1; background: #f5f3ff; }
+        .dropzone-title { font-weight: 800; font-size: 1rem; margin: 0; }
+        .dropzone-hint { font-size: 0.8rem; margin: 0; }
+
+        /* Crop Modal */
+        .crop-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.7); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .crop-modal { background: white; border-radius: 24px; width: 100%; max-width: 560px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .crop-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9; }
+        .crop-modal-header h3 { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; margin: 0; }
+        .crop-close-btn { background: none; border: none; cursor: pointer; color: #64748b; padding: 4px; }
+        .crop-close-btn:hover { color: #0f172a; }
+        .crop-container { position: relative; width: 100%; height: 400px; background: #0f172a; }
+        .crop-controls { padding: 16px 24px; display: flex; align-items: center; gap: 12px; background: #f8fafc; }
+        .zoom-label { font-size: 0.8rem; font-weight: 700; color: #64748b; white-space: nowrap; }
+        .zoom-slider { flex: 1; accent-color: #0f172a; }
+        .crop-actions { padding: 16px 24px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #f1f5f9; }
+        .crop-cancel { padding: 12px 24px; background: #f1f5f9; color: #475569; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .crop-cancel:hover { background: #e2e8f0; }
+        .crop-confirm { padding: 12px 24px; background: #0f172a; color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .crop-confirm:hover { background: #1e293b; transform: translateY(-1px); }
+        .crop-confirm:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
 
         @media (max-width: 768px) {
           .admin-settings-page { padding: 16px; }
           .input-with-button { flex-direction: column; }
           .save-setting-btn { width: 100%; }
+          .qr-preview-img { width: 200px; }
+          .crop-container { height: 300px; }
         }
       ` }} />
     </div>

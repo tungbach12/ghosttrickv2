@@ -48,18 +48,18 @@ namespace GhostTrick.Application.Services
             _email = email;
         }
 
-        public async Task<List<OrderResponseDto>> GetMyOrdersAsync(string userId)
+        public async Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(string userId, int page, int pageSize)
         {
-            var orders = await _orderRepo.FindAsync(
-                o => o.UserId == userId,
-                q => q.AsNoTracking()
-                      .AsSplitQuery()
-                      .Include(o => o.Items!).ThenInclude(i => i.Product)
-                      .Include(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
-                      .Include(o => o.Timeline!.OrderByDescending(t => t.CreatedAt))
-            );
-
-            orders = orders.OrderByDescending(o => o.CreatedAt).ToList();
+            var (orders, totalCount) = await _orderRepo.GetPagedAsync(page, pageSize, query => 
+            {
+                return query.Where(o => o.UserId == userId)
+                            .AsNoTracking()
+                            .AsSplitQuery()
+                            .Include(o => o.Items!).ThenInclude(i => i.Product)
+                            .Include(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
+                            .Include(o => o.Timeline!.OrderByDescending(t => t.CreatedAt))
+                            .OrderByDescending(o => o.CreatedAt);
+            });
 
             var userReviews = await _reviewRepo.FindAsync(
                 r => r.UserId == userId && !r.IsDeleted
@@ -70,7 +70,13 @@ namespace GhostTrick.Application.Services
                 .GroupBy(r => (r.ProductId, r.OrderId))
                 .ToDictionary(g => g.Key, g => g.First().Id);
 
-            return orders.Select(o => MapOrderToDto(o, reviewDict)).ToList();
+            return new PagedResult<OrderResponseDto>
+            {
+                Items = orders.Select(o => MapOrderToDto(o, reviewDict)).ToList(),
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
         }
 
         public async Task<OrderResponseDto> GetOrderAsync(int id, string userId)
@@ -468,7 +474,7 @@ namespace GhostTrick.Application.Services
             return MapOrderToDto(order);
         }
 
-        private static OrderResponseDto MapOrderToDto(Order o, Dictionary<(int ProductId, int? OrderId), int> userReviews = null) => new()
+        private static OrderResponseDto MapOrderToDto(Order o, Dictionary<(int ProductId, int? OrderId), int>? userReviews = null) => new()
         {
             Id = o.Id,
             UserId = o.UserId,

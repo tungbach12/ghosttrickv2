@@ -22,10 +22,10 @@ namespace GhostTrick.WebApi.Controllers
         private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
         [HttpGet]
-        public async Task<ActionResult<List<OrderResponseDto>>> GetMyOrders()
+        public async Task<ActionResult<PagedResult<OrderResponseDto>>> GetMyOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var orders = await _orderService.GetMyOrdersAsync(UserId);
-            return Ok(orders);
+            var result = await _orderService.GetMyOrdersAsync(UserId, page, pageSize);
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

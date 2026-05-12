@@ -479,7 +479,8 @@
   border-color: #94a3b8;
 }
 
-.no-orders, .empty-wallet {
+.no-orders,
+.empty-wallet {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -494,7 +495,8 @@
   background: #f8fafc;
 }
 
-.no-orders svg, .empty-wallet svg {
+.no-orders svg,
+.empty-wallet svg {
   color: #94a3b8;
   margin-bottom: 8px;
 }
@@ -613,10 +615,41 @@
   font-weight: 600;
 }
 
-.order-status-badge-brutal.shipping { background: #eff6ff; color: #2563eb; }
-.order-status-badge-brutal.delivered { background: #f0fdf4; color: #16a34a; }
-.order-status-badge-brutal.failed { background: #fef2f2; color: #dc2626; }
-.order-status-badge-brutal.pending { background: #fefce8; color: #ca8a04; }
+.order-status-badge-brutal.shipping {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.order-status-badge-brutal.delivered {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.order-status-badge-brutal.failed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.order-status-badge-brutal.pending,
+.order-status-badge-brutal.unpaid {
+  background: #fefce8;
+  color: #ca8a04;
+}
+
+.order-status-badge-brutal.paid {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.order-status-badge-brutal.refunded {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.order-status-badge-brutal.partiallyrefunded {
+  background: #eff6ff;
+  color: #2563eb;
+}
 
 .order-body-brutal {
   padding: 20px;
@@ -672,7 +705,9 @@
   margin-bottom: 8px;
 }
 
-.meta-sep { color: #cbd5e1; }
+.meta-sep {
+  color: #cbd5e1;
+}
 
 .color-dot-small {
   display: inline-block;
@@ -696,6 +731,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Pagination */
+.pagination-brutal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.p-btn {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.p-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.p-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.p-info {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #64748b;
 }
 
 .total-label {

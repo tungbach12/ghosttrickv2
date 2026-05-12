@@ -43,7 +43,8 @@ namespace GhostTrick.WebApi.Controllers
                 "FeedbackSection_Subtitle", 
                 "FeedbackSection_ButtonText", 
                 "FeedbackSection_ButtonUrl",
-                "FeedbackSection_ShowButton"
+                "FeedbackSection_ShowButton",
+                "PaymentQRCodeUrl"
             };
             
             var allSettings = await _settingsService.GetAllSettingsAsync();

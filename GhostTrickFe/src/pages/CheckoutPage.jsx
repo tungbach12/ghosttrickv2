@@ -4,9 +4,10 @@ import { useGlobalContext } from '../context/GlobalContext';
 import { orderService } from '../services/orderService';
 import { voucherService } from '../services/voucherService';
 import { useToast } from '../context/ToastContext';
-import { ChevronRight, ShoppingBag, CreditCard, MapPin, Truck, AlertCircle, Check, Ticket, X, Percent, Banknote } from 'lucide-react';
+import { ChevronRight, ShoppingBag, CreditCard, MapPin, Truck, AlertCircle, Check, Ticket, X, Percent, Banknote, QrCode } from 'lucide-react';
 import axios from 'axios';
 import ColorTag from '../components/common/ColorTag';
+import settingsService from '../services/settingsService';
 
 const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) => {
   const [vouchers, setVouchers] = useState([]);
@@ -300,6 +301,18 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState({});
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null); // { message, variantIds }
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+
+  // Fetch QR code URL from public settings
+  useEffect(() => {
+    const fetchQrUrl = async () => {
+      try {
+        const pubSettings = await settingsService.getPublicSettings();
+        setQrCodeUrl(pubSettings.PaymentQRCodeUrl || '');
+      } catch (e) { /* ignore */ }
+    };
+    fetchQrUrl();
+  }, []);
 
   // Fetch Provinces on mount
   useEffect(() => {
@@ -591,14 +604,27 @@ export default function CheckoutPage() {
                   </div>
                   {paymentMethod === 'COD' && <Check size={18} className="check-icon" />}
                 </label>
-                <label className={`payment-option ${paymentMethod === 'BANK' ? 'active' : ''}`}>
-                  <input type="radio" name="payment" value="BANK" checked={paymentMethod === 'BANK'} onChange={e => setPaymentMethod(e.target.value)} />
-                  <div className="payment-info">
-                    <span className="payment-name">Chuyển khoản ngân hàng</span>
-                    <span className="payment-desc">Vui lòng chuyển khoản vào số tài khoản của chúng tôi.</span>
+                {qrCodeUrl && (
+                  <label className={`payment-option ${paymentMethod === 'BankTransfer' ? 'active' : ''}`}>
+                    <input type="radio" name="payment" value="BankTransfer" checked={paymentMethod === 'BankTransfer'} onChange={e => setPaymentMethod(e.target.value)} />
+                    <div className="payment-info">
+                      <span className="payment-name">Chuyển khoản ngân hàng</span>
+                      <span className="payment-desc">Quét QR để chuyển khoản. Admin sẽ xác nhận thanh toán.</span>
+                    </div>
+                    {paymentMethod === 'BankTransfer' && <Check size={18} className="check-icon" />}
+                  </label>
+                )}
+                {paymentMethod === 'BankTransfer' && qrCodeUrl && (
+                  <div className="qr-checkout-display">
+                    <div className="qr-checkout-img">
+                      <img src={qrCodeUrl} alt="QR Thanh toán" />
+                    </div>
+                    <div className="qr-checkout-hint">
+                      <QrCode size={18} />
+                      <p>Vui lòng chuyển khoản theo mã QR trước khi đặt hàng.<br/><strong>Nội dung chuyển khoản:</strong> Tên + SĐT của bạn.</p>
+                    </div>
                   </div>
-                  {paymentMethod === 'BANK' && <Check size={18} className="check-icon" />}
-                </label>
+                )}
               </div>
             </div>
           </div>
@@ -774,6 +800,14 @@ export default function CheckoutPage() {
         .place-order-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; background: #0f172a; color: white; font-weight: 900; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
         .place-order-btn:hover { background: #1e293b; transform: translateY(-2px); }
         .sticky-summary { position: sticky; top: 24px; }
+
+        /* QR Checkout Display */
+        .qr-checkout-display { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 4px; animation: slideDown 0.3s ease; }
+        .qr-checkout-img { width: 220px; border-radius: 16px; overflow: hidden; border: 2px solid #e2e8f0; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .qr-checkout-img img { width: 100%; height: auto; display: block; }
+        .qr-checkout-hint { display: flex; align-items: flex-start; gap: 10px; color: #475569; }
+        .qr-checkout-hint p { font-size: 0.82rem; line-height: 1.5; margin: 0; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
       `}} />
     </div>
   );

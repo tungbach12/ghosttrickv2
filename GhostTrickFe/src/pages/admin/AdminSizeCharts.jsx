@@ -208,8 +208,35 @@ const AdminSizeCharts = () => {
 
       <style dangerouslySetInnerHTML={{ __html: `
         .admin-size-charts-page { padding: 0; }
+        .admin-page-header { margin-bottom: 32px; }
         .admin-page-header .title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.03em; }
         .admin-page-header .subtitle { color: #64748b; font-size: 1rem; font-weight: 500; }
+        
+        .add-new-btn { 
+          background: #0f172a; 
+          color: white; 
+          border: none; 
+          padding: 14px 28px; 
+          border-radius: 16px; 
+          font-weight: 700; 
+          cursor: pointer; 
+          display: flex; 
+          align-items: center; 
+          gap: 10px; 
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+          white-space: nowrap; 
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12); 
+        }
+        
+        .add-new-btn:hover { 
+          background: #1e293b; 
+          transform: translateY(-2px); 
+          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2); 
+        }
+
+        .add-new-btn:active {
+          transform: translateY(0);
+        }
         
         .admin-stats-overview { display: flex; gap: 16px; margin-bottom: 32px; }
         .stat-card-mini { background: white; padding: 20px 24px; border-radius: 20px; border: 1px solid #f1f5f9; flex: 1; max-width: 240px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
@@ -217,6 +244,39 @@ const AdminSizeCharts = () => {
         .s-value { font-size: 1.8rem; font-weight: 900; color: #0f172a; }
 
         .admin-table-card { background: white; border-radius: 24px; border: 1px solid #f1f5f9; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { background: #f8fafc; padding: 16px 24px; text-align: left; font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #f1f5f9; }
+        .admin-table td { padding: 20px 24px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
+        .admin-table tr:hover td { background: #f8fafc; }
+        
+        .action-btn {
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          background: #f8fafc;
+          color: #64748b;
+        }
+
+        .action-btn:hover {
+          transform: scale(1.08);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .action-btn.edit:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+
+        .action-btn.delete:hover {
+          background: #fee2e2;
+          color: #ef4444;
+        }
         
         .chart-preview-cell { width: 80px; height: 80px; border-radius: 12px; overflow: hidden; border: 1px solid #f1f5f9; background: #f8fafc; position: relative; cursor: pointer; }
         .chart-preview-cell img { width: 100%; height: 100%; object-fit: contain; }
@@ -245,6 +305,32 @@ const AdminSizeCharts = () => {
           .add-new-btn { width: 100%; justify-content: center; }
           .admin-stats-overview { margin-bottom: 20px; }
         .stat-card-mini { max-width: none; }
+        }
+
+        .form-control {
+          width: 100%;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 16px;
+          font-weight: 600;
+          color: #0f172a;
+          transition: all 0.2s;
+        }
+
+        .form-control:focus {
+          outline: none;
+          border-color: #0f172a;
+          box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+        }
+
+        .form-label {
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          display: block;
+          letter-spacing: 0.05em;
         }
 
         /* Modal Styles */
@@ -303,11 +389,10 @@ const AdminSizeCharts = () => {
             
             <form onSubmit={handleSubmit} style={{ padding: '32px' }}>
               <div className="form-group" style={{ marginBottom: '24px' }}>
-                <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Tên phân loại bảng size</label>
+                <label className="form-label">Tên phân loại bảng size</label>
                 <input 
                   type="text" 
                   className="form-control" 
-                  style={{ borderRadius: '12px', padding: '12px 16px', fontWeight: 600 }}
                   placeholder="VD: Bảng size Áo thun, Bảng size Đầm..."
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -316,7 +401,7 @@ const AdminSizeCharts = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Hình ảnh bảng size</label>
+                <label className="form-label">Hình ảnh bảng size</label>
                 <div 
                   className="size-chart-upload-box" 
                   onClick={() => document.getElementById('chart-upload').click()}

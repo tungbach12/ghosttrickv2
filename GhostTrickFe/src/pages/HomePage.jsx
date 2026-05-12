@@ -181,8 +181,13 @@ export default function HomePage() {
       </section>
 
       {/* Vouchers Section */}
-      <section className="container section-vouchers">
-        <div className="gt-voucher-slider-container">
+      <section className="section-vouchers">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">EXCLUSIVE OFFERS</h2>
+            <div className="section-divider"></div>
+          </div>
+          <div className="gt-voucher-slider-container">
           <div 
             className="gt-voucher-slider-track" 
             ref={voucherGridRef}
@@ -215,10 +220,13 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <button className="nav-btn prev" onClick={() => scrollPrev(voucherGridRef)}><ChevronLeft size={20}/></button>
-          <button className="nav-btn next" onClick={() => scrollNext(voucherGridRef)}><ChevronRight size={20}/></button>
+          
+          
+        </div>
         </div>
       </section>
+
+      <div className="industrial-divider container"></div>
 
       {/* Product Section */}
       <section className="container section-products">

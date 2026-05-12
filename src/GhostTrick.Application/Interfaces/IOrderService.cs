@@ -4,7 +4,7 @@ namespace GhostTrick.Application.Interfaces
 {
     public interface IOrderService
     {
-        Task<List<OrderResponseDto>> GetMyOrdersAsync(string userId);
+        Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(string userId, int page, int pageSize);
         Task<OrderResponseDto> GetOrderAsync(int id, string userId);
         Task<OrderResponseDto> CreateOrderAsync(CreateOrderDto dto, string userId);
         Task CancelOrderAsync(int id, string userId);

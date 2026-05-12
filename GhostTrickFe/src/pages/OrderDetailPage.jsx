@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { orderService } from '../services/orderService';
-import { ChevronLeft, Package, MapPin, CreditCard, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
+import settingsService from '../services/settingsService';
+import { ChevronLeft, Package, MapPin, CreditCard, Clock, CheckCircle, Truck, XCircle, QrCode } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 
 export default function OrderDetailPage() {
@@ -9,6 +10,7 @@ export default function OrderDetailPage() {
   const { addToast } = useToast();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -23,6 +25,16 @@ export default function OrderDetailPage() {
     };
     fetchOrder();
   }, [id]);
+
+  useEffect(() => {
+    const fetchQr = async () => {
+      try {
+        const pubSettings = await settingsService.getPublicSettings();
+        setQrCodeUrl(pubSettings.PaymentQRCodeUrl || '');
+      } catch (e) { /* ignore */ }
+    };
+    fetchQr();
+  }, []);
 
   const formatPrice = (price) => {
     if (price === null || price === undefined || isNaN(price)) return '0 ₫';
@@ -41,8 +53,8 @@ export default function OrderDetailPage() {
     }
   };
 
-  if (loading) return <div className="container" style={{padding: '100px 0', textAlign: 'center'}}>Đang tải...</div>;
-  if (!order) return <div className="container" style={{padding: '100px 0', textAlign: 'center'}}>Không tìm thấy đơn hàng.</div>;
+  if (loading) return <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>Đang tải...</div>;
+  if (!order) return <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>Không tìm thấy đơn hàng.</div>;
 
   return (
     <div className="order-detail-page animate-up">
@@ -102,8 +114,8 @@ export default function OrderDetailPage() {
           </div>
 
           <div className="sidebar-info">
-             {/* Summary */}
-             <div className="detail-card summary-card">
+            {/* Summary */}
+            <div className="detail-card summary-card">
               <h3 className="card-title">Tóm tắt đơn hàng</h3>
               <div className="summary-rows">
                 <div className="summary-row">
@@ -143,17 +155,29 @@ export default function OrderDetailPage() {
             <div className="detail-card mt-20">
               <h3 className="card-title"><CreditCard size={18} /> Thanh toán</h3>
               <div className="info-content">
-                <p className="info-val">{order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : order.paymentMethod}</p>
-                <div className={`payment-status-tag ${order.isPaid ? 'paid' : 'unpaid'}`}>
-                  {order.isPaid ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
+                <p className="info-val">{order.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : order.paymentMethod === 'BankTransfer' ? 'Chuyển khoản ngân hàng' : order.paymentMethod}</p>
+                <div className={`payment-status-tag ${order.paymentStatus?.toLowerCase() === 'paid' ? 'paid' : 'unpaid'}`}>
+                  {order.paymentStatus?.toLowerCase() === 'paid' ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}
                 </div>
+                {order.paymentMethod === 'BankTransfer' && order.paymentStatus?.toLowerCase() !== 'paid' && qrCodeUrl && (
+                  <div className="qr-order-display">
+                    <div className="qr-order-img">
+                      <img src={qrCodeUrl} alt="QR Thanh toán" />
+                    </div>
+                    <div className="qr-order-hint">
+                      <QrCode size={16} />
+                      <p>Quét QR để thanh toán đơn hàng.<br /><strong>Nội dung CK:</strong> Tên + SĐT của bạn.</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .order-detail-page { padding: 40px 0 80px; background: #f8fafc; min-height: 100vh; }
         .detail-header { margin-bottom: 30px; }
         .back-link { display: flex; align-items: center; gap: 4px; font-size: 0.9rem; font-weight: 500; color: #64748b; margin-bottom: 20px; text-decoration: none; transition: color 0.2s; }
@@ -202,6 +226,13 @@ export default function OrderDetailPage() {
         .payment-status-tag { display: inline-block; margin-top: 12px; font-size: 0.75rem; font-weight: 600; padding: 6px 12px; border-radius: 6px; }
         .payment-status-tag.paid { background: #dcfce7; color: #166534; }
         .payment-status-tag.unpaid { background: #fee2e2; color: #991b1b; }
+
+        /* QR in Order Detail */
+        .qr-order-display { margin-top: 16px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .qr-order-img { width: 200px; border-radius: 14px; overflow: hidden; border: 2px solid #e2e8f0; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .qr-order-img img { width: 100%; height: auto; display: block; }
+        .qr-order-hint { display: flex; align-items: flex-start; gap: 8px; color: #475569; }
+        .qr-order-hint p { font-size: 0.8rem; line-height: 1.5; margin: 0; }
 
         .order-note-text { color: #475569; line-height: 1.5; margin: 0; }
 

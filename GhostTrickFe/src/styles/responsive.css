@@ -28,7 +28,7 @@
   }
 
   .hero-title {
-    font-size: 1.8rem !important; /* Restored size for impact */
+    font-size: 1.5rem !important; /* Scaled down for better mobile fit */
     font-style: italic !important;
     font-weight: 900 !important;
     letter-spacing: -1px !important;
@@ -115,39 +115,7 @@
   }
 }
 
-/* --- Vouchers Mobile --- */
-@media (max-width: 768px) {
-  .section-vouchers {
-    padding: 20px 0 !important;
-  }
-
-  .gt-voucher-slider-track {
-    align-items: center !important;
-    padding: 20px 15px 40px !important;
-    gap: 20px !important;
-  }
-
-  .voucher-card {
-    flex: 0 0 280px !important;
-    width: 280px !important;
-    min-width: 280px !important;
-    height: 100px !important;
-    box-shadow: 4px 4px 0px #eee !important;
-  }
-
-  .voucher-code {
-    font-size: 1.1rem !important;
-  }
-
-  .voucher-btn {
-    width: 70px !important;
-    font-size: 0.65rem !important;
-  }
-
-  .gt-voucher-slider-container .nav-btn {
-    display: none !important;
-  }
-}
+/* Vouchers Mobile moved to home.css */
 
 /* --- Tablet / Medium Screens Banner Fix --- */
 @media (min-width: 769px) and (max-width: 1199px) {
@@ -261,23 +229,4 @@
   }
 }
 
-/* --- Category Tabs --- */
-@media (max-width: 768px) {
-  .tabs {
-    gap: 15px !important;
-    margin-bottom: 20px !important;
-    overflow-x: auto;
-    justify-content: flex-start !important;
-    padding: 0 15px;
-    scrollbar-width: none;
-  }
-  
-  .tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .section-title {
-    white-space: nowrap;
-    padding-bottom: 2px !important;
-  }
-}
+/* Category Tabs centering moved to home.css */
