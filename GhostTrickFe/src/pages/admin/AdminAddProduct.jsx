@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../services/api';
 import colorService from '../../services/colorService';
-import { Save, X, Plus, Trash2, Upload, AlertCircle, Palette } from 'lucide-react';
+import { Save, X, Plus, Trash2, Upload, AlertCircle, Palette, RefreshCw } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -153,6 +153,26 @@ const AdminAddProduct = () => {
       fetchProduct();
     }
   }, [id, isEdit]);
+
+  // Auto-generate SKU for new products when category is selected
+  useEffect(() => {
+    if (!isEdit && !formData.sku && formData.categoryId) {
+      generateSKU();
+    }
+  }, [formData.categoryId, isEdit]);
+
+  const generateSKU = () => {
+    const category = categories.find(c => c.id === Number(formData.categoryId) || c.id === formData.categoryId);
+    const prefix = category ? category.name.substring(0, 2).toUpperCase() : 'XX';
+    const random = Math.floor(1000 + Math.random() * 9000);
+    const timestamp = new Date().getTime().toString().slice(-3);
+    const newSku = `GT-${prefix}${random}${timestamp}`;
+    
+    setFormData(prev => ({ ...prev, sku: newSku }));
+    if (errors.sku) {
+      setErrors(prev => ({ ...prev, sku: null }));
+    }
+  };
 
   
   const sensors = useSensors(
@@ -385,7 +405,16 @@ const AdminAddProduct = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">SKU</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>SKU</label>
+                <button 
+                  type="button" 
+                  onClick={generateSKU}
+                  className="sku-gen-btn"
+                >
+                  <RefreshCw size={12} /> Tự động tạo
+                </button>
+              </div>
               <input
                 type="text" name="sku" value={formData.sku} onChange={handleInputChange}
                 className={`form-control ${errors.sku ? 'is-invalid' : ''}`}
@@ -715,6 +744,25 @@ const AdminAddProduct = () => {
           .empty-variants-state p { margin-top: 10px; font-size: 0.85rem; font-weight: 500; }
           
           .duplicate-row { background: #fff1f2; }
+
+          .sku-gen-btn {
+            background: #f1f5f9;
+            border: none;
+            color: #475569;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+          }
+          .sku-gen-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+          }
 
           .other-images-section { border-top: 1px solid #f1f5f9; padding-top: 24px; }
           .images-grid { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }

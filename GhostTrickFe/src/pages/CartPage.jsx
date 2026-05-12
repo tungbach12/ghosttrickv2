@@ -13,7 +13,7 @@ export default function CartPage() {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + calculateItemSubtotal(item), 0);
-  const shipping = subtotal >= 500000 ? 0 : 30000;
+  const shipping = 0; // Free shipping for all orders
   const total = subtotal + shipping;
 
   const formatPrice = (price) => {

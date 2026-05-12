@@ -252,6 +252,11 @@ namespace GhostTrick.Application.Services
 
         public async Task<ProductDetailDto> CreateProductAsync(CreateProductDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.SKU))
+            {
+                dto.SKU = await GenerateUniqueSkuAsync(dto.CategoryId);
+            }
+
             var existingSku = await _productRepo.FindAsync(p => p.SKU == dto.SKU);
             if (existingSku.Any())
             {
@@ -589,6 +594,25 @@ namespace GhostTrick.Application.Services
                 Images = product.Images.Select(i => i.ImageUrl).ToList(),
                 SizeChartUrl = product.SizeChart?.ImageUrl
             };
+        }
+        private async Task<string> GenerateUniqueSkuAsync(int categoryId)
+        {
+            var category = await _categoryRepo.GetByIdAsync(categoryId);
+            var prefix = category != null ? category.Name.Substring(0, Math.Min(2, category.Name.Length)).ToUpper() : "XX";
+            var random = new Random();
+            string sku;
+            bool exists;
+            
+            do
+            {
+                var num = random.Next(1000, 9999);
+                var timestamp = DateTime.UtcNow.Ticks.ToString().Substring(10, 3);
+                sku = $"GT-{prefix}{num}{timestamp}";
+                var results = await _productRepo.FindAsync(p => p.SKU == sku);
+                exists = results.Any();
+            } while (exists);
+            
+            return sku;
         }
     }
 }

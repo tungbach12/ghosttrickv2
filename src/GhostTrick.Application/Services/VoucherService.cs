@@ -165,6 +165,11 @@ namespace GhostTrick.Application.Services
 
         public async Task<VoucherResultDto> ValidateVoucherAsync(ValidateVoucherDto dto, string? userId)
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new InvalidOperationException("Vui lòng đăng nhập để sử dụng mã giảm giá.");
+            }
+
             var now = DateTime.UtcNow;
             var voucherList = await _voucherRepo.GetAsync(q => q
                 .Include(v => v.Usages)

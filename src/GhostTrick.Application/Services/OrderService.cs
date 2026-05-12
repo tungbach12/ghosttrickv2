@@ -184,7 +184,7 @@ namespace GhostTrick.Application.Services
                 }
 
                 decimal total = orderItems.Sum(i => i.UnitPrice * i.Quantity);
-                decimal shippingFee = total >= 500000 ? 0 : 30000;
+                decimal shippingFee = 0;
 
                 if (!string.IsNullOrEmpty(dto.VoucherCode))
                 {

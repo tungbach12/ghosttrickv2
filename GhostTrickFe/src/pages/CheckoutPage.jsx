@@ -48,6 +48,12 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
         </div>
         
         <div className="voucher-modal-body">
+          {!user && (
+            <div className="guest-voucher-notice">
+              <AlertCircle size={18} />
+              <p>Bạn cần <Link to="/login" style={{color: '#000', textDecoration: 'underline', fontWeight: 900}}>Đăng nhập</Link> để sử dụng mã giảm giá.</p>
+            </div>
+          )}
           {loading ? (
             <div className="loading-state">Đang tải mã giảm giá...</div>
           ) : vouchers.length === 0 ? (
@@ -133,6 +139,8 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
         
         .loading-state, .empty-state { text-align: center; padding: 60px 0; color: #64748b; font-weight: 800; text-transform: uppercase; }
         .empty-state p { margin-top: 12px; font-size: 0.9rem; }
+        .guest-voucher-notice { background: #fee2e2; border: 2px solid #000; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #ef4444; font-size: 0.85rem; font-weight: 700; }
+        .guest-voucher-notice p { margin: 0; }
       `}} />
     </div>
   );
@@ -387,7 +395,7 @@ export default function CheckoutPage() {
       revalidate();
     }
   }, [subtotal]);
-  const shipping = subtotal >= 500000 ? 0 : 30000;
+  const shipping = 0; // Free shipping for all orders
   
   // Logic: Nếu là mã Freeship thì chỉ giảm trên phí vận chuyển
   // Nếu là mã General thì giảm trên tiền hàng (subtotal)
@@ -413,6 +421,10 @@ export default function CheckoutPage() {
 
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) return;
+    if (!user) {
+      addToast('Vui lòng đăng nhập để sử dụng mã giảm giá', 'warning');
+      return;
+    }
     try {
       const result = await voucherService.validateVoucher(voucherCode, subtotal);
       setVoucher(result);
@@ -425,6 +437,10 @@ export default function CheckoutPage() {
   };
 
   const handleSelectVoucher = async (v) => {
+    if (!user) {
+      addToast('Vui lòng đăng nhập để sử dụng mã giảm giá', 'warning');
+      return;
+    }
     try {
       const result = await voucherService.validateVoucher(v.code, subtotal);
       setVoucher(result);
