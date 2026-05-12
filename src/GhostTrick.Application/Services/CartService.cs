@@ -82,16 +82,26 @@ namespace GhostTrick.Application.Services
 
         public async Task AddToCartAsync(CartRequestDto request, string userId)
         {
-            var variant = await _variantRepo.GetByIdAsync(request.VariantId);
-            if (variant == null) throw new KeyNotFoundException("Sản phẩm không tồn tại.");
+            var variant = await _variantRepo.FindAsync(
+                v => v.Id == request.VariantId,
+                q => q.Include(v => v.Product)
+            );
+            var vEntity = variant.FirstOrDefault();
+            if (vEntity == null) throw new KeyNotFoundException("Sản phẩm không tồn tại.");
+
+            if (vEntity.Product?.Status != ProductStatus.Active)
+                throw new InvalidOperationException("Sản phẩm này hiện không còn kinh doanh.");
+
+            if (vEntity.Stock <= 0)
+                throw new InvalidOperationException($"Size {vEntity.Size} của sản phẩm này hiện đã hết hàng.");
 
             var existingResults = await _cartRepo.FindAsync(ci => ci.UserId == userId && ci.VariantId == request.VariantId);
             var existingItem = existingResults.FirstOrDefault();
 
             int newTotalQuantity = (existingItem?.Quantity ?? 0) + request.Quantity;
 
-            if (newTotalQuantity > variant.Stock)
-                throw new InvalidOperationException($"Chỉ còn {variant.Stock} sản phẩm trong kho.");
+            if (newTotalQuantity > vEntity.Stock)
+                throw new InvalidOperationException($"Chỉ còn {vEntity.Stock} sản phẩm trong kho.");
 
             if (existingItem != null)
             {

@@ -63,6 +63,7 @@ const AdminAddProduct = () => {
 
   const [categories, setCategories] = useState([]);
   const [colors, setColors] = useState([]);
+  const [sizeCharts, setSizeCharts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -77,7 +78,8 @@ const AdminAddProduct = () => {
     isNewArrival: false,
     isTrending: false,
     status: 'Active',
-    manualSalesCount: ''
+    manualSalesCount: '',
+    sizeChartId: ''
   });
 
   const [groupedVariants, setGroupedVariants] = useState([{ colorId: '', sizes: [{ size: '', stock: 0, lowStockThreshold: 5 }] }]);
@@ -90,12 +92,14 @@ const AdminAddProduct = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catRes, colorRes] = await Promise.all([
+        const [catRes, colorRes, sizeRes] = await Promise.all([
           api.get('/categories'),
-          colorService.getColors()
+          colorService.getColors(),
+          api.get('/sizecharts')
         ]);
         setCategories(catRes.data);
         setColors(colorRes);
+        setSizeCharts(sizeRes.data);
       } catch (err) {
         addToast('Không thể tải dữ liệu', 'error');
       }
@@ -119,7 +123,8 @@ const AdminAddProduct = () => {
             isNewArrival: p.isNewArrival,
             isTrending: p.isTrending,
             status: p.status,
-            manualSalesCount: p.manualSalesCount ?? ''
+            manualSalesCount: p.manualSalesCount ?? '',
+            sizeChartId: p.sizeChartId || ''
           });
           
           // Reconstruct grouped variants from flat list
@@ -287,7 +292,7 @@ const AdminAddProduct = () => {
       // Append all form data
       Object.keys(formData).forEach(key => {
         // Handle manualSalesCount: send null if empty string
-        if (key === 'manualSalesCount') {
+        if (key === 'manualSalesCount' || key === 'sizeChartId') {
           if (formData[key] !== '' && formData[key] !== null) {
             data.append(key, formData[key]);
           }
@@ -427,6 +432,17 @@ const AdminAddProduct = () => {
                 <option value="Active">Hoạt động (Active)</option>
                 <option value="Draft">Bản nháp (Draft)</option>
                 <option value="Archived">Lưu trữ (Archived)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Bảng size</label>
+              <select
+                name="sizeChartId" value={formData.sizeChartId} onChange={handleInputChange}
+                className="form-control"
+              >
+                <option value="">Không sử dụng</option>
+                {sizeCharts.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
               </select>
             </div>
 

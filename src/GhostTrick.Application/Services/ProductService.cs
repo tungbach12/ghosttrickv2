@@ -57,7 +57,6 @@ namespace GhostTrick.Application.Services
                 }
                 else if (!isAdmin)
                 {
-                    // Khách hàng bình thường chỉ thấy sản phẩm Active và chưa xóa
                     query = query.Where(p => p.Status == ProductStatus.Active && !p.IsDeleted);
                 }
                 else if (!string.IsNullOrEmpty(status))
@@ -125,12 +124,45 @@ namespace GhostTrick.Application.Services
                 dtos.Add(await MapToListDto(item));
             }
 
+            int? lowStockCount = null;
+            int? outOfStockCount = null;
+
+            if (isAdmin)
+            {
+                // Calculate stats based on current filters (excluding stockStatus itself to show global context or relative context)
+                lowStockCount = await _productRepo.CountAsync(query => {
+                    query = query.Where(p => !p.IsDeleted);
+                    if (!string.IsNullOrEmpty(status) && Enum.TryParse<ProductStatus>(status, true, out var s))
+                        query = query.Where(p => p.Status == s);
+                    if (!string.IsNullOrEmpty(category))
+                        query = query.Where(p => p.Category!.Slug == category);
+                    if (!string.IsNullOrEmpty(q))
+                        query = query.Where(p => p.Name.Contains(q) || p.SKU.Contains(q));
+                    
+                    return query.Where(p => p.Variants.Any(v => v.Stock <= v.LowStockThreshold));
+                });
+
+                outOfStockCount = await _productRepo.CountAsync(query => {
+                    query = query.Where(p => !p.IsDeleted);
+                    if (!string.IsNullOrEmpty(status) && Enum.TryParse<ProductStatus>(status, true, out var s))
+                        query = query.Where(p => p.Status == s);
+                    if (!string.IsNullOrEmpty(category))
+                        query = query.Where(p => p.Category!.Slug == category);
+                    if (!string.IsNullOrEmpty(q))
+                        query = query.Where(p => p.Name.Contains(q) || p.SKU.Contains(q));
+
+                    return query.Where(p => !p.Variants.Any(v => v.Stock > 0));
+                });
+            }
+
             return new PagedResult<ProductListDto>
             {
                 Items = dtos,
                 TotalCount = totalCount,
                 Page = page,
-                PageSize = pageSize
+                PageSize = pageSize,
+                LowStockCount = lowStockCount,
+                OutOfStockCount = outOfStockCount
             };
         }
 
@@ -142,7 +174,7 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
-                .Where(p => p.Status == ProductStatus.Active)
+                .Where(p => p.Status == ProductStatus.Active || p.Status == ProductStatus.SoldOut)
                 .OrderByDescending(p => p.ManualSalesCount ?? p.ActualSalesCount)
                 .ThenByDescending(p => p.Id)
                 .Take(top)
@@ -164,7 +196,7 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Category)
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
-                .Where(p => p.Status == ProductStatus.Active)
+                .Where(p => p.Status == ProductStatus.Active || p.Status == ProductStatus.SoldOut)
                 .OrderByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .Take(top)
@@ -187,6 +219,7 @@ namespace GhostTrick.Application.Services
                       .Include(p => p.Category)
                       .Include(p => p.Variants).ThenInclude(v => v.Color)
                       .Include(p => p.Images.OrderBy(i => i.SortOrder))
+                      .Include(p => p.SizeChart)
                       .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
             );
             var product = result.FirstOrDefault();
@@ -247,6 +280,7 @@ namespace GhostTrick.Application.Services
                 IsNewArrival = dto.IsNewArrival,
                 IsTrending = dto.IsTrending,
                 ManualSalesCount = dto.ManualSalesCount,
+                SizeChartId = dto.SizeChartId,
                 Status = Enum.TryParse<ProductStatus>(dto.Status, true, out var s) ? s : ProductStatus.Active,
                 Variants = dto.Variants.Select(v => new ProductVariant
                 {
@@ -310,6 +344,7 @@ namespace GhostTrick.Application.Services
             product.IsNewArrival = dto.IsNewArrival;
             product.IsTrending = dto.IsTrending;
             product.ManualSalesCount = dto.ManualSalesCount;
+            product.SizeChartId = dto.SizeChartId;
             product.Status = Enum.TryParse<ProductStatus>(dto.Status, true, out var updatedS) ? updatedS : product.Status;
             product.UpdatedAt = DateTime.UtcNow;
 
@@ -500,6 +535,7 @@ namespace GhostTrick.Application.Services
                 TotalStock = p.Variants.Sum(v => v.Stock),
                 FlashStock = flashStock,
                 SoldCount = soldCount,
+                SizeChartId = p.SizeChartId,
                 Colors = p.Variants
                     .Where(v => v.Color != null)
                     .Select(v => v.Color!)
@@ -550,7 +586,8 @@ namespace GhostTrick.Application.Services
                     Stock = v.Stock,
                     LowStockThreshold = v.LowStockThreshold
                 }).ToList(),
-                Images = product.Images.Select(i => i.ImageUrl).ToList()
+                Images = product.Images.Select(i => i.ImageUrl).ToList(),
+                SizeChartUrl = product.SizeChart?.ImageUrl
             };
         }
     }

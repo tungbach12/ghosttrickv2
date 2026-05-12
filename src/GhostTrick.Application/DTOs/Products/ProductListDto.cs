@@ -28,6 +28,7 @@ namespace GhostTrick.Application.DTOs
         public int? FlashStock { get; set; }
         public int? SoldCount { get; set; }
         public bool IsDeleted { get; set; }
+        public int? SizeChartId { get; set; }
         public List<ProductColorDto> Colors { get; set; } = new();
     }
 }

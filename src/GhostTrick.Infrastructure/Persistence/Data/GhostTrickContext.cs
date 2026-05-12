@@ -15,6 +15,7 @@ namespace GhostTrick.Infrastructure.Persistence
         public DbSet<ProductColor> ProductColors { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<SizeChart> SizeCharts { get; set; }
 
         // Orders
         public DbSet<Order> Orders { get; set; }
@@ -85,6 +86,12 @@ namespace GhostTrick.Infrastructure.Persistence
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Product>()
+                .HasOne(p => p.SizeChart)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SizeChartId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // ── ProductColor ──────────────────────────────────────────
             builder.Entity<ProductColor>().HasQueryFilter(c => !c.IsDeleted && c.IsActive);
@@ -268,6 +275,8 @@ namespace GhostTrick.Infrastructure.Persistence
             builder.Entity<TopBarPromo>().HasQueryFilter(p => !p.IsDeleted);
 
             builder.Entity<SystemSetting>().HasQueryFilter(s => !s.IsDeleted);
+
+            builder.Entity<SizeChart>().HasQueryFilter(s => !s.IsDeleted);
         }
     }
 }

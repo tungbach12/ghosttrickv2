@@ -8,7 +8,8 @@ namespace GhostTrick.Domain.Entities
     {
         Active,
         Draft,
-        Archived
+        Archived,
+        SoldOut
     }
 
     public class Product : BaseEntity
@@ -48,6 +49,9 @@ namespace GhostTrick.Domain.Entities
         // Navigation
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
+
+        public int? SizeChartId { get; set; }
+        public SizeChart? SizeChart { get; set; }
 
         public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
         public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();

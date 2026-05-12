@@ -5,6 +5,7 @@ using GhostTrick.Infrastructure.Persistence;
 using GhostTrick.Infrastructure.Persistence.Repositories;
 using GhostTrick.Infrastructure.Services;
 using GhostTrick.WebApi.Middlewares;
+using GhostTrick.WebApi.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GhostTrick.Application.Validators;
@@ -34,6 +35,8 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
+
+builder.Services.AddHttpClient();
 
 // Register FluentValidation
 builder.Services.AddFluentValidationAutoValidation();
@@ -111,6 +114,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<ISizeChartService, SizeChartService>();
+builder.Services.AddScoped<ISystemService, SystemService>();
+builder.Services.AddHostedService<AutoBackupBackgroundService>();
 
 // Register Repositories & UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

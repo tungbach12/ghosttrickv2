@@ -488,12 +488,23 @@ const AdminAddSale = () => {
                           </div>
                           <div className="config-inputs">
                             <div className="config-field">
+                              <label>Giá gốc</label>
+                              <div className="original-price-display">
+                                {new Intl.NumberFormat('vi-VN').format(product.price)}
+                              </div>
+                            </div>
+                            <div className="config-field">
                               <label>Giá Sale (VND)</label>
                               <input 
                                 type="number" 
                                 value={sp.salePrice} 
                                 onChange={(e) => updateProductConfig(sp.productId, 'salePrice', e.target.value)} 
                               />
+                              {product.price > 0 && sp.salePrice > 0 && (
+                                <div className="discount-badge">
+                                  Giảm {Math.round((1 - sp.salePrice / product.price) * 100)}%
+                                </div>
+                              )}
                             </div>
                             <div className="config-field">
                               <label>Số lượng Sale</label>
@@ -591,6 +602,8 @@ const AdminAddSale = () => {
         .config-field { display: flex; flex-direction: column; gap: 4px; }
         .config-field label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
         .config-field input { padding: 8px 12px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; width: 120px !important; font-size: 0.9rem !important; }
+        .original-price-display { padding: 8px 12px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; width: 120px; font-size: 0.9rem; font-weight: 700; color: #64748b; }
+        .discount-badge { font-size: 0.7rem; font-weight: 800; color: #10b981; margin-top: 4px; display: inline-block; background: #ecfdf5; padding: 2px 8px; border-radius: 6px; }
 
         @media (max-width: 768px) {
           .admin-page-container { padding: 16px; }

@@ -22,6 +22,7 @@ namespace GhostTrick.Application.DTOs
         public bool IsTrending { get; set; }
         public string? Status { get; set; } // Active, Draft, Archived
         public int? ManualSalesCount { get; set; }
+        public int? SizeChartId { get; set; }
         public List<CreateVariantDto> Variants { get; set; } = new();
         public IFormFile? MainImage { get; set; }
         public List<IFormFile> OtherImages { get; set; } = new();

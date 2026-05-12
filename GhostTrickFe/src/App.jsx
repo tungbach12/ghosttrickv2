@@ -31,6 +31,7 @@ import AdminReviews from './pages/admin/AdminReviews'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminTopBar from './pages/admin/AdminTopBar'
 import AdminSettings from './pages/admin/AdminSettings'
+import AdminSizeCharts from './pages/admin/AdminSizeCharts'
 import ScrollToTop from './components/ScrollToTop'
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="top-bar" element={<AdminTopBar />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="size-charts" element={<AdminSizeCharts />} />
           </Route>
         </Route>
       </Routes>

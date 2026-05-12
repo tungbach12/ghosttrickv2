@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, X, Upload, Scissors, Check } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import feedbackService from '../../services/feedbackService';
+import settingsService from '../../services/settingsService';
 import { useToast } from '../../context/ToastContext';
 
 export default function AdminFeedbacks() {
@@ -14,6 +15,15 @@ export default function AdminFeedbacks() {
     isActive: true
   });
 
+  const [sectionSettings, setSectionSettings] = useState({
+    FeedbackSection_Title: '',
+    FeedbackSection_Subtitle: '',
+    FeedbackSection_ButtonText: '',
+    FeedbackSection_ButtonUrl: '',
+    FeedbackSection_ShowButton: 'false'
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+
   // Cropper states
   const [image, setImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -25,7 +35,22 @@ export default function AdminFeedbacks() {
 
   useEffect(() => {
     fetchFeedbacks();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const data = await settingsService.getSettings();
+      // Map array of {key, value} to object
+      const settingsObj = {};
+      data.forEach(s => {
+        settingsObj[s.key] = s.value;
+      });
+      setSectionSettings(prev => ({ ...prev, ...settingsObj }));
+    } catch (error) {
+      console.error('Failed to fetch settings', error);
+    }
+  };
 
   const fetchFeedbacks = async () => {
     try {
@@ -157,6 +182,23 @@ export default function AdminFeedbacks() {
     }
   };
 
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+      await Promise.all(
+        Object.entries(sectionSettings).map(([key, value]) => 
+          settingsService.updateSetting(key, value)
+        )
+      );
+      addToast('Cập nhật cấu hình thành công', 'success');
+    } catch (error) {
+      addToast('Lỗi khi cập nhật cấu hình', 'error');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   return (
     <div className="admin-container">
       <div className="admin-header">
@@ -164,6 +206,67 @@ export default function AdminFeedbacks() {
           <h1 className="admin-title">VISUAL FEEDBACK MANAGER</h1>
           <p className="admin-subtitle">Tải lên và cắt ảnh tỉ lệ 1:1 cho 6 vị trí trang chủ</p>
         </div>
+      </div>
+
+      <div className="section-config-card">
+        <h2 className="config-title">SECTION CONFIGURATION</h2>
+        <form onSubmit={handleSaveSettings} className="config-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label>TITLE</label>
+              <input 
+                type="text" 
+                value={sectionSettings.FeedbackSection_Title} 
+                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_Title: e.target.value})}
+                placeholder="e.g. FEEDBACK FROM GHOSTS"
+              />
+            </div>
+            <div className="form-group">
+              <label>SUBTITLE</label>
+              <input 
+                type="text" 
+                value={sectionSettings.FeedbackSection_Subtitle} 
+                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_Subtitle: e.target.value})}
+                placeholder="e.g. Tag @GHOSTTRICK.VN..."
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>BUTTON TEXT</label>
+              <input 
+                type="text" 
+                value={sectionSettings.FeedbackSection_ButtonText} 
+                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ButtonText: e.target.value})}
+                placeholder="e.g. GỬI FEEDBACK"
+              />
+            </div>
+            <div className="form-group">
+              <label>BUTTON URL</label>
+              <input 
+                type="text" 
+                value={sectionSettings.FeedbackSection_ButtonUrl} 
+                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ButtonUrl: e.target.value})}
+                placeholder="e.g. https://instagram.com/..."
+              />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <label className="toggle-container">
+              <input 
+                type="checkbox" 
+                checked={sectionSettings.FeedbackSection_ShowButton === 'true'} 
+                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ShowButton: e.target.checked ? 'true' : 'false'})}
+              />
+              <span className="toggle-label">SHOW BUTTON</span>
+            </label>
+            <button type="submit" className="btn-solid" disabled={savingSettings}>
+              {savingSettings ? 'SAVING...' : 'SAVE CONFIGURATION'}
+            </button>
+          </div>
+        </form>
       </div>
 
       <div className="feedback-admin-grid">
@@ -277,6 +380,20 @@ export default function AdminFeedbacks() {
       )}
 
       <style>{`
+        .section-config-card { background: #fff; border: 5px solid #000; padding: 25px; margin-bottom: 40px; }
+        .config-title { font-size: 0.8rem; font-weight: 900; margin-bottom: 20px; text-decoration: underline; }
+        .config-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 0.6rem; font-weight: 900; color: #666; }
+        .form-group input { border: 2px solid #000; padding: 10px; font-weight: 700; outline: none; }
+        .form-group input:focus { background: #f0f0f0; }
+        .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        
+        .toggle-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle-container input { width: 18px; height: 18px; cursor: pointer; accent-color: #000; }
+        .toggle-label { font-size: 0.7rem; font-weight: 900; }
+
         .feedback-admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
         .feedback-slot { aspect-ratio: 1/1; border: 2px dashed #ccc; position: relative; cursor: pointer; overflow: hidden; background: #fafafa; transition: all 0.3s; }
         .feedback-slot.filled { border: 2px solid #000; }

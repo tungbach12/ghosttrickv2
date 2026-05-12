@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, ShoppingCart, Tags, Ticket, LogOut, Bell, Search, Percent, Menu, X, Palette, Camera, Star, Users, Type, Settings } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, ShoppingCart, Tags, Ticket, LogOut, Bell, Search, Percent, Menu, X, Palette, Camera, Star, Users, Type, Settings, Ruler } from 'lucide-react';
 import { useGlobalContext } from '../context/GlobalContext';
 import '../styles/pages/admin.css';
 
@@ -22,6 +22,7 @@ const AdminLayout = () => {
     { name: 'Khách hàng', href: '/admin/users', icon: Users },
     { name: 'Visual Feedback', href: '/admin/feedbacks', icon: Camera },
     { name: 'Đánh giá SP', href: '/admin/reviews', icon: Star },
+    { name: 'Quản lý bảng size', href: '/admin/size-charts', icon: Ruler },
     { name: 'Cài đặt hệ thống', href: '/admin/settings', icon: Settings },
   ];
 

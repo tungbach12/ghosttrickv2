@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, ChevronLeft, Heart } from 'lucide-react'
+import { Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 import { productService } from '../services/productService'
 import { voucherService } from '../services/voucherService'
 import homeBannerService from '../services/homeBannerService'
@@ -10,6 +10,7 @@ import { useToast } from '../context/ToastContext'
 import { useGlobalContext } from '../context/GlobalContext'
 import { useNavigate } from 'react-router-dom'
 import feedbackService from '../services/feedbackService'
+import settingsService from '../services/settingsService'
 
 export default function HomePage() {
   const voucherGridRef = useRef(null);
@@ -24,6 +25,13 @@ export default function HomePage() {
   const { addToast } = useToast();
   const { user } = useGlobalContext();
   const [userVoucherCodes, setUserVoucherCodes] = useState([]);
+  const [sectionSettings, setSectionSettings] = useState({
+    FeedbackSection_Title: 'FEEDBACK FROM GHOSTS',
+    FeedbackSection_Subtitle: 'Tag @GHOSTTRICK.VN để được xuất hiện tại đây',
+    FeedbackSection_ButtonText: 'GỬI FEEDBACK CỦA BẠN',
+    FeedbackSection_ButtonUrl: 'https://instagram.com/ghosttrick',
+    FeedbackSection_ShowButton: 'false'
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +49,13 @@ export default function HomePage() {
         setVouchers(voucherRes);
         setBanners(bannerRes.data);
         setFeedbacks(feedbackRes);
+
+        try {
+          const publicSettings = await settingsService.getPublicSettings();
+          setSectionSettings(prev => ({ ...prev, ...publicSettings }));
+        } catch (err) {
+          console.warn('Failed to fetch public settings', err);
+        }
 
         if (user) {
           const wallet = await voucherService.getMyWallet();
@@ -69,6 +84,42 @@ export default function HomePage() {
     }
   };
 
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const bannerIntervalRef = useRef(null);
+
+  const startBannerTimer = () => {
+    stopBannerTimer();
+    bannerIntervalRef.current = setInterval(() => {
+      nextSlide();
+    }, 5000);
+  };
+
+  const stopBannerTimer = () => {
+    if (bannerIntervalRef.current) {
+      clearInterval(bannerIntervalRef.current);
+    }
+  };
+
+  const nextSlide = () => {
+    setCurrentBannerIndex(prev => (prev + 1) % banners.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentBannerIndex(prev => (prev - 1 + banners.length) % banners.length);
+  };
+
+  useEffect(() => {
+    if (banners.length > 0) {
+      startBannerTimer();
+    }
+    return () => stopBannerTimer();
+  }, [banners.length]);
+
+  const handleManualSlide = (index) => {
+    setCurrentBannerIndex(index);
+    startBannerTimer();
+  };
+
   const displayedProducts = activeTab === 'best' ? bestSellers : newArrivals;
 
   const formatPrice = (price) => {
@@ -95,9 +146,13 @@ export default function HomePage() {
   return (
     <div className="home-page">
       {/* Hero Banner */}
-      <section className="hero">
-        {banners.length > 0 && banners.map((banner, index) => (
-            <div key={banner.id} className="hero-slide" style={{ display: index === 0 ? 'block' : 'none' }}>
+      <section className="hero" onMouseEnter={stopBannerTimer} onMouseLeave={startBannerTimer}>
+        <div className="hero-slider-wrapper">
+          {banners.length > 0 && banners.map((banner, index) => (
+            <div 
+              key={banner.id} 
+              className={`hero-slide ${index === currentBannerIndex ? 'active' : ''}`}
+            >
               <Link to={banner.linkUrl || '#'}>
                 <img src={banner.imageUrl} alt={banner.title} className="hero-img" />
                 <div className="hero-overlay">
@@ -110,6 +165,19 @@ export default function HomePage() {
               </Link>
             </div>
           ))}
+        </div>
+
+        {banners.length > 1 && (
+          <div className="hero-dots">
+            {banners.map((_, index) => (
+              <span 
+                key={index} 
+                className={`dot ${index === currentBannerIndex ? 'active' : ''}`}
+                onClick={() => handleManualSlide(index)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Vouchers Section */}
@@ -124,8 +192,7 @@ export default function HomePage() {
               flexWrap: 'nowrap', 
               gap: '30px', 
               overflowX: 'auto',
-              width: '100%',
-              padding: '30px 40px 60px'
+              width: '100%'
             }}
           >
             {vouchers.map((v, i) => (
@@ -176,6 +243,12 @@ export default function HomePage() {
               <Link to={`/product/${p.id}`} className="product-link-overlay">
                 <div className="product-img-wrapper">
                   <img src={p.mainImageUrl} alt={p.name} className="product-img" />
+                  {p.totalStock <= 0 && <span className="product-badge soldout">HẾT HÀNG</span>}
+                  {p.totalStock > 0 && p.isOnSale && p.originalPrice > p.price && (
+                    <span className="product-badge sale">
+                      -{Math.round((1 - p.price / p.originalPrice) * 100)}%
+                    </span>
+                  )}
                   <button 
                     className="wishlist-btn" 
                     onClick={(e) => { 
@@ -185,11 +258,6 @@ export default function HomePage() {
                   >
                     <Heart size={20}/>
                   </button>
-                  {p.originalPrice > 0 && p.originalPrice > p.price && (
-                    <span className="product-badge sale">
-                      -{Math.round((1 - p.price / p.originalPrice) * 100)}%
-                    </span>
-                  )}
                 </div>
                 <div className="product-info" data-id={p.id}>
                   <h3 className="product-title">{p.name}</h3>
@@ -223,8 +291,8 @@ export default function HomePage() {
       <section className="section-feedback">
         <div className="container">
           <div className="feedback-header">
-            <h2 className="section-title">FEEDBACK FROM GHOSTS</h2>
-            <p className="feedback-desc">Tag <span className="highlight">@GHOSTTRICK.VN</span> để được xuất hiện tại đây</p>
+            <h2 className="section-title">{sectionSettings.FeedbackSection_Title}</h2>
+            <p className="feedback-desc">{sectionSettings.FeedbackSection_Subtitle}</p>
           </div>
           
           <div className="feedback-grid">
@@ -247,11 +315,16 @@ export default function HomePage() {
             })}
           </div>
           
-          <div className="feedback-footer">
-            <button className="btn-industrial" onClick={() => window.open('https://instagram.com/ghosttrick', '_blank')}>
-              GỬI FEEDBACK CỦA BẠN
-            </button>
-          </div>
+          {sectionSettings.FeedbackSection_ShowButton === 'true' && (
+            <div className="feedback-footer">
+              <button 
+                className="btn-industrial" 
+                onClick={() => window.open(sectionSettings.FeedbackSection_ButtonUrl, '_blank')}
+              >
+                {sectionSettings.FeedbackSection_ButtonText}
+              </button>
+            </div>
+          )}
         </div>
       </section>
     </div>

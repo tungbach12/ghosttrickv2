@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { Heart, ChevronRight, Minus, Plus, Share2, AlertCircle, Star, User, Trash2, Edit2 } from 'lucide-react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Heart, ChevronRight, Minus, Plus, Share2, AlertCircle, Star, User, Trash2, Edit2, Ruler, X } from 'lucide-react'
 import { productService } from '../services/productService'
 import reviewService from '../services/reviewService'
 import ReviewModal from '../components/ReviewModal'
@@ -12,6 +12,7 @@ export default function ProductDetailPage() {
   const { addToCart, user } = useGlobalContext();
   const { addToast } = useToast();
   const { productId } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -22,6 +23,7 @@ export default function ProductDetailPage() {
   const [reviews, setReviews] = useState([]);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
+  const [showSizeChart, setShowSizeChart] = useState(false);
   
   const descRef = useRef(null);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
@@ -37,18 +39,15 @@ export default function ProductDetailPage() {
           productService.getProductById(productId),
           reviewService.getProductReviews(productId)
         ]);
-        setProduct(data);
-        setReviews(reviewsData);
         
-        if (data.colors && data.colors.length > 0) {
-          setSelectedColor(data.colors[0]);
-        }
-        setActiveImage(data.mainImageUrl);
-
-        // Fetch related products (same category)
-        if (data.categorySlug) {
-          const related = await productService.getProducts({ category: data.categorySlug, pageSize: 5 });
-          setRelatedProducts(related.items.filter(p => p.id !== parseInt(productId)).slice(0, 4));
+        if (data) {
+          setProduct(data);
+          setReviews(reviewsData || []);
+          
+          if (data.colors && data.colors.length > 0) {
+            setSelectedColor(data.colors[0]);
+          }
+          setActiveImage(data.mainImageUrl);
         }
       } catch (error) {
         console.error('Error fetching product details:', error);
@@ -57,7 +56,25 @@ export default function ProductDetailPage() {
       }
     };
     fetchProduct();
-  }, [productId, user?.id]);
+  }, [productId]);
+
+  // Separate effect for related products to prevent blocking the main content
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (product?.categorySlug) {
+        try {
+          const related = await productService.getProducts({ 
+            category: product.categorySlug, 
+            pageSize: 5 
+          });
+          setRelatedProducts(related.items.filter(p => p.id !== parseInt(productId)).slice(0, 4));
+        } catch (error) {
+          console.error('Error fetching related products:', error);
+        }
+      }
+    };
+    fetchRelated();
+  }, [product?.categorySlug, productId]);
 
   useEffect(() => {
     const checkHeight = () => {
@@ -85,7 +102,7 @@ export default function ProductDetailPage() {
     ? [...new Set(product.variants.filter(v => v.colorId === selectedColor?.id).map(v => v.size))]
     : [];
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async (isBuyNow = false) => {
     if (!selectedSize) {
       addToast('Vui lòng chọn kích thước!', 'warning');
       return;
@@ -93,12 +110,12 @@ export default function ProductDetailPage() {
 
     const variant = product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize);
 
-    if (!variant || variant.stock < quantity) {
+    if (!variant || variant.stock < quantity || product.totalStock <= 0) {
       addToast('Sản phẩm đã hết hàng hoặc không đủ số lượng!', 'error');
       return;
     }
 
-    addToCart({
+    const success = await addToCart({
       variantId: variant.id,
       productId: product.id,
       name: product.name,
@@ -109,7 +126,11 @@ export default function ProductDetailPage() {
       colorHex: selectedColor?.hexCode,
       quantity: quantity,
       stock: variant.stock
-    });
+    }, isBuyNow);
+
+    if (success && isBuyNow) {
+      navigate('/checkout');
+    }
   };
 
   const handleDeleteReview = async (id) => {
@@ -138,14 +159,17 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (!product) {
+  if (!product && !loading) {
     return (
       <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-        <h2>Sản phẩm không tồn tại</h2>
+        <h2>Sản phẩm không tồn tại hoặc đã ngừng kinh doanh</h2>
         <Link to="/product" className="btn-outline" style={{ marginTop: '20px', display: 'inline-block' }}>Quay lại</Link>
       </div>
     );
   }
+
+  // Safety check before render if product is still loading
+  if (!product) return null;
 
   return (
     <div className="product-detail-page">
@@ -165,7 +189,8 @@ export default function ProductDetailPage() {
         <div className="pd-gallery">
           <div className="pd-main-img">
             <img src={activeImage || product.mainImageUrl} alt={product.name} />
-            {product.isOnSale && product.originalPrice > product.price && <span className="product-badge sale">SALE</span>}
+            {product.totalStock <= 0 && <span className="product-badge soldout" style={{background: '#6b7280'}}>HẾT HÀNG</span>}
+            {product.totalStock > 0 && product.isOnSale && product.originalPrice > product.price && <span className="product-badge sale">SALE</span>}
           </div>
           <div className="pd-thumbs">
             {/* Main image as first thumb */}
@@ -285,11 +310,50 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="pd-section">
-            <label className="pd-label">Kích thước</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <label className="pd-label" style={{ marginBottom: 0 }}>Kích thước</label>
+              {product.sizeChartUrl && (
+                <button 
+                  type="button" 
+                  className="size-guide-link" 
+                  onClick={() => setShowSizeChart(true)}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '4px', 
+                    fontSize: '0.8rem', 
+                    fontWeight: 700, 
+                    color: '#64748b',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px 0',
+                    borderBottom: '1px solid transparent',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.color = '#000'}
+                  onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+                >
+                  <Ruler size={14} /> Hướng dẫn chọn size
+                </button>
+              )}
+            </div>
             <div className="pd-sizes">
-              {availableSizes.map(s => (
-                <button key={s} className={`pd-size-btn ${selectedSize === s ? 'active' : ''}`} onClick={() => setSelectedSize(s)}>{s}</button>
-              ))}
+              {availableSizes.map(s => {
+                const variant = product.variants.find(v => v.colorId === selectedColor?.id && v.size === s);
+                const isOutOfStock = variant ? variant.stock <= 0 : true;
+                return (
+                  <button 
+                    key={s} 
+                    className={`pd-size-btn ${selectedSize === s ? 'active' : ''} ${isOutOfStock ? 'out-of-stock' : ''}`} 
+                    onClick={() => !isOutOfStock && setSelectedSize(s)}
+                    disabled={isOutOfStock}
+                    title={isOutOfStock ? 'Size này đã hết hàng' : ''}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -303,8 +367,28 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="pd-actions">
-            <button className="pd-btn-buy" onClick={handleAddToCart}>MUA NGAY</button>
-            <button className="pd-btn-cart" onClick={handleAddToCart}>THÊM VÀO GIỎ</button>
+            <button 
+              className="pd-btn-buy" 
+              onClick={() => handleAddToCart(true)}
+              disabled={
+                product.totalStock <= 0 || 
+                (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0)
+              }
+              style={(product.totalStock <= 0 || (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0)) ? {opacity: 0.5, cursor: 'not-allowed'} : {}}
+            >
+              {product.totalStock <= 0 ? 'HẾT HÀNG' : (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0) ? 'SIZE NÀY HẾT HÀNG' : 'MUA NGAY'}
+            </button>
+            <button 
+              className="pd-btn-cart" 
+              onClick={() => handleAddToCart(false)}
+              disabled={
+                product.totalStock <= 0 || 
+                (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0)
+              }
+              style={(product.totalStock <= 0 || (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0)) ? {opacity: 0.5, cursor: 'not-allowed'} : {}}
+            >
+              {product.totalStock <= 0 ? 'HẾT HÀNG' : (selectedSize && product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize)?.stock <= 0) ? 'HẾT SIZE' : 'THÊM VÀO GIỎ'}
+            </button>
           </div>
 
           <div className="pd-extra">
@@ -451,7 +535,26 @@ export default function ProductDetailPage() {
           setReviews(updatedReviews);
         }}
       />
-    </div>
 
+      {/* Size Chart Modal */}
+      {showSizeChart && product.sizeChartUrl && (
+        <div className="detail-modal-overlay" onClick={() => setShowSizeChart(false)} style={{ zIndex: 1000 }}>
+          <div className="detail-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', background: 'white' }}>
+            <div className="modal-header-pd" style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>BẢNG QUY ĐỔI KÍCH CỠ</h3>
+              <button onClick={() => setShowSizeChart(false)} className="action-btn">
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ padding: '24px', textAlign: 'center' }}>
+              <img src={product.sizeChartUrl} alt="Size Chart" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+              <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>
+                * Kích thước thực tế có thể chênh lệch 1-2cm tùy vào chất liệu vải.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

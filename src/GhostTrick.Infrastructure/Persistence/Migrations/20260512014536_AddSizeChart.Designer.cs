@@ -4,6 +4,7 @@ using GhostTrick.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostTrick.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(GhostTrickContext))]
-    partial class GhostTrickContextModelSnapshot : ModelSnapshot
+    [Migration("20260512014536_AddSizeChart")]
+    partial class AddSizeChart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -136,7 +139,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VariantId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Category", b =>
@@ -174,7 +177,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Feedback", b =>
@@ -209,7 +212,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Feedbacks", (string)null);
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.HomeBanner", b =>
@@ -251,7 +254,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HomeBanners", (string)null);
+                    b.ToTable("HomeBanners");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.InventoryTransaction", b =>
@@ -289,7 +292,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VariantId");
 
-                    b.ToTable("InventoryTransactions", (string)null);
+                    b.ToTable("InventoryTransactions");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Order", b =>
@@ -366,7 +369,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.OrderItem", b =>
@@ -400,7 +403,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VariantId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.OrderTimeline", b =>
@@ -433,7 +436,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderTimelines", (string)null);
+                    b.ToTable("OrderTimelines");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.OtpCode", b =>
@@ -465,7 +468,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("OtpCodes", (string)null);
+                    b.ToTable("OtpCodes");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Policy", b =>
@@ -504,7 +507,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Policies", (string)null);
+                    b.ToTable("Policies");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Product", b =>
@@ -583,7 +586,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SizeChartId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductColor", b =>
@@ -618,7 +621,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductColors", (string)null);
+                    b.ToTable("ProductColors");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductImage", b =>
@@ -646,7 +649,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages", (string)null);
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductReview", b =>
@@ -708,7 +711,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProductReviews", (string)null);
+                    b.ToTable("ProductReviews");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.ProductVariant", b =>
@@ -747,7 +750,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductVariants", null, t =>
+                    b.ToTable("ProductVariants", t =>
                         {
                             t.HasCheckConstraint("CK_ProductVariant_Stock", "[Stock] >= 0");
                         });
@@ -782,7 +785,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.SaleEvent", b =>
@@ -826,7 +829,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("SaleEvents", (string)null);
+                    b.ToTable("SaleEvents");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.SaleEventProduct", b =>
@@ -855,7 +858,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("SaleEventProducts", (string)null);
+                    b.ToTable("SaleEventProducts");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.SizeChart", b =>
@@ -886,7 +889,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SizeCharts", (string)null);
+                    b.ToTable("SizeCharts");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.SystemSetting", b =>
@@ -919,7 +922,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemSettings", (string)null);
+                    b.ToTable("SystemSettings");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.TopBarPromo", b =>
@@ -951,7 +954,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TopBarPromos", (string)null);
+                    b.ToTable("TopBarPromos");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.UserVoucher", b =>
@@ -981,7 +984,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("UserVouchers", (string)null);
+                    b.ToTable("UserVouchers");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Voucher", b =>
@@ -1051,7 +1054,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Vouchers", (string)null);
+                    b.ToTable("Vouchers");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.VoucherUsage", b =>
@@ -1083,7 +1086,7 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherUsages", (string)null);
+                    b.ToTable("VoucherUsages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

@@ -12,6 +12,7 @@ namespace GhostTrick.Application.DTOs
         public string? CategoryName { get; set; }
         public List<VariantDto> Variants { get; set; } = new();
         public List<string> Images { get; set; } = new();
+        public string? SizeChartUrl { get; set; }
         public bool IsEligibleToReview { get; set; }
         public int? EligibleOrderId { get; set; }
     }

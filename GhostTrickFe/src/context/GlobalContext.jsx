@@ -83,17 +83,20 @@ export const GlobalProvider = ({ children }) => {
   };
 
   // Cart Functions
-  const addToCart = async (productInfo) => {
+  const addToCart = async (productInfo, skipDrawer = false) => {
     // productInfo: { variantId, productId, name, price, mainImageUrl, size, color, quantity, stock }
+    let success = false;
     if (user) {
       try {
         await authService.addToServerCart(productInfo.productId, productInfo.variantId, productInfo.quantity);
         const freshCart = await authService.getCart();
         setCartItems(freshCart);
         addToast('Đã thêm vào giỏ hàng', 'success');
+        success = true;
       } catch (error) {
         const msg = error.response?.data?.message || 'Không thể thêm vào giỏ hàng';
         addToast(msg, 'error');
+        success = false;
       }
     } else {
       // Guest Logic
@@ -119,9 +122,16 @@ export const GlobalProvider = ({ children }) => {
       });
       if (!errorOccurred) {
         addToast('Đã thêm vào giỏ hàng', 'success');
+        success = true;
+      } else {
+        success = false;
       }
     }
-    setIsCartOpen(true);
+    
+    if (success && !skipDrawer) {
+      setIsCartOpen(true);
+    }
+    return success;
   };
 
   const updateCartQty = async (index, delta) => {

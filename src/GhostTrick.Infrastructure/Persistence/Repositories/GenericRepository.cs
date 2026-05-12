@@ -110,5 +110,15 @@ namespace GhostTrick.Infrastructure.Persistence.Repositories
 
             return (items, totalCount);
         }
+
+        public async Task<int> CountAsync(Func<IQueryable<T>, IQueryable<T>>? queryConfig = null)
+        {
+            IQueryable<T> query = _dbSet;
+            if (queryConfig != null)
+            {
+                query = queryConfig(query);
+            }
+            return await query.CountAsync();
+        }
     }
 }

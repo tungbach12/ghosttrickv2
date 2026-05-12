@@ -112,7 +112,12 @@ namespace GhostTrick.Infrastructure.Persistence
             if (!context.SystemSettings.IgnoreQueryFilters().Any())
             {
                 context.SystemSettings.AddRange(
-                    new SystemSetting { Key = "OrderNotificationEmail", Value = "admin@ghosttrick.com", Description = "Email nhận thông báo khi có đơn hàng mới" }
+                    new SystemSetting { Key = "OrderNotificationEmail", Value = "admin@ghosttrick.com", Description = "Email nhận thông báo khi có đơn hàng mới" },
+                    new SystemSetting { Key = "FeedbackSection_Title", Value = "FEEDBACK FROM GHOSTS", Description = "Tiêu đề phần Feedback trên trang chủ" },
+                    new SystemSetting { Key = "FeedbackSection_Subtitle", Value = "Tag @GHOSTTRICK.VN để được xuất hiện tại đây", Description = "Mô tả phụ phần Feedback trên trang chủ" },
+                    new SystemSetting { Key = "FeedbackSection_ButtonText", Value = "GỬI FEEDBACK CỦA BẠN", Description = "Văn bản nút phần Feedback" },
+                    new SystemSetting { Key = "FeedbackSection_ButtonUrl", Value = "https://instagram.com/ghosttrick", Description = "Đường dẫn nút phần Feedback" },
+                    new SystemSetting { Key = "FeedbackSection_ShowButton", Value = "false", Description = "Hiển thị nút phần Feedback (true/false)" }
                 );
                 context.SaveChanges();
             }

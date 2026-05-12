@@ -11,6 +11,7 @@ services:
       - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
+      - mssql_backups:/var/opt/mssql/backups
 
   api:
     build:
@@ -34,6 +35,10 @@ services:
       - Email__Username=${Email__Username}
       - Email__Password=${Email__Password}
       - Google__ClientId=${Google__ClientId}
+      - Telegram__Token=${Telegram__Token}
+      - Telegram__ChatId=${Telegram__ChatId}
+    volumes:
+      - mssql_backups:/app/backups
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -54,3 +59,4 @@ services:
 
 volumes:
   mssql_data:
+  mssql_backups:

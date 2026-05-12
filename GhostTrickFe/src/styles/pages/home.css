@@ -5,11 +5,38 @@
   overflow: hidden;
 }
 
+.hero-slider-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* Clips absolute-positioned inactive slides */
+}
+
+.hero-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
+  z-index: 1;
+}
+
+/* Active slide is relative so it drives the wrapper height */
+.hero-slide.active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
 .hero-img {
   width: 100%;
-  height: auto;
+  height: auto; /* Let image define height naturally */
   object-fit: cover;
   display: block;
+  max-height: 90vh; /* Cap on very large screens */
 }
 
 .hero-overlay {
@@ -49,7 +76,15 @@
   max-width: 600px;
   width: 100%;
   text-align: left;
-  margin-left: max(20px, calc((100vw - 1200px) / 2 + 20px)); /* Align with global container */
+  margin-left: max(20px, calc((100vw - 1200px) / 2 + 20px));
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    margin-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+  }
 }
 
 .hero-title {
@@ -62,6 +97,13 @@
   position: relative;
   font-style: italic;
   filter: drop-shadow(4px 4px 0px #000);
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.2rem;
+    letter-spacing: -1px;
+  }
 }
 
 .hero-title::after {
@@ -85,6 +127,14 @@
   display: inline-block;
   padding: 4px 12px;
   font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .hero-subtitle {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    margin-bottom: 1rem;
+  }
 }
 
 .hero-btn {
@@ -129,53 +179,85 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.7);
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  transition: background 0.3s;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .hero-nav:hover {
-  background: white;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .hero-nav.prev {
-  left: 20px;
+  left: 30px;
 }
 
 .hero-nav.next {
-  right: 20px;
+  right: 30px;
+}
+
+@media (max-width: 768px) {
+  .hero-nav {
+    width: 36px;
+    height: 36px;
+  }
+  .hero-nav.prev { left: 15px; }
+  .hero-nav.next { right: 15px; }
+  .hero-nav svg { width: 18px; height: 18px; }
 }
 
 .hero-dots {
   position: absolute;
-  bottom: 20px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  z-index: 10;
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
+  width: 30px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .dot.active {
-  background: white;
-  width: 20px;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  width: 50px;
+}
+
+.dot.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  from { width: 0; }
+  to { width: 100%; }
 }
 
 /* --- Sections --- */

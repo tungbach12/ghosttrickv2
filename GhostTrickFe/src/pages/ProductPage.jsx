@@ -183,7 +183,9 @@ export default function ProductPage() {
                       >
                         <Heart size={20}/>
                       </button>
-                      {p.isOnSale && p.originalPrice > p.price && (
+                      {p.totalStock <= 0 ? (
+                        <span className="product-badge soldout" style={{background: '#6b7280'}}>HẾT HÀNG</span>
+                      ) : p.isOnSale && p.originalPrice > p.price && (
                         <span className="product-badge sale">SALE</span>
                       )}
                     </div>

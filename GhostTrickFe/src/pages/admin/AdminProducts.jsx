@@ -207,9 +207,7 @@ const AdminProducts = () => {
   const handleQuickStatusUpdate = async (productId, newStatus) => {
     setStatusUpdateLoading(productId);
     try {
-      await api.patch(`/products/${productId}/status`, newStatus, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await api.patch(`/products/${productId}/status`, { status: newStatus });
       setProducts(products.map(p => p.id === productId ? { ...p, status: newStatus } : p));
       addToast('Cập nhật trạng thái thành công', 'success');
     } catch (error) {
@@ -290,17 +288,26 @@ const AdminProducts = () => {
       </div>
 
       <div className="admin-stats-overview">
-        <div className="stat-card-mini">
+        <div 
+          className={`stat-card-mini clickable ${(!statusFilter && !stockStatus) ? 'active' : ''}`}
+          onClick={() => { setStatusFilter(''); setStockStatus(''); }}
+        >
           <div className="s-label">TỔNG SẢN PHẨM</div>
           <div className="s-value">{totalCount}</div>
         </div>
-        <div className="stat-card-mini">
+        <div 
+          className={`stat-card-mini clickable ${stockStatus === 'lowstock' ? 'active' : ''}`}
+          onClick={() => setStockStatus('lowstock')}
+        >
           <div className="s-label">SẮP HẾT HÀNG</div>
           <div className="s-value" style={{ color: '#ef4444' }}>
             {lowStockCount}
           </div>
         </div>
-        <div className="stat-card-mini">
+        <div 
+          className={`stat-card-mini clickable ${stockStatus === 'outofstock' ? 'active' : ''}`}
+          onClick={() => setStockStatus('outofstock')}
+        >
           <div className="s-label">HẾT HÀNG</div>
           <div className="s-value" style={{ color: '#94a3b8' }}>
             {outOfStockCount}
@@ -371,6 +378,7 @@ const AdminProducts = () => {
                   <option value="Active">Hoạt động</option>
                   <option value="Draft">Bản nháp</option>
                   <option value="Archived">Đã lưu trữ</option>
+                  <option value="SoldOut">Hết hàng</option>
                   <option value="Deleted">Đã xóa</option>
                 </select>
               </div>
@@ -470,6 +478,9 @@ const AdminProducts = () => {
         
         .admin-stats-overview { display: flex; gap: 16px; margin-bottom: 24px; }
         .stat-card-mini { background: white; padding: 16px 24px; border-radius: 16px; border: 1px solid #f1f5f9; flex: 1; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .stat-card-mini.clickable { cursor: pointer; transition: all 0.2s; }
+        .stat-card-mini.clickable:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+        .stat-card-mini.clickable.active { border-color: #0f172a; background: #f8fafc; box-shadow: 0 0 0 1px #0f172a; }
         .s-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; margin-bottom: 4px; }
         .s-value { font-size: 1.5rem; font-weight: 900; color: #0f172a; }
 
@@ -516,6 +527,7 @@ const AdminProducts = () => {
         .quick-status-select.active { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
         .quick-status-select.draft { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0; }
         .quick-status-select.archived { background-color: #ffedd5; color: #9a3412; border-color: #fed7aa; }
+        .quick-status-select.soldout { background-color: #f1f5f9; color: #64748b; border-color: #e2e8f0; opacity: 0.8; }
         .quick-status-select.loading { opacity: 0.5; cursor: wait; }
         .quick-status-select:disabled { cursor: not-allowed; opacity: 0.7; }
         
@@ -723,19 +735,19 @@ const AdminProducts = () => {
                 <td>
                   <div style={{
                     fontWeight: '700',
-                    color: (product.totalStock || product.stockCount) <= 5 ? '#ef4444' : '#0f172a',
+                    color: product.totalStock <= 5 ? '#ef4444' : '#0f172a',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px'
                   }}>
-                    {product.totalStock || product.stockCount}
-                    {(product.totalStock || product.stockCount) <= 5 && <span style={{ fontSize: '0.65rem', background: '#fee2e2', color: '#ef4444', padding: '1px 4px', borderRadius: '4px' }}>LOW</span>}
+                    {product.totalStock}
+                    {product.totalStock <= 5 && <span style={{ fontSize: '0.65rem', background: '#fee2e2', color: '#ef4444', padding: '1px 4px', borderRadius: '4px' }}>LOW</span>}
                   </div>
                 </td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, color: '#64748b' }}>
-                      THỰC: {product.actualSalesCount}
+                      BÁN THỰC: {product.actualSalesCount}
                     </div>
                     <div style={{ 
                       background: product.manualSalesCount !== null ? '#0f172a' : '#f1f5f9', 
@@ -745,7 +757,7 @@ const AdminProducts = () => {
                       fontSize: '0.7rem', 
                       fontWeight: 800 
                     }}>
-                      ẢO: {product.manualSalesCount !== null ? product.manualSalesCount : '---'}
+                      BÁN ẢO: {product.manualSalesCount !== null ? product.manualSalesCount : '---'}
                     </div>
                   </div>
                 </td>
@@ -753,7 +765,7 @@ const AdminProducts = () => {
                   <div className="quick-status-wrapper">
                     <select
                       className={`quick-status-select ${product.isDeleted || product.status === 'Deleted' ? 'deleted' : product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
-                      value={product.status}
+                      value={product.status === 'SoldOut' ? 'Active' : product.status}
                       onChange={(e) => handleQuickStatusUpdate(product.id, e.target.value)}
                       disabled={statusUpdateLoading === product.id || product.isDeleted}
                     >
@@ -762,6 +774,11 @@ const AdminProducts = () => {
                       <option value="Archived">Lưu trữ</option>
                     </select>
                     {(product.isDeleted || product.status === 'Deleted') && <span className="deleted-badge">Đã xóa</span>}
+                    {(!product.isDeleted && product.status === 'Active' && product.totalStock <= 0) && (
+                      <div style={{ position: 'absolute', top: '-18px', left: '0', fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase' }}>
+                        HẾT HÀNG (TỰ ĐỘNG)
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td>
@@ -801,26 +818,35 @@ const AdminProducts = () => {
               </div>
               <div className="stat">
                 <span className="stat-label">KHO</span>
-                <span className="stat-value" style={{ color: (product.totalStock || product.stockCount) <= 5 ? '#ef4444' : '#0f172a' }}>
-                  {product.totalStock || product.stockCount}
+                <span className="stat-value" style={{ color: product.totalStock <= 5 ? '#ef4444' : '#0f172a' }}>
+                  {product.totalStock}
                 </span>
               </div>
               <div className="stat">
-                <span className="stat-label">TRẠNG THÁI</span>
-                <div className="quick-status-wrapper" style={{ width: '100%', marginTop: '4px' }}>
-                  <select
-                    className={`quick-status-select ${product.isDeleted || product.status === 'Deleted' ? 'deleted' : product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
-                    value={product.status}
-                    onChange={(e) => handleQuickStatusUpdate(product.id, e.target.value)}
-                    disabled={statusUpdateLoading === product.id || product.isDeleted}
-                    style={{ padding: '4px 8px', fontSize: '0.7rem' }}
-                  >
-                    <option value="Active">Hoạt động</option>
-                    <option value="Draft">Bản nháp</option>
-                    <option value="Archived">Lưu trữ</option>
-                  </select>
-                  {(product.isDeleted || product.status === 'Deleted') && <span className="deleted-badge" style={{ fontSize: '0.65rem' }}>Đã xóa</span>}
-                </div>
+                <span className="stat-label">BÁN</span>
+                <span className="stat-value" style={{ fontSize: '0.75rem' }}>{product.actualSalesCount} | {product.manualSalesCount ?? '---'}</span>
+              </div>
+            </div>
+
+            <div style={{ padding: '0 16px 16px' }}>
+              <div className="quick-status-wrapper" style={{ width: '100%' }}>
+                <select
+                  className={`quick-status-select ${product.isDeleted || product.status === 'Deleted' ? 'deleted' : product.status.toLowerCase()} ${statusUpdateLoading === product.id ? 'loading' : ''}`}
+                  value={product.status === 'SoldOut' ? 'Active' : product.status}
+                  onChange={(e) => handleQuickStatusUpdate(product.id, e.target.value)}
+                  disabled={statusUpdateLoading === product.id || product.isDeleted}
+                  style={{ padding: '8px 12px', fontSize: '0.8rem', width: '100%' }}
+                >
+                  <option value="Active">Hoạt động</option>
+                  <option value="Draft">Bản nháp</option>
+                  <option value="Archived">Lưu trữ</option>
+                </select>
+                {(product.isDeleted || product.status === 'Deleted') && <span className="deleted-badge">Đã xóa</span>}
+                {(!product.isDeleted && product.status === 'Active' && product.totalStock <= 0) && (
+                  <div style={{ position: 'absolute', top: '-14px', left: '0', fontSize: '0.6rem', fontWeight: 900, color: '#ef4444' }}>
+                    HẾT HÀNG (TỰ ĐỘNG)
+                  </div>
+                )}
               </div>
             </div>
             <div className="card-actions">

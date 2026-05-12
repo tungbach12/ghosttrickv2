@@ -1,4 +1,5 @@
 using GhostTrick.Application.DTOs;
+using GhostTrick.Application.DTOs.Products;
 using GhostTrick.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -78,9 +79,9 @@ namespace GhostTrick.WebApi.Controllers
 
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateDto dto)
         {
-            await _productService.UpdateStatusAsync(id, status);
+            await _productService.UpdateStatusAsync(id, dto.Status);
             return NoContent();
         }
 
