@@ -29,60 +29,67 @@ namespace GhostTrick.Application.Services
             _logger = logger;
         }
 
-        public async Task<bool> CreateBackupAsync()
+        public async Task<(bool Success, string Message)> CreateBackupAsync()
         {
-            var tokenSetting = await _settingsService.GetSettingByKeyAsync("TelegramToken");
-            var chatIdSetting = await _settingsService.GetSettingByKeyAsync("TelegramChatId");
-
-            var token = tokenSetting?.Value ?? _configuration["Telegram:Token"];
-            var chatId = chatIdSetting?.Value ?? _configuration["Telegram:ChatId"];
-            
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(chatId))
-            {
-                _logger.LogWarning("Telegram configuration is missing. Token or ChatId is null/empty.");
-                return false;
-            }
-
-            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var backupFileName = $"GhostTrickDb_Manual_{timestamp}.bak";
-            
-            string dbPath;
-            string apiPath;
-
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
-            {
-                // On Windows (Local Dev), we assume SQL and API are on the same machine
-                var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "backups");
-                if (!Directory.Exists(backupDir)) Directory.CreateDirectory(backupDir);
-                
-                apiPath = Path.Combine(backupDir, backupFileName);
-                dbPath = apiPath; // SQL Server can use the same path if it's local
-            }
-            else
-            {
-                // Path inside DB container (for SQL Server command)
-                dbPath = $"/var/opt/mssql/backups/{backupFileName}";
-                // Path inside API container (for file access via shared volume)
-                apiPath = Path.Combine(Directory.GetCurrentDirectory(), "backups", backupFileName);
-                
-                var apiDir = Path.GetDirectoryName(apiPath);
-                if (!Directory.Exists(apiDir)) Directory.CreateDirectory(apiDir);
-            }
-
             try
             {
-                _logger.LogInformation("Starting backup. dbPath: {DbPath}, apiPath: {ApiPath}", dbPath, apiPath);
+                var tokenSetting = await _settingsService.GetSettingByKeyAsync("TelegramToken");
+                var chatIdSetting = await _settingsService.GetSettingByKeyAsync("TelegramChatId");
+
+                var token = (tokenSetting?.Value ?? _configuration["Telegram:Token"])?.Trim();
+                var chatId = (chatIdSetting?.Value ?? _configuration["Telegram:ChatId"])?.Trim();
+                
+                if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(chatId))
+                {
+                    _logger.LogWarning("Telegram configuration is missing. Token or ChatId is null/empty.");
+                    return (false, "Cấu hình Telegram bị thiếu (Token hoặc ChatId trống). Vui lòng kiểm tra lại trong phần Cài đặt.");
+                }
+
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var backupFileName = $"GhostTrickDb_Manual_{timestamp}.bak";
+                
+                string dbPath;
+                string apiPath;
+
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "backups");
+                    if (!Directory.Exists(backupDir)) Directory.CreateDirectory(backupDir);
+                    
+                    apiPath = Path.Combine(backupDir, backupFileName);
+                    dbPath = apiPath;
+                }
+                else
+                {
+                    // Path inside DB container
+                    dbPath = $"/var/opt/mssql/backups/{backupFileName}";
+                    // Path inside API container
+                    apiPath = Path.Combine(Directory.GetCurrentDirectory(), "backups", backupFileName);
+                    
+                    var apiDir = Path.GetDirectoryName(apiPath);
+                    if (!Directory.Exists(apiDir!)) Directory.CreateDirectory(apiDir!);
+                }
+
+                _logger.LogInformation("Starting backup process. dbPath: {DbPath}, apiPath: {ApiPath}", dbPath, apiPath);
 
                 // 1. Run SQL Backup command
-                await _context.Database.ExecuteSqlRawAsync($"BACKUP DATABASE [GhostTrickDb] TO DISK = N'{dbPath}' WITH FORMAT, MEDIANAME = 'GhostTrickManualBackup', NAME = 'Full Backup of GhostTrickDb'");
+                try 
+                {
+                    await _context.Database.ExecuteSqlRawAsync($"BACKUP DATABASE [GhostTrickDb] TO DISK = N'{dbPath}' WITH FORMAT, MEDIANAME = 'GhostTrickManualBackup', NAME = 'Full Backup of GhostTrickDb'");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "SQL Backup command failed.");
+                    return (false, $"Lỗi SQL Backup: {ex.Message}. Đảm bảo container DB có quyền ghi vào volume mssql_backups.");
+                }
 
-                // 2. Wait a bit for file to be ready
+                // 2. Wait a bit and check if file exists
                 await Task.Delay(2000);
 
                 if (!File.Exists(apiPath))
                 {
-                    _logger.LogError("Backup file not found at API path: {ApiPath}. Check if SQL Server has write permissions to this folder or if paths match.", apiPath);
-                    return false;
+                    _logger.LogError("Backup file not found at API path: {ApiPath}", apiPath);
+                    return (false, $"Không tìm thấy file backup tại đường dẫn API: {apiPath}. Kiểm tra volume mapping giữa container DB và API.");
                 }
 
                 // 3. Compress the backup file using GZip
@@ -99,16 +106,17 @@ namespace GhostTrick.Application.Services
                     {
                         await sourceStream.CopyToAsync(gzipStream);
                     }
-                    _logger.LogInformation("Backup compressed successfully (GZ): {GzFileName}", gzFileName);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to compress backup file to GZ. Proceeding with raw .bak file.");
+                    _logger.LogError(ex, "Failed to compress backup file to GZ.");
                     gzPath = apiPath; 
                     gzFileName = backupFileName;
                 }
 
                 // 4. Send to Telegram
+                _logger.LogInformation("Sending backup to Telegram. Token: {TokenPrefix}..., ChatId: {ChatId}", token[..5], chatId);
+                
                 using var client = _httpClientFactory.CreateClient();
                 using var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.telegram.org/bot{token}/sendDocument");
                 
@@ -125,28 +133,27 @@ namespace GhostTrick.Application.Services
 
                     request.Content = content;
                     var response = await client.SendAsync(request);
-
-                    // 5. Cleanup
+                    
                     fileStream.Close();
                     
+                    // Cleanup
                     if (File.Exists(apiPath)) File.Delete(apiPath);
                     if (File.Exists(gzPath) && gzPath != apiPath) File.Delete(gzPath);
 
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorMsg = await response.Content.ReadAsStringAsync();
-                        _logger.LogError("Failed to send backup to Telegram. Status: {StatusCode}, Error: {Error}", response.StatusCode, errorMsg);
-                        return false;
+                        _logger.LogError("Telegram API error. Status: {StatusCode}, Error: {Error}", response.StatusCode, errorMsg);
+                        return (false, $"Lỗi Telegram API ({response.StatusCode}): {errorMsg}");
                     }
                 }
 
-                _logger.LogInformation("Backup successfully created, compressed (GZ), and sent to Telegram: {FileName}", gzFileName);
-                return true;
+                return (true, "Backup thành công và đã gửi qua Telegram!");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred during the backup process.");
-                return false;
+                _logger.LogError(ex, "Unexpected error in CreateBackupAsync");
+                return (false, $"Lỗi không xác định: {ex.Message}");
             }
         }
     }

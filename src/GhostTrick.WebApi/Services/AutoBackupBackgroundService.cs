@@ -56,16 +56,16 @@ namespace GhostTrick.WebApi.Services
                 if (DateTime.Now >= _lastBackupTime.AddHours(intervalHours))
                 {
                     _logger.LogInformation("Starting scheduled auto backup...");
-                    var success = await systemService.CreateBackupAsync();
+                    var result = await systemService.CreateBackupAsync();
                     
-                    if (success)
+                    if (result.Success)
                     {
                         _lastBackupTime = DateTime.Now;
-                        _logger.LogInformation("Scheduled auto backup completed successfully.");
+                        _logger.LogInformation("Scheduled auto backup completed successfully: {Message}", result.Message);
                     }
                     else
                     {
-                        _logger.LogWarning("Scheduled auto backup failed.");
+                        _logger.LogWarning("Scheduled auto backup failed: {Message}", result.Message);
                     }
                 }
             }

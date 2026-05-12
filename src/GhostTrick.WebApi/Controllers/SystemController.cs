@@ -19,12 +19,12 @@ namespace GhostTrick.WebApi.Controllers
         [HttpPost("backup-now")]
         public async Task<IActionResult> BackupNow()
         {
-            var success = await _systemService.CreateBackupAsync();
-            if (success)
+            var result = await _systemService.CreateBackupAsync();
+            if (result.Success)
             {
-                return Ok(new { message = "Backup đã được tạo và gửi qua Telegram thành công!" });
+                return Ok(new { message = result.Message });
             }
-            return BadRequest(new { message = "Có lỗi xảy ra khi tạo backup hoặc gửi qua Telegram. Vui lòng kiểm tra lại cấu hình." });
+            return BadRequest(new { message = result.Message });
         }
     }
 }
