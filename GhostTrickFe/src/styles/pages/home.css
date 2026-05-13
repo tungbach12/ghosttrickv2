@@ -336,8 +336,7 @@
 
 /* Scoped section titles for home page to avoid affecting Checkout/etc */
 .section-vouchers .section-header .section-title,
-.section-products .tabs .section-title,
-.feedback-header .section-title {
+.section-products .tabs .section-title {
   font-size: 1.8rem !important;
   font-weight: 900 !important;
   color: #0f172a !important;
@@ -744,14 +743,15 @@
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid #e5e5e5;
-  background: #fcfcfc;
+  background: #fff;
 }
 
 .product-img {
   width: 100%;
   aspect-ratio: 3/4;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.5s;
+  background: #fff;
 }
 
 .product-card:hover .product-img {
@@ -886,32 +886,6 @@
   position: relative;
 }
 
-/* --- Feedback Section (Clean & Elegant) --- */
-.section-feedback {
-  padding: 100px 0;
-  background-color: #fff;
-}
-
-.feedback-header {
-  text-align: center;
-  margin-bottom: 60px;
-}
-
-.feedback-header .section-title {
-  font-size: 3rem;
-  font-style: italic;
-  letter-spacing: -2px;
-  margin-bottom: 10px;
-}
-
-.feedback-desc {
-  font-size: 0.85rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #888;
-  font-weight: 500;
-  margin-top: 10px;
-}
 
 .feedback-desc .highlight {
   color: #000;
@@ -1511,19 +1485,6 @@
   overflow: hidden;
 }
 
-.feedback-header {
-  text-align: center;
-  margin-bottom: 60px;
-}
-
-.section-feedback .section-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #111;
-  letter-spacing: -1px;
-  margin-bottom: 15px;
-  text-transform: uppercase;
-}
 
 .feedback-desc {
   font-size: 1.1rem;
@@ -1683,20 +1644,28 @@
 }
 
 .feedback-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   margin-bottom: 60px;
 }
 
-.section-title {
+.section-feedback.simplified .section-title {
+  text-align: center !important;
   font-size: 2.5rem;
   font-weight: 800;
   letter-spacing: -1px;
   margin-bottom: 10px;
+  width: 100% !important;
+  font-style: normal !important;
 }
 
-.feedback-desc {
+.section-feedback.simplified .feedback-desc {
+  text-align: center !important;
   color: #64748b;
   font-size: 1.1rem;
+  width: 100% !important;
 }
 
 .feedback-vertical-stack {
