@@ -1,33 +1,43 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, X, Upload, Scissors, Check } from 'lucide-react';
+import { Plus, X, Upload, Trash2, Edit, Save } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import feedbackService from '../../services/feedbackService';
 import settingsService from '../../services/settingsService';
 import { useToast } from '../../context/ToastContext';
 
+const ASPECT_RATIOS = [
+  { label: 'Tự do', value: undefined },
+  { label: 'Dọc (4:5)', value: 4 / 5 },
+  { label: 'Ngang (16:9)', value: 16 / 9 },
+  { label: 'Vuông (1:1)', value: 1 / 1 },
+];
+
 export default function AdminFeedbacks() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  
+  // Section Settings
+  const [sectionSettings, setSectionSettings] = useState({
+    title: 'FEEDBACK FROM GHOSTS',
+    subtitle: ''
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const [formData, setFormData] = useState({
     imageUrl: '',
     publicId: '',
-    isActive: true
+    title: '',
+    subtitle: '',
+    isActive: true,
+    displayOrder: 0
   });
-
-  const [sectionSettings, setSectionSettings] = useState({
-    FeedbackSection_Title: '',
-    FeedbackSection_Subtitle: '',
-    FeedbackSection_ButtonText: '',
-    FeedbackSection_ButtonUrl: '',
-    FeedbackSection_ShowButton: 'false'
-  });
-  const [savingSettings, setSavingSettings] = useState(false);
 
   // Cropper states
   const [image, setImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [aspect, setAspect] = useState(ASPECT_RATIOS[0].value);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -41,14 +51,24 @@ export default function AdminFeedbacks() {
   const fetchSettings = async () => {
     try {
       const data = await settingsService.getSettings();
-      // Map array of {key, value} to object
-      const settingsObj = {};
-      data.forEach(s => {
-        settingsObj[s.key] = s.value;
-      });
-      setSectionSettings(prev => ({ ...prev, ...settingsObj }));
+      const title = data.find(s => s.key === 'FeedbackSection_Title')?.value || 'FEEDBACK FROM GHOSTS';
+      const subtitle = data.find(s => s.key === 'FeedbackSection_Subtitle')?.value || '';
+      setSectionSettings({ title, subtitle });
     } catch (error) {
       console.error('Failed to fetch settings', error);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      await settingsService.updateSetting('FeedbackSection_Title', sectionSettings.title);
+      await settingsService.updateSetting('FeedbackSection_Subtitle', sectionSettings.subtitle);
+      addToast('Đã cập nhật tiêu đề mục Feedback', 'success');
+    } catch (error) {
+      addToast('Lỗi khi lưu cài đặt', 'error');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -64,10 +84,7 @@ export default function AdminFeedbacks() {
     }
   };
 
-  const getFeedbacksBySlot = (slot) => feedbacks.filter(f => f.displayOrder === slot);
-  const getFeedbackBySlot = (slot) => feedbacks.find(f => f.displayOrder === slot);
-
-  const handleOpenModal = (slot, existing) => {
+  const handleOpenModal = (slot, existing = null) => {
     setSelectedSlot(slot);
     setImage(null);
     if (existing) {
@@ -75,10 +92,20 @@ export default function AdminFeedbacks() {
         id: existing.id,
         imageUrl: existing.imageUrl,
         publicId: existing.publicId,
-        isActive: existing.isActive
+        title: existing.title || '',
+        subtitle: existing.subtitle || '',
+        isActive: existing.isActive,
+        displayOrder: slot
       });
     } else {
-      setFormData({ imageUrl: '', publicId: '', isActive: true });
+      setFormData({
+        imageUrl: '',
+        publicId: '',
+        title: '',
+        subtitle: '',
+        isActive: true,
+        displayOrder: slot
+      });
     }
   };
 
@@ -86,7 +113,7 @@ export default function AdminFeedbacks() {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       const reader = new FileReader();
       reader.readAsDataURL(e.target.files[0]);
@@ -123,7 +150,7 @@ export default function AdminFeedbacks() {
     });
   };
 
-  const handleUploadAndSave = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setUploading(true);
     try {
@@ -144,22 +171,18 @@ export default function AdminFeedbacks() {
         return;
       }
 
+      const dataToSave = {
+        ...formData,
+        imageUrl: finalImageUrl,
+        publicId: finalPublicId
+      };
+
       if (formData.id) {
-        await feedbackService.updateFeedback(formData.id, {
-          ...formData,
-          imageUrl: finalImageUrl,
-          publicId: finalPublicId,
-          displayOrder: selectedSlot
-        });
-        addToast(`Cập nhật slot ${selectedSlot} thành công`, 'success');
+        await feedbackService.updateFeedback(formData.id, dataToSave);
+        addToast('Cập nhật thành công', 'success');
       } else {
-        await feedbackService.createFeedback({
-          ...formData,
-          imageUrl: finalImageUrl,
-          publicId: finalPublicId,
-          displayOrder: selectedSlot
-        });
-        addToast(`Đã thêm feedback vào slot ${selectedSlot}`, 'success');
+        await feedbackService.createFeedback(dataToSave);
+        addToast('Đã thêm feedback mới', 'success');
       }
       setSelectedSlot(null);
       fetchFeedbacks();
@@ -176,26 +199,8 @@ export default function AdminFeedbacks() {
       await feedbackService.deleteFeedback(id);
       addToast('Đã xóa thành công', 'success');
       fetchFeedbacks();
-      setSelectedSlot(null);
     } catch (error) {
       addToast('Không thể xóa', 'error');
-    }
-  };
-
-  const handleSaveSettings = async (e) => {
-    e.preventDefault();
-    setSavingSettings(true);
-    try {
-      await Promise.all(
-        Object.entries(sectionSettings).map(([key, value]) => 
-          settingsService.updateSetting(key, value)
-        )
-      );
-      addToast('Cập nhật cấu hình thành công', 'success');
-    } catch (error) {
-      addToast('Lỗi khi cập nhật cấu hình', 'error');
-    } finally {
-      setSavingSettings(false);
     }
   };
 
@@ -203,96 +208,69 @@ export default function AdminFeedbacks() {
     <div className="admin-container">
       <div className="admin-header">
         <div>
-          <h1 className="admin-title">VISUAL FEEDBACK MANAGER</h1>
-          <p className="admin-subtitle">Tải lên và cắt ảnh tỉ lệ 1:1 cho 6 vị trí trang chủ</p>
+          <h1 className="admin-title">VISUAL FEEDBACK</h1>
+          <p className="admin-subtitle">Quản lý tối đa 3 ảnh feedback hiển thị tại trang chủ</p>
         </div>
       </div>
 
-      <div className="section-config-card">
-        <h2 className="config-title">SECTION CONFIGURATION</h2>
-        <form onSubmit={handleSaveSettings} className="config-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>TITLE</label>
-              <input 
-                type="text" 
-                value={sectionSettings.FeedbackSection_Title} 
-                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_Title: e.target.value})}
-                placeholder="e.g. FEEDBACK FROM GHOSTS"
-              />
-            </div>
-            <div className="form-group">
-              <label>SUBTITLE</label>
-              <input 
-                type="text" 
-                value={sectionSettings.FeedbackSection_Subtitle} 
-                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_Subtitle: e.target.value})}
-                placeholder="e.g. Tag @GHOSTTRICK.VN..."
-              />
-            </div>
+      <div className="feedback-settings-panel">
+        <div className="settings-row">
+          <div className="form-group">
+            <label>TIÊU ĐỀ MỤC</label>
+            <input 
+              type="text" 
+              value={sectionSettings.title} 
+              onChange={e => setSectionSettings({...sectionSettings, title: e.target.value})}
+              placeholder="e.g. FEEDBACK FROM GHOSTS"
+            />
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>BUTTON TEXT</label>
-              <input 
-                type="text" 
-                value={sectionSettings.FeedbackSection_ButtonText} 
-                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ButtonText: e.target.value})}
-                placeholder="e.g. GỬI FEEDBACK"
-              />
-            </div>
-            <div className="form-group">
-              <label>BUTTON URL</label>
-              <input 
-                type="text" 
-                value={sectionSettings.FeedbackSection_ButtonUrl} 
-                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ButtonUrl: e.target.value})}
-                placeholder="e.g. https://instagram.com/..."
-              />
-            </div>
+          <div className="form-group">
+            <label>PHỤ ĐỀ MỤC</label>
+            <input 
+              type="text" 
+              value={sectionSettings.subtitle} 
+              onChange={e => setSectionSettings({...sectionSettings, subtitle: e.target.value})}
+              placeholder="e.g. Xem khách hàng nói gì về chúng tôi"
+            />
           </div>
-
-          <div className="form-actions">
-            <label className="toggle-container">
-              <input 
-                type="checkbox" 
-                checked={sectionSettings.FeedbackSection_ShowButton === 'true'} 
-                onChange={e => setSectionSettings({...sectionSettings, FeedbackSection_ShowButton: e.target.checked ? 'true' : 'false'})}
-              />
-              <span className="toggle-label">SHOW BUTTON</span>
-            </label>
-            <button type="submit" className="btn-solid" disabled={savingSettings}>
-              {savingSettings ? 'SAVING...' : 'SAVE CONFIGURATION'}
-            </button>
-          </div>
-        </form>
+          <button className="btn-solid-black save-settings-btn" onClick={handleSaveSettings} disabled={savingSettings}>
+            {savingSettings ? 'ĐANG LƯU...' : 'LƯU TIÊU ĐỀ'}
+          </button>
+        </div>
       </div>
 
-      <div className="feedback-admin-grid">
-        {[1, 2, 3, 4, 5, 6].map((slot) => {
-          const slotFbs = getFeedbacksBySlot(slot);
-          const fb = slotFbs[0];
-          const hasMultiple = slotFbs.length > 1;
+      <div className="feedback-vertical-list">
+        {[1, 2, 3].map((slot) => {
+          const fb = feedbacks.find(f => f.displayOrder === slot);
           return (
-            <div 
-              key={slot} 
-              className={`feedback-slot ${fb ? 'filled' : 'empty'} ${hasMultiple ? 'multiple-conflict' : ''}`}
-              onClick={() => handleOpenModal(slot, fb)}
-            >
-              <div className="slot-number">POS_{slot}</div>
-              {hasMultiple && <div className="conflict-badge">CONFLICT ({slotFbs.length})</div>}
+            <div key={slot} className={`feedback-card-vertical ${fb ? 'filled' : 'empty'}`}>
+              <div className="slot-badge">VỊ TRÍ {slot}</div>
+              
               {fb ? (
-                <>
-                  <img src={fb.imageUrl} alt="Feedback" className="slot-preview" />
-                  <div className="slot-info">
-                    <div className="slot-badge">ACTIVE</div>
+                <div className="fb-content">
+                  <div className="fb-preview-container">
+                    <img src={fb.imageUrl} alt={`Feedback ${slot}`} />
                   </div>
-                </>
+                  <div className="fb-details">
+                    <h3>{fb.title || 'KHÔNG CÓ TIÊU ĐỀ'}</h3>
+                    <p>{fb.subtitle || 'Không có phụ đề'}</p>
+                    <div className={`status-pill ${fb.isActive ? 'active' : 'inactive'}`}>
+                      {fb.isActive ? 'ĐANG HIỂN THỊ' : 'ĐANG ẨN'}
+                    </div>
+                  </div>
+                  <div className="fb-actions">
+                    <button className="btn-icon" onClick={() => handleOpenModal(slot, fb)}>
+                      <Edit size={20} />
+                    </button>
+                    <button className="btn-icon danger" onClick={() => handleDelete(fb.id)}>
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
+                </div>
               ) : (
-                <div className="slot-add">
-                  <Plus size={32} />
-                  <span>UPLOAD IMAGE</span>
+                <div className="fb-empty" onClick={() => handleOpenModal(slot)}>
+                  <Plus size={40} />
+                  <span>THÊM FEEDBACK TẠI VỊ TRÍ {slot}</span>
                 </div>
               )}
             </div>
@@ -302,77 +280,105 @@ export default function AdminFeedbacks() {
 
       {selectedSlot && (
         <div className="admin-modal-overlay">
-          <div className="admin-modal feedback-modal">
+          <div className="admin-modal feedback-modal-simple">
             <div className="modal-header">
-              <h3>SLOT_{selectedSlot} CONFIG</h3>
+              <h3>{formData.id ? 'CẬP NHẬT FEEDBACK' : 'THÊM FEEDBACK MỚI'} - VỊ TRÍ {selectedSlot}</h3>
               <button className="close-btn" onClick={() => setSelectedSlot(null)}><X /></button>
             </div>
             
-            <form onSubmit={handleUploadAndSave} className="modal-body">
-              {!image && !formData.imageUrl ? (
-                <div className="upload-placeholder" onClick={() => document.getElementById('fileInput').click()}>
-                  <Upload size={40} />
-                  <span>CHỌN ẢNH TỪ MÁY TÍNH</span>
-                  <input id="fileInput" type="file" hidden accept="image/*" onChange={handleFileChange} />
-                </div>
-              ) : image ? (
-                <div className="cropper-container">
-                  <Cropper
-                    image={image}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1 / 1}
-                    onCropChange={setCrop}
-                    onCropComplete={onCropComplete}
-                    onZoomChange={setZoom}
-                  />
-                  <div className="cropper-controls">
-                    <input 
-                      type="range" 
-                      min={1} 
-                      max={3} 
-                      step={0.1} 
-                      value={zoom} 
-                      onChange={(e) => setZoom(e.target.value)} 
-                    />
-                    <button type="button" className="btn-text" onClick={() => setImage(null)}>ĐỔI ẢNH</button>
+            <form onSubmit={handleSave} className="modal-body-simple">
+              <div className="upload-section">
+                {!image && !formData.imageUrl ? (
+                  <div className="upload-placeholder-simple" onClick={() => document.getElementById('fileInput').click()}>
+                    <Upload size={32} />
+                    <span>CHỌN ẢNH</span>
+                    <input id="fileInput" type="file" hidden accept="image/*" onChange={handleFileChange} />
                   </div>
-                </div>
-              ) : (
-                <div className="current-image-preview">
-                  <img src={formData.imageUrl} alt="Current" />
-                  <button type="button" className="btn-solid sm" onClick={() => document.getElementById('fileInput').click()}>
-                    THAY ĐỔI ẢNH
-                  </button>
-                  <input id="fileInput" type="file" hidden accept="image/*" onChange={handleFileChange} />
-                </div>
-              )}
-
-
-
-              <div className="modal-footer">
-                <button type="submit" className="btn-solid full-width" disabled={uploading}>
-                  {uploading ? 'UPLOADING...' : (formData.id ? 'SAVE CHANGES' : 'UPLOAD & SAVE')}
-                </button>
-                
-                {getFeedbacksBySlot(selectedSlot).length > 0 && (
-                  <div className="manage-all-slot-items">
-                    <p className="section-small-title">ALL FEEDBACKS IN THIS SLOT:</p>
-                    {getFeedbacksBySlot(selectedSlot).map(item => (
-                      <div key={item.id} className="slot-item-row">
-                        <img src={item.imageUrl} alt="" className="tiny-preview" />
-                        <span className="item-id">ID: {item.id}</span>
-                        <button 
-                          type="button" 
-                          className="btn-text danger-text sm" 
-                          onClick={() => handleDelete(item.id)}
+                ) : image ? (
+                  <div className="cropper-container-feedback">
+                    <div className="aspect-ratio-selector-simple">
+                      {ASPECT_RATIOS.map((ratio, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`aspect-btn-simple ${aspect === ratio.value ? 'active' : ''}`}
+                          onClick={() => setAspect(ratio.value)}
                         >
-                          REMOVE
+                          {ratio.label}
                         </button>
+                      ))}
+                    </div>
+                    <div className="cropper-box-feedback">
+                      <Cropper
+                        image={image}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={aspect}
+                        onCropChange={setCrop}
+                        onCropComplete={onCropComplete}
+                        onZoomChange={setZoom}
+                      />
+                    </div>
+                    <div className="crop-controls-simple">
+                      <div className="zoom-row">
+                        <span>Zoom</span>
+                        <input 
+                          type="range" 
+                          min={1} 
+                          max={3} 
+                          step={0.1} 
+                          value={zoom} 
+                          onChange={(e) => setZoom(e.target.value)} 
+                        />
                       </div>
-                    ))}
+                      <button type="button" className="btn-text" onClick={() => setImage(null)}>ĐỔI ẢNH</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="current-image-box">
+                    <img src={formData.imageUrl} alt="Current" />
+                    <button type="button" className="btn-change-img" onClick={() => document.getElementById('fileInput').click()}>
+                      THAY ĐỔI ẢNH
+                    </button>
+                    <input id="fileInput" type="file" hidden accept="image/*" onChange={handleFileChange} />
                   </div>
                 )}
+              </div>
+
+              <div className="form-fields-simple">
+                <div className="form-group">
+                  <label>TIÊU ĐỀ (TÙY CHỌN)</label>
+                  <input 
+                    type="text" 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    placeholder="e.g. COOL VIBES"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>PHỤ ĐỀ (TÙY CHỌN)</label>
+                  <input 
+                    type="text" 
+                    value={formData.subtitle} 
+                    onChange={e => setFormData({...formData, subtitle: e.target.value})}
+                    placeholder="e.g. @username"
+                  />
+                </div>
+                <div className="form-group-inline">
+                  <input 
+                    type="checkbox" 
+                    id="isActive"
+                    checked={formData.isActive} 
+                    onChange={e => setFormData({...formData, isActive: e.target.checked})}
+                  />
+                  <label htmlFor="isActive">Hiển thị feedback này</label>
+                </div>
+
+                <div className="modal-footer-simple">
+                  <button type="submit" className="btn-solid-black" disabled={uploading}>
+                    {uploading ? 'ĐANG TẢI...' : (formData.id ? 'LƯU THAY ĐỔI' : 'TẢI LÊN & LƯU')}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -380,76 +386,321 @@ export default function AdminFeedbacks() {
       )}
 
       <style>{`
-        .section-config-card { background: #fff; border: 5px solid #000; padding: 25px; margin-bottom: 40px; }
-        .config-title { font-size: 0.8rem; font-weight: 900; margin-bottom: 20px; text-decoration: underline; }
-        .config-form { display: flex; flex-direction: column; gap: 20px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .form-group { display: flex; flex-direction: column; gap: 8px; }
-        .form-group label { font-size: 0.6rem; font-weight: 900; color: #666; }
-        .form-group input { border: 2px solid #000; padding: 10px; font-weight: 700; outline: none; }
-        .form-group input:focus { background: #f0f0f0; }
-        .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        
-        .toggle-container { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .toggle-container input { width: 18px; height: 18px; cursor: pointer; accent-color: #000; }
-        .toggle-label { font-size: 0.7rem; font-weight: 900; }
+        .feedback-vertical-list {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          margin-top: 30px;
+        }
 
-        .feedback-admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
-        .feedback-slot { aspect-ratio: 1/1; border: 2px dashed #ccc; position: relative; cursor: pointer; overflow: hidden; background: #fafafa; transition: all 0.3s; }
-        .feedback-slot.filled { border: 2px solid #000; }
-        .feedback-slot:hover { transform: translateY(-5px); box-shadow: 8px 8px 0px #000; border-color: #000; }
-        .slot-number { position: absolute; top: 10px; left: 10px; font-size: 0.6rem; font-weight: 900; background: #000; color: #fff; padding: 2px 6px; z-index: 2; }
-        .slot-preview { width: 100%; height: 100%; object-fit: cover; }
-        .slot-add { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #999; font-weight: 800; gap: 10px; }
-        .slot-info { position: absolute; bottom: 0; left: 0; width: 100%; padding: 10px; background: rgba(0,0,0,0.8); color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .feedback-settings-panel {
+          background: #f9f9f9;
+          border: 2px solid #000;
+          padding: 20px;
+          margin-bottom: 30px;
+        }
 
-        .slot-badge { font-size: 0.5rem; background: #fff; color: #000; padding: 2px 4px; font-weight: 900; }
+        .settings-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr auto;
+          gap: 20px;
+          align-items: flex-end;
+        }
 
-        .admin-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .feedback-modal { background: #fff; width: 500px; border: 5px solid #000; padding: 30px; }
-        .upload-placeholder { height: 250px; border: 2px dashed #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; cursor: pointer; transition: 0.3s; }
-        .upload-placeholder:hover { background: #f9f9f9; border-color: #000; }
-        .upload-placeholder span { font-weight: 800; font-size: 0.9rem; }
+        .save-settings-btn {
+          padding: 12px 25px !important;
+          height: 48px;
+        }
 
-        .cropper-container { position: relative; height: 350px; background: #333; margin-bottom: 60px; }
-        .cropper-controls { position: absolute; bottom: -50px; left: 0; width: 100%; display: flex; align-items: center; gap: 20px; }
-        .cropper-controls input { flex: 1; }
+        .feedback-card-vertical {
+          background: #fff;
+          border: 4px solid #000;
+          padding: 20px;
+          position: relative;
+          min-height: 150px;
+          transition: 0.3s;
+        }
 
-        .current-image-preview { position: relative; height: 250px; border: 1px solid #eee; }
-        .current-image-preview img { width: 100%; height: 100%; object-fit: contain; }
-        .current-image-preview .btn-solid { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; }
-        .current-image-preview:hover img { opacity: 0.5; }
-        .current-image-preview:hover .btn-solid { display: block; }
+        .feedback-card-vertical.empty {
+          border-style: dashed;
+          border-color: #ccc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        }
 
-        .full-width { width: 100%; padding: 15px; margin-top: 20px; }
-        .danger-text { color: red; font-size: 0.8rem; font-weight: 700; }
-        .danger-text.sm { padding: 5px; }
-        
-        .conflict-badge { position: absolute; top: 10px; right: 10px; background: red; color: white; font-size: 0.6rem; font-weight: 900; padding: 2px 6px; z-index: 2; border: 2px solid white; }
-        .multiple-conflict { border-color: red !important; }
-        
-        .manage-all-slot-items { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .section-small-title { font-size: 0.6rem; font-weight: 900; color: #999; margin-bottom: 15px; }
-        .slot-item-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding: 10px; background: #f9f9f9; border: 1px solid #eee; }
-        .tiny-preview { width: 40px; height: 40px; object-fit: cover; border: 1px solid #ddd; }
-        .item-id { font-size: 0.7rem; font-family: monospace; flex: 1; }
+        .feedback-card-vertical.empty:hover {
+          border-color: #000;
+          background: #f9f9f9;
+        }
 
-        @media (max-width: 768px) {
-          .admin-container { padding: 16px; }
-          .admin-header { margin-bottom: 24px; }
-          .admin-title { font-size: 1.4rem; }
-          
-          .feedback-admin-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-          .slot-number { font-size: 0.5rem; }
+        .fb-empty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          color: #999;
+          font-weight: 800;
+        }
 
-          
-          .admin-modal-overlay { padding: 16px; }
-          .feedback-modal { width: 100%; padding: 20px; border-width: 3px; }
-          .modal-header h3 { font-size: 1rem; }
-          .upload-placeholder { height: 200px; }
-          .cropper-container { height: 300px; margin-bottom: 80px; }
-          .cropper-controls { flex-direction: column; bottom: -70px; gap: 10px; }
-          .cropper-controls input { width: 100%; }
+        .slot-badge {
+          position: absolute;
+          top: -12px;
+          left: 20px;
+          background: #000;
+          color: #fff;
+          padding: 2px 12px;
+          font-weight: 900;
+          font-size: 0.7rem;
+        }
+
+        .fb-content {
+          display: grid;
+          grid-template-columns: 120px 1fr auto;
+          gap: 25px;
+          align-items: center;
+        }
+
+        .fb-preview-container {
+          width: 120px;
+          height: 150px;
+          border: 2px solid #000;
+          overflow: hidden;
+        }
+
+        .fb-preview-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .fb-details h3 {
+          font-size: 1.2rem;
+          font-weight: 900;
+          margin-bottom: 5px;
+          font-style: italic;
+        }
+
+        .fb-details p {
+          color: #666;
+          margin-bottom: 10px;
+        }
+
+        .status-pill {
+          display: inline-block;
+          font-size: 0.6rem;
+          font-weight: 900;
+          padding: 3px 8px;
+          border: 1px solid currentColor;
+        }
+
+        .status-pill.active { color: #00aa00; }
+        .status-pill.inactive { color: #ff0000; }
+
+        .fb-actions {
+          display: flex;
+          gap: 10px;
+        }
+
+        .btn-icon {
+          background: none;
+          border: 2px solid #000;
+          padding: 8px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .btn-icon:hover {
+          background: #000;
+          color: #fff;
+        }
+
+        .btn-icon.danger {
+          border-color: #ff4444;
+          color: #ff4444;
+        }
+
+        .btn-icon.danger:hover {
+          background: #ff4444;
+          color: #fff;
+        }
+
+        /* Modal Styles */
+        .feedback-modal-simple {
+          width: 600px;
+          max-width: 95vw;
+          background: #fff;
+          border: 5px solid #000;
+        }
+
+        .modal-body-simple {
+          padding: 25px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 25px;
+        }
+
+        .upload-section {
+          border: 2px solid #eee;
+          min-height: 300px;
+          display: flex;
+          flex-direction: column;
+          background: #fdfdfd;
+        }
+
+        .upload-placeholder-simple {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          cursor: pointer;
+          color: #999;
+          font-weight: 800;
+        }
+
+        .cropper-container-feedback {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          background: #f8fafc;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .aspect-ratio-selector-simple {
+          display: flex;
+          gap: 10px;
+          padding: 10px;
+          background: #fff;
+          border-bottom: 1px solid #e2e8f0;
+          overflow-x: auto;
+        }
+
+        .aspect-btn-simple {
+          padding: 6px 14px;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+        }
+
+        .aspect-btn-simple.active {
+          background: #000;
+          color: #fff;
+          border-color: #000;
+        }
+
+        .cropper-box-feedback {
+          position: relative;
+          width: 100%;
+          height: 400px;
+          background: #000;
+        }
+
+        .crop-controls-simple {
+          padding: 15px;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          background: #fff;
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .zoom-row {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .zoom-row input {
+          flex: 1;
+        }
+
+        .current-image-box {
+          height: 100%;
+          position: relative;
+        }
+
+        .current-image-box img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .btn-change-img {
+          position: absolute;
+          bottom: 10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #000;
+          color: #fff;
+          border: none;
+          padding: 5px 15px;
+          font-size: 0.7rem;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .form-fields-simple {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .form-group-inline {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 800;
+          font-size: 0.8rem;
+        }
+
+        .btn-solid-black {
+          width: 100%;
+          background: #000;
+          color: #fff;
+          border: none;
+          padding: 12px;
+          font-weight: 900;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .btn-solid-black:hover {
+          background: #333;
+        }
+
+        .btn-text {
+          background: none;
+          border: none;
+          font-weight: 800;
+          font-size: 0.7rem;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+          .modal-body-simple {
+            grid-template-columns: 1fr;
+          }
+          .fb-content {
+            grid-template-columns: 80px 1fr;
+          }
+          .fb-actions {
+            grid-column: span 2;
+            justify-content: flex-end;
+          }
         }
       `}</style>
     </div>

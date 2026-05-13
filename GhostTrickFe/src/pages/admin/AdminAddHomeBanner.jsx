@@ -141,9 +141,8 @@ const AdminAddHomeBanner = () => {
     }
   };
 
-  const validate = () => {
+    const validate = () => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = 'Tiêu đề không được để trống';
     if (!isEdit && !croppedImageFile) newErrors.image = 'Vui lòng chọn ảnh banner';
     
     setErrors(newErrors);

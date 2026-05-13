@@ -22,10 +22,7 @@
 
 /* --- Typography Scaling --- */
 @media (max-width: 768px) {
-  .section-title {
-    font-size: 1.5rem !important;
-    letter-spacing: -1px !important;
-  }
+  /* Global Typography Scaling moved to specific page files where needed */
 
   .hero-title {
     font-size: 1.5rem !important; /* Scaled down for better mobile fit */

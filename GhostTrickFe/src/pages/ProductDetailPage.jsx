@@ -7,6 +7,7 @@ import ReviewModal from '../components/ReviewModal'
 
 import { useGlobalContext } from '../context/GlobalContext'
 import { useToast } from '../context/ToastContext'
+import { calculateSalePercentage } from '../utils/productUtils'
 
 export default function ProductDetailPage() {
   const { addToCart, user } = useGlobalContext();
@@ -254,17 +255,17 @@ export default function ProductDetailPage() {
               <span className="pd-original-price">{formatPrice(product.originalPrice)}</span>
             )}
             {product.originalPrice > product.price && (
-               <span style={{
-                 background: '#fee2e2',
-                 color: '#ef4444',
-                 padding: '2px 8px',
-                 borderRadius: '4px',
-                 fontSize: '0.8rem',
-                 fontWeight: 700,
-                 marginLeft: '12px'
-               }}>
-                 -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-               </span>
+                <span style={{
+                  background: '#fee2e2',
+                  color: '#ef4444',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  marginLeft: '12px'
+                }}>
+                  -{calculateSalePercentage(product.price, product.originalPrice)}%
+                </span>
             )}
           </div>
 

@@ -11,6 +11,9 @@ import { useGlobalContext } from '../context/GlobalContext'
 import { useNavigate } from 'react-router-dom'
 import feedbackService from '../services/feedbackService'
 import settingsService from '../services/settingsService'
+import saleService from '../services/saleService'
+import { Zap, Clock, TrendingUp } from 'lucide-react'
+import { calculateSalePercentage } from '../utils/productUtils'
 
 export default function HomePage() {
   const voucherGridRef = useRef(null);
@@ -32,23 +35,44 @@ export default function HomePage() {
     FeedbackSection_ButtonUrl: 'https://instagram.com/ghosttrick',
     FeedbackSection_ShowButton: 'false'
   });
+  const [activeSale, setActiveSale] = useState(null);
+  const [saleTimeLeft, setSaleTimeLeft] = useState(null);
+  const saleProductsRef = useRef(null);
+  useDraggableScroll(saleProductsRef);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [newRes, bestRes, voucherRes, bannerRes, feedbackRes] = await Promise.all([
+        const [newRes, bestRes, voucherRes, bannerRes, feedbackRes, saleRes] = await Promise.all([
           productService.getNewArrivals(8),
           productService.getBestSellers(8),
           voucherService.getPublicVouchers(),
           homeBannerService.getActiveBanners(),
-          feedbackService.getFeedbacks()
+          feedbackService.getFeedbacks(),
+          saleService.getSaleEvents()
         ]);
         setNewArrivals(newRes);
         setBestSellers(bestRes);
         setVouchers(voucherRes);
         setBanners(bannerRes.data);
         setFeedbacks(feedbackRes);
+
+        // Handle Sale logic
+        if (saleRes.data && saleRes.data.length > 0) {
+          const now = new Date();
+          const validEvents = saleRes.data.filter(e => e.isActive && !e.isDeleted);
+          
+          let selected = validEvents.find(e => new Date(e.startTime) <= now && new Date(e.endTime) > now);
+          if (!selected) {
+            selected = validEvents.find(e => new Date(e.startTime) > now);
+          }
+
+          if (selected) {
+            const fullEvent = await saleService.getEventBySlug(selected.slug);
+            setActiveSale(fullEvent.data);
+          }
+        }
 
         try {
           const publicSettings = await settingsService.getPublicSettings();
@@ -69,6 +93,7 @@ export default function HomePage() {
     };
     fetchData();
   }, [user]);
+
 
   const scrollNext = (ref) => {
     if (ref.current) {
@@ -126,6 +151,34 @@ export default function HomePage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
+  useEffect(() => {
+    if (!activeSale) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const start = new Date(activeSale.startTime);
+      const end = new Date(activeSale.endTime);
+      
+      const targetDate = now < start ? start : end;
+      const difference = +targetDate - +now;
+
+      if (difference <= 0) return null;
+
+      return {
+        hours: Math.floor(difference / (1000 * 60 * 60)),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+        isUpcoming: now < start
+      };
+    };
+
+    const timer = setInterval(() => {
+      setSaleTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeSale]);
+
   const handleSaveVoucher = async (code) => {
     if (!user) {
       addToast('Vui lòng đăng nhập để lưu mã giảm giá', 'info');
@@ -155,12 +208,14 @@ export default function HomePage() {
             >
               <Link to={banner.linkUrl || '#'}>
                 <img src={banner.imageUrl} alt={banner.title} className="hero-img" />
-                <div className="hero-overlay">
-                  <div className="hero-content">
-                    <h1 className="hero-title" data-text={banner.title}>{banner.title}</h1>
-                    <p className="hero-subtitle">{banner.subtitle}</p>
-                    {banner.linkUrl && <span className="hero-btn">Khám phá ngay</span>}
-                  </div>
+                <div className={`hero-overlay ${!(banner.title || banner.subtitle) ? 'empty' : ''}`}>
+                  {(banner.title || banner.subtitle) && (
+                    <div className="hero-content">
+                      {banner.title && <h1 className="hero-title" data-text={banner.title}>{banner.title}</h1>}
+                      {banner.subtitle && <p className="hero-subtitle">{banner.subtitle}</p>}
+                      {banner.linkUrl && <span className="hero-btn">Khám phá ngay</span>}
+                    </div>
+                  )}
                 </div>
               </Link>
             </div>
@@ -179,6 +234,64 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Flash Sale Section */}
+      {activeSale && saleTimeLeft && (
+        <section className="section-flash-sale">
+          <div className="container">
+            <div className="flash-sale-header">
+              <div className="flash-title-wrapper">
+                <div className="flash-badge">
+                  <Zap size={18} fill="currentColor" />
+                  <span>FLASH SALE</span>
+                </div>
+                <div className="countdown-timer">
+                  <span className="timer-label">{saleTimeLeft.isUpcoming ? 'BẮT ĐẦU SAU' : 'KẾT THÚC SAU'}</span>
+                  <div className="timer-slots">
+                    <span className="slot">{String(saleTimeLeft.hours).padStart(2, '0')}</span>
+                    <span className="sep">:</span>
+                    <span className="slot">{String(saleTimeLeft.minutes).padStart(2, '0')}</span>
+                    <span className="sep">:</span>
+                    <span className="slot">{String(saleTimeLeft.seconds).padStart(2, '0')}</span>
+                  </div>
+                </div>
+              </div>
+              <Link to={`/sale/${activeSale.slug}`} className="view-all-link">
+                Xem tất cả <ChevronRight size={16} />
+              </Link>
+            </div>
+
+            <div className="flash-products-slider" ref={saleProductsRef}>
+              {activeSale.products && activeSale.products.map(p => (
+                <Link key={p.id} to={`/product/${p.id}`} className="flash-product-card">
+                  <div className="flash-img-wrapper">
+                    <img src={p.mainImageUrl} alt={p.name} />
+                    {p.originalPrice > p.price && (
+                      <div className="flash-discount-badge">
+                        -{calculateSalePercentage(p.price, p.originalPrice)}%
+                      </div>
+                    )}
+                  </div>
+                  <div className="flash-info">
+                    <div className="flash-price">{formatPrice(p.price)}</div>
+                    <div className="flash-progress">
+                      <div className="progress-bar-bg">
+                        <div 
+                          className="progress-bar-fill" 
+                          style={{ width: `${Math.min(100, (p.soldCount / (p.flashStock || 100)) * 100)}%` }}
+                        ></div>
+                        <div className="progress-text">
+                          {p.soldCount >= p.flashStock ? 'CHÁY HÀNG' : `ĐÃ BÁN ${p.soldCount}`}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Vouchers Section */}
       <section className="section-vouchers">
@@ -254,7 +367,7 @@ export default function HomePage() {
                   {p.totalStock <= 0 && <span className="product-badge soldout">HẾT HÀNG</span>}
                   {p.totalStock > 0 && p.isOnSale && p.originalPrice > p.price && (
                     <span className="product-badge sale">
-                      -{Math.round((1 - p.price / p.originalPrice) * 100)}%
+                      -{calculateSalePercentage(p.price, p.originalPrice)}%
                     </span>
                   )}
                   <button 
@@ -296,45 +409,56 @@ export default function HomePage() {
         </div>
       </section>
       {/* Feedback Section */}
-      <section className="section-feedback">
-        <div className="container">
-          <div className="feedback-header">
-            <h2 className="section-title">{sectionSettings.FeedbackSection_Title}</h2>
-            <p className="feedback-desc">{sectionSettings.FeedbackSection_Subtitle}</p>
-          </div>
-          
-          <div className="feedback-grid">
-            {[1, 2, 3, 4, 5, 6].map((slot) => {
-              const fb = feedbacks.find(f => f.displayOrder === slot);
-              if (!fb) return (
-                <div key={`slot-${slot}`} className="feedback-item placeholder" data-order={slot}>
-                  <div className="placeholder-content">GHOST_SLOT_{slot}</div>
-                </div>
-              );
-
-              return (
-                <div key={`slot-${slot}`} className="feedback-item" data-order={slot}>
-                  <img src={fb.imageUrl} alt={fb.customerName || 'Feedback'} className="feedback-img" />
-                  <div className="feedback-overlay">
-                    <span className="customer-name">@{fb.customerName || 'GHOST_MEMBER'}</span>
+      {feedbacks.length > 0 && (
+        <section className="section-feedback simplified">
+          <div className="container">
+            <div className="feedback-header">
+              <h2 className="section-title">{sectionSettings.FeedbackSection_Title || 'FEEDBACK FROM GHOSTS'}</h2>
+              {sectionSettings.FeedbackSection_Subtitle && <p className="feedback-desc">{sectionSettings.FeedbackSection_Subtitle}</p>}
+            </div>
+            
+            <div className="feedback-vertical-stack">
+              {feedbacks.slice(0, 3).map((fb) => (
+                <div key={fb.id} className="feedback-item-vertical">
+                  <div className="fb-img-box">
+                    <img src={fb.imageUrl} alt={fb.title || 'Feedback'} />
+                    {(fb.title || fb.subtitle) && (
+                      <div className="fb-overlay-simple">
+                        {fb.title && <h3 className="fb-title-simple">{fb.title}</h3>}
+                        {fb.subtitle && <p className="fb-subtitle-simple">{fb.subtitle}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-          
-          {sectionSettings.FeedbackSection_ShowButton === 'true' && (
-            <div className="feedback-footer">
-              <button 
-                className="btn-industrial" 
-                onClick={() => window.open(sectionSettings.FeedbackSection_ButtonUrl, '_blank')}
-              >
-                {sectionSettings.FeedbackSection_ButtonText}
-              </button>
+              ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
+
+      {/* Global Feedback Action Button (if still needed from settings) */}
+      {sectionSettings.FeedbackSection_ShowButton === 'true' && (
+        <section className="section-feedback-action">
+          <div className="container text-center">
+            <button 
+              className="btn-industrial" 
+              onClick={() => window.open(sectionSettings.FeedbackSection_ButtonUrl, '_blank')}
+            >
+              {sectionSettings.FeedbackSection_ButtonText}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Floating Sale Widget */}
+      {activeSale && (
+        <Link to={`/sale/${activeSale.slug}`} className="floating-sale-widget">
+          <div className="widget-content">
+            <Zap size={24} fill="currentColor" />
+            <span className="widget-text">DEAL HOT</span>
+          </div>
+        </Link>
+      )}
     </div>
   )
 }

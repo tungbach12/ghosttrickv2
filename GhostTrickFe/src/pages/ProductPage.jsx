@@ -4,6 +4,7 @@ import { Heart, ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-reac
 import { getCategories } from '../services/categoryService'
 import { productService } from '../services/productService'
 import ColorTag from '../components/common/ColorTag'
+import { calculateSalePercentage } from '../utils/productUtils'
 
 export default function ProductPage() {
   const { categorySlug } = useParams();
@@ -186,7 +187,9 @@ export default function ProductPage() {
                       {p.totalStock <= 0 ? (
                         <span className="product-badge soldout" style={{background: '#6b7280'}}>HẾT HÀNG</span>
                       ) : p.isOnSale && p.originalPrice > p.price && (
-                        <span className="product-badge sale">SALE</span>
+                        <span className="product-badge sale">
+                          -{calculateSalePercentage(p.price, p.originalPrice)}%
+                        </span>
                       )}
                     </div>
                     <div className="product-info" data-id={p.id}>

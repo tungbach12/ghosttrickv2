@@ -19,7 +19,7 @@ namespace GhostTrick.WebApi.Controllers
             _photoService = photoService;
         }
 
-        // GET: api/Feedbacks
+        // GET: api/Feedbacks (Public - returns flat list)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Feedback>>> GetFeedbacks()
         {
@@ -35,6 +35,8 @@ namespace GhostTrick.WebApi.Controllers
             var results = await _feedbackService.GetAllFeedbacksAdminAsync();
             return Ok(results);
         }
+
+        // --- Feedback Items ---
 
         [HttpPost("upload")]
         [Authorize(Roles = "Admin")]

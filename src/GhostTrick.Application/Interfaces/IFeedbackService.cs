@@ -4,6 +4,7 @@ namespace GhostTrick.Application.Interfaces
 {
     public interface IFeedbackService
     {
+        // Feedback Items
         Task<IEnumerable<Feedback>> GetActiveFeedbacksAsync();
         Task<IEnumerable<Feedback>> GetAllFeedbacksAdminAsync();
         Task<Feedback> CreateFeedbackAsync(Feedback feedback);

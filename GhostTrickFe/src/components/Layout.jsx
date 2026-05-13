@@ -135,7 +135,6 @@ export default function Layout() {
             )}
             <button className="icon-btn mobile-search-btn" onClick={() => setIsSearchOpen(!isSearchOpen)}><Search size={20} /></button>
 
-            <button className="icon-btn"><Heart size={20} /></button>
             <Link to="/cart" className="icon-btn cart-btn">
               <ShoppingBag size={20} />
               <span className="cart-badge">{cartItems.length}</span>
@@ -320,9 +319,6 @@ export default function Layout() {
       </footer>
 
       
-      <button className="floating-chat">
-        <MessageCircle size={28} />
-      </button>
 
 
     </div>

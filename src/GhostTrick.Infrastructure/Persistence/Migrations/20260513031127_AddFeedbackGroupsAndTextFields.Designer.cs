@@ -4,6 +4,7 @@ using GhostTrick.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostTrick.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(GhostTrickContext))]
-    partial class GhostTrickContextModelSnapshot : ModelSnapshot
+    [Migration("20260513031127_AddFeedbackGroupsAndTextFields")]
+    partial class AddFeedbackGroupsAndTextFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,6 +194,9 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<int?>("FeedbackGroupId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -215,7 +221,48 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FeedbackGroupId");
+
                     b.ToTable("Feedbacks");
+                });
+
+            modelBuilder.Entity("GhostTrick.Domain.Entities.FeedbackGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LayoutType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subtitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FeedbackGroups");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.HomeBanner", b =>
@@ -1252,6 +1299,16 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
                     b.Navigation("Variant");
                 });
 
+            modelBuilder.Entity("GhostTrick.Domain.Entities.Feedback", b =>
+                {
+                    b.HasOne("GhostTrick.Domain.Entities.FeedbackGroup", "FeedbackGroup")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("FeedbackGroupId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("FeedbackGroup");
+                });
+
             modelBuilder.Entity("GhostTrick.Domain.Entities.InventoryTransaction", b =>
                 {
                     b.HasOne("GhostTrick.Domain.Entities.ProductVariant", "Variant")
@@ -1543,6 +1600,11 @@ namespace GhostTrick.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("GhostTrick.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("GhostTrick.Domain.Entities.FeedbackGroup", b =>
+                {
+                    b.Navigation("Feedbacks");
                 });
 
             modelBuilder.Entity("GhostTrick.Domain.Entities.Order", b =>

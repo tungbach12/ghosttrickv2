@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { ChevronRight, Heart, SlidersHorizontal } from 'lucide-react';
 import saleService from '../services/saleService';
 import ColorTag from '../components/common/ColorTag';
+import { calculateSalePercentage } from '../utils/productUtils';
 
 export default function SaleEventPage() {
   const { slug } = useParams();
@@ -239,7 +240,7 @@ export default function SaleEventPage() {
                   </button>
                   {p.originalPrice > 0 && p.originalPrice > p.price && (
                     <span className="product-badge sale">
-                      -{Math.round((1 - p.price / p.originalPrice) * 100)}%
+                      -{calculateSalePercentage(p.price, p.originalPrice)}%
                     </span>
                   )}
                 </div>

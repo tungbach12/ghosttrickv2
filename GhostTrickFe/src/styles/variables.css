@@ -14,4 +14,9 @@
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.08);
   --header-height: 70px;
+  
+  /* Sale Colors */
+  --sale-accent: #ff4757;
+  --sale-gradient: linear-gradient(135deg, #ff4d4d 0%, #f92c8b 100%);
+  --sale-bg-soft: rgba(255, 77, 77, 0.05);
 }

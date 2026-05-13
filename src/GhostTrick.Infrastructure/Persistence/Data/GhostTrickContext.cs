@@ -277,6 +277,8 @@ namespace GhostTrick.Infrastructure.Persistence
             builder.Entity<SystemSetting>().HasQueryFilter(s => !s.IsDeleted);
 
             builder.Entity<SizeChart>().HasQueryFilter(s => !s.IsDeleted);
+
+            builder.Entity<Feedback>().HasQueryFilter(f => !f.IsDeleted);
         }
     }
 }
