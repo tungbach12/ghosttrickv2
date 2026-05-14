@@ -19,7 +19,7 @@ const AdminProducts = () => {
   const [outOfStockCount, setOutOfStockCount] = useState(0);
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -289,8 +289,8 @@ const AdminProducts = () => {
 
       <div className="admin-stats-overview">
         <div 
-          className={`stat-card-mini clickable ${(!statusFilter && !stockStatus) ? 'active' : ''}`}
-          onClick={() => { setStatusFilter(''); setStockStatus(''); }}
+          className={`stat-card-mini clickable ${(statusFilter === 'All' && !stockStatus) ? 'active' : ''}`}
+          onClick={() => { setStatusFilter('All'); setStockStatus(''); }}
         >
           <div className="s-label">TỔNG SẢN PHẨM</div>
           <div className="s-value">{totalCount}</div>
@@ -374,7 +374,7 @@ const AdminProducts = () => {
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
-                  <option value="">Tất cả trạng thái</option>
+                  <option value="All">Tất cả trạng thái</option>
                   <option value="Active">Hoạt động</option>
                   <option value="Draft">Bản nháp</option>
                   <option value="Archived">Đã lưu trữ</option>
@@ -419,7 +419,7 @@ const AdminProducts = () => {
             <div className="panel-footer">
               <button className="clear-all-btn" onClick={() => {
                 setCategoryFilter('');
-                setStatusFilter('');
+                setStatusFilter('All');
                 setStockStatus('');
                 setMinPrice('');
                 setMaxPrice('');

@@ -436,19 +436,8 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Global Feedback Action Button (if still needed from settings) */}
-      {sectionSettings.FeedbackSection_ShowButton === 'true' && (
-        <section className="section-feedback-action">
-          <div className="container text-center">
-            <button 
-              className="btn-industrial" 
-              onClick={() => window.open(sectionSettings.FeedbackSection_ButtonUrl, '_blank')}
-            >
-              {sectionSettings.FeedbackSection_ButtonText}
-            </button>
-          </div>
-        </section>
-      )}
+
+
 
       {/* Floating Sale Widget */}
       {activeSale && (

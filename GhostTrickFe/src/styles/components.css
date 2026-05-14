@@ -44,6 +44,9 @@
 .product-info {
   text-align: left;
   padding: 15px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-title {
@@ -58,12 +61,14 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.3;
+  min-height: 2.6em; /* Synchronize height for 2 lines */
 }
 
 .product-price-row {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-top: auto; /* Push to bottom */
   margin-bottom: 10px;
 }
 

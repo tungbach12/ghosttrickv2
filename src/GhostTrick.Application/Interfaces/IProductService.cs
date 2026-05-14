@@ -5,8 +5,8 @@ namespace GhostTrick.Application.Interfaces
     public interface IProductService
     {
         Task<PagedResult<ProductListDto>> GetProductsAsync(string? category, string? sort, bool? onSale, string? q, string? status, decimal? minPrice, decimal? maxPrice, string? stockStatus, int page, int pageSize, bool isAdmin);
-        Task<List<ProductListDto>> GetBestSellersAsync(int top);
-        Task<List<ProductListDto>> GetNewArrivalsAsync(int top);
+        Task<List<ProductListDto>> GetBestSellersAsync(int top, bool isAdmin = false);
+        Task<List<ProductListDto>> GetNewArrivalsAsync(int top, bool isAdmin = false);
         Task<ProductDetailDto> GetProductAsync(int id, bool isAdmin, string? userId = null);
 
         

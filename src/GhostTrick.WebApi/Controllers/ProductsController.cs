@@ -40,14 +40,16 @@ namespace GhostTrick.WebApi.Controllers
         [HttpGet("best-sellers")]
         public async Task<ActionResult<List<ProductListDto>>> GetBestSellers([FromQuery] int top = 8)
         {
-            var result = await _productService.GetBestSellersAsync(top);
+            var isAdmin = User.IsInRole("Admin");
+            var result = await _productService.GetBestSellersAsync(top, isAdmin);
             return Ok(result);
         }
 
         [HttpGet("new-arrivals")]
         public async Task<ActionResult<List<ProductListDto>>> GetNewArrivals([FromQuery] int top = 8)
         {
-            var result = await _productService.GetNewArrivalsAsync(top);
+            var isAdmin = User.IsInRole("Admin");
+            var result = await _productService.GetNewArrivalsAsync(top, isAdmin);
             return Ok(result);
         }
 

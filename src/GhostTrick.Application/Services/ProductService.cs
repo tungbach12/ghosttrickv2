@@ -61,15 +61,19 @@ namespace GhostTrick.Application.Services
                 }
                 else if (!string.IsNullOrEmpty(status))
                 {
-                    if (Enum.TryParse<ProductStatus>(status, true, out var productStatus))
+                    if (status.Equals("All", StringComparison.OrdinalIgnoreCase) && isAdmin)
+                    {
+                        query = query.Where(p => !p.IsDeleted);
+                    }
+                    else if (Enum.TryParse<ProductStatus>(status, true, out var productStatus))
                     {
                         query = query.Where(p => p.Status == productStatus && !p.IsDeleted);
                     }
                 }
                 else 
                 {
-                    // Admin mặc định thấy các sản phẩm chưa xóa (Active, Draft, Archived)
-                    query = query.Where(p => !p.IsDeleted);
+                    // Mặc định chỉ lấy Active cho public view
+                    query = query.Where(p => p.Status == ProductStatus.Active && !p.IsDeleted);
                 }
 
                 if (!string.IsNullOrEmpty(category))
@@ -166,7 +170,7 @@ namespace GhostTrick.Application.Services
             };
         }
 
-        public async Task<List<ProductListDto>> GetBestSellersAsync(int top)
+        public async Task<List<ProductListDto>> GetBestSellersAsync(int top, bool isAdmin = false)
         {
             var products = await _productRepo.GetAsync(q => q
                 .AsNoTracking()
@@ -188,7 +192,7 @@ namespace GhostTrick.Application.Services
             return dtos;
         }
 
-        public async Task<List<ProductListDto>> GetNewArrivalsAsync(int top)
+        public async Task<List<ProductListDto>> GetNewArrivalsAsync(int top, bool isAdmin = false)
         {
             var products = await _productRepo.GetAsync(q => q
                 .AsNoTracking()
@@ -197,7 +201,8 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
                 .Where(p => p.Status == ProductStatus.Active || p.Status == ProductStatus.SoldOut)
-                .OrderByDescending(p => p.CreatedAt)
+                .OrderByDescending(p => p.IsNewArrival)
+                .ThenByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .Take(top)
             );
