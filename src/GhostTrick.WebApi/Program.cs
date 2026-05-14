@@ -119,7 +119,6 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ISizeChartService, SizeChartService>();
 builder.Services.AddScoped<ISystemService, SystemService>();
 builder.Services.AddHostedService<AutoBackupBackgroundService>();
-
 // Register Repositories & UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
