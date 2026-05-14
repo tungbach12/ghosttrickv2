@@ -1226,171 +1226,9 @@
   50% { transform: translateY(-10px); }
 }
 
-@media (max-width: 768px) {
-  .section-header .section-title {
-    font-size: 1.8rem !important;
-    letter-spacing: -1px !important;
-  }
+/* Moved to bottom */
 
-  .section-flash-sale {
-    padding: 30px 0;
-  }
-  
-  .flash-badge {
-    font-size: 0.9rem;
-    padding: 8px 16px;
-  }
-  
-  .countdown-timer {
-    gap: 8px;
-  }
-  
-  .timer-slots .slot {
-    min-width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
-  .flash-product-card {
-    flex: 0 0 180px;
-  }
-  
-  .flash-price {
-    font-size: 1.1rem;
-  }
-  
-  .floating-sale-widget {
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  .widget-text {
-    display: none;
-  }
-}
-
-.view-all-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--sale-accent);
-  font-weight: 700;
-  text-decoration: none;
-  font-size: 0.95rem;
-  transition: all 0.3s;
-}
-
-.view-all-link:hover {
-  gap: 8px;
-  opacity: 0.8;
-}
-
-.flash-products-slider {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 10px 0 30px;
-  scrollbar-width: none;
-  scroll-snap-type: x mandatory;
-}
-
-.flash-products-slider::-webkit-scrollbar {
-  display: none;
-}
-
-.flash-product-card {
-  flex: 0 0 200px;
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  scroll-snap-align: start;
-}
-
-.flash-product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-md);
-}
-
-.flash-img-wrapper {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1/1;
-  overflow: hidden;
-}
-
-.flash-img-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s;
-}
-
-.flash-product-card:hover .flash-img-wrapper img {
-  transform: scale(1.1);
-}
-
-.flash-discount-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: var(--sale-gradient);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-
-.flash-info {
-  padding: 16px;
-}
-
-.flash-price {
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: var(--sale-accent);
-  margin-bottom: 10px;
-}
-
-.flash-progress {
-  width: 100%;
-}
-
-.progress-bar-bg {
-  position: relative;
-  width: 100%;
-  height: 16px;
-  background: #ffe5e7;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--sale-gradient);
-  border-radius: 20px;
-  transition: width 1s ease-out;
-}
-
-.progress-text {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 900;
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  mix-blend-mode: difference;
-}
+/* Removed duplicate global styles to prevent overriding media queries */
 
 /* --- Floating Sale Widget --- */
 .floating-sale-widget {
@@ -1751,3 +1589,96 @@
 }
 
 
+@media (max-width: 768px) {
+  .section-header .section-title {
+    font-size: 1.5rem !important;
+    letter-spacing: -1px !important;
+  }
+
+  .section-flash-sale {
+    padding: 15px 0 !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .flash-sale-header {
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .flash-title-wrapper {
+    gap: 12px !important;
+  }
+
+  .flash-badge {
+    font-size: 0.75rem !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+  }
+  
+  .countdown-timer {
+    gap: 6px !important;
+  }
+
+  .timer-label {
+    font-size: 0.65rem !important;
+  }
+  
+  .timer-slots .slot {
+    min-width: 24px !important;
+    height: 24px !important;
+    font-size: 0.75rem !important;
+    border-radius: 4px !important;
+  }
+
+  .timer-slots .sep {
+    font-size: 0.9rem !important;
+  }
+
+  .view-all-link {
+    font-size: 0.8rem !important;
+  }
+
+  .flash-products-slider {
+    gap: 12px !important;
+    padding: 5px 0 20px !important;
+  }
+
+  .flash-product-card {
+    flex: 0 0 150px !important;
+    border-radius: 12px !important;
+  }
+
+  .flash-discount-badge {
+    top: 8px !important;
+    left: 8px !important;
+    padding: 2px 6px !important;
+    font-size: 0.7rem !important;
+    border-radius: 6px !important;
+  }
+
+  .flash-info {
+    padding: 10px !important;
+  }
+
+  .flash-price {
+    font-size: 0.95rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .progress-bar-bg {
+    height: 12px !important;
+  }
+
+  .progress-text {
+    font-size: 0.55rem !important;
+  }
+  
+  .floating-sale-widget {
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+  
+  .widget-text {
+    display: none !important;
+  }
+}
