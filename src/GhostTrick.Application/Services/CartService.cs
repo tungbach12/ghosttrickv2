@@ -31,33 +31,26 @@ namespace GhostTrick.Application.Services
                 .Where(ci => ci.UserId == userId)
                 .Include(ci => ci.Product)
                 .Include(ci => ci.Variant!).ThenInclude(v => v.Color)
+                .Include(ci => ci.Product!.SaleEventProducts).ThenInclude(sp => sp.SaleEvent) // Pre-load sales
                 .OrderBy(ci => ci.CreatedAt)
             );
 
             var result = new List<CartItemResponseDto>();
-            var productSaleCache = new Dictionary<int, SaleEventProduct?>();
 
             foreach (var ci in cartItems)
             {
-                if (!productSaleCache.ContainsKey(ci.ProductId))
-                {
-                    var saleResults = await _saleRepo.FindAsync(
-                        sp => sp.ProductId == ci.ProductId &&
-                              sp.SaleEvent!.IsActive &&
-                              !sp.SaleEvent.IsDeleted &&
-                              sp.SaleEvent.StartTime <= now &&
-                              sp.SaleEvent.EndTime >= now,
-                        q => q.Include(sp => sp.SaleEvent!)
-                    );
-                    productSaleCache[ci.ProductId] = saleResults.FirstOrDefault();
-                }
-
-                var activeSaleProduct = productSaleCache[ci.ProductId];
+                // Logic check active sale from pre-loaded data instead of extra DB call
+                var activeSaleProduct = ci.Product?.SaleEventProducts?
+                    .Where(sp => sp.SaleEvent != null && sp.SaleEvent.IsActive && !sp.SaleEvent.IsDeleted &&
+                                 sp.SaleEvent.StartTime <= now && sp.SaleEvent.EndTime >= now)
+                    .FirstOrDefault();
                 
                 decimal price = ci.Product!.Price;
-                if (activeSaleProduct != null && activeSaleProduct.FlashStock > 0)
+                bool hasFlashSale = activeSaleProduct != null && activeSaleProduct.FlashStock > 0;
+                
+                if (hasFlashSale)
                 {
-                    price = activeSaleProduct.SalePrice;
+                    price = activeSaleProduct!.SalePrice;
                 }
 
                 result.Add(new CartItemResponseDto
@@ -66,7 +59,7 @@ namespace GhostTrick.Application.Services
                     ProductId = ci.ProductId,
                     Name = ci.Product!.Name,
                     Price = price,
-                    SalePrice = (activeSaleProduct != null && activeSaleProduct.FlashStock > 0) ? activeSaleProduct.SalePrice : null,
+                    SalePrice = hasFlashSale ? activeSaleProduct!.SalePrice : null,
                     RegularPrice = ci.Product.Price,
                     PurchasedInSaleCount = 0,
                     MainImageUrl = ci.Product.MainImageUrl,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useGlobalContext } from '../context/GlobalContext';
 import { orderService } from '../services/orderService';
 import { voucherService } from '../services/voucherService';
@@ -179,7 +179,9 @@ const CheckoutErrorModal = ({ error, onClose, cartItems }) => {
                       <img src={item.mainImageUrl} alt={item.name} />
                       <div className="ei-details">
                         <div className="ei-name">{item.name}</div>
-                        <div className="ei-meta">{item.color} | {item.size}</div>
+                        <div className="ei-meta">
+                          {typeof item.color === 'object' ? item.color.name : (item.color || 'N/A')} | {item.size}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -290,6 +292,11 @@ export default function CheckoutPage() {
   const { cartItems, clearCart, user } = useGlobalContext();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine which items to checkout (Buy Now item OR full cart)
+  const buyNowItem = location.state?.buyNowItem;
+  const checkoutItems = buyNowItem ? [buyNowItem] : cartItems;
 
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -376,7 +383,7 @@ export default function CheckoutPage() {
     return item.price * item.quantity;
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + calculateItemSubtotal(item), 0);
+  const subtotal = checkoutItems.reduce((sum, item) => sum + calculateItemSubtotal(item), 0);
 
   // Auto-revalidate voucher when subtotal changes
   useEffect(() => {
@@ -480,7 +487,7 @@ export default function CheckoutPage() {
       const fullAddress = `${streetAddress}, ${wardName}, ${districtName}, ${provinceName}`;
       
       const orderData = {
-        items: cartItems.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
+        items: checkoutItems.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
         shippingAddress: fullAddress,
         receiverName: fullName,
         phone: phone,
@@ -514,7 +521,7 @@ export default function CheckoutPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
-  if (cartItems.length === 0) {
+  if (checkoutItems.length === 0) {
     return (
       <div className="container" style={{padding: '80px 0', textAlign: 'center'}}>
         <h2>Giỏ hàng của bạn đang trống</h2>
@@ -649,7 +656,7 @@ export default function CheckoutPage() {
             <div className="order-summary-card sticky-summary">
               <h3 className="section-title"><ShoppingBag size={20} /> Đơn hàng của bạn</h3>
               <div className="summary-items">
-                {Object.values(cartItems.reduce((groups, item) => {
+                {Object.values(checkoutItems.reduce((groups, item) => {
                   if (!groups[item.productId]) groups[item.productId] = { ...item, variants: [], groupSubtotal: 0, totalQty: 0 };
                   groups[item.productId].variants.push(item);
                   groups[item.productId].groupSubtotal += calculateItemSubtotal(item);
@@ -665,7 +672,11 @@ export default function CheckoutPage() {
                           <div key={v.variantId} className="item-meta" style={{marginBottom: '4px'}}>
                             <span>Size: <strong>{v.size}</strong></span>
                             <span className="meta-sep">|</span>
-                            <span>Màu: <ColorTag name={typeof v.color === 'object' ? v.color.name : v.color} hex={v.colorHex} size="sm" /></span>
+                             <span>Màu: <ColorTag 
+                               name={typeof v.color === 'object' ? v.color.name : (v.color || 'N/A')} 
+                               hex={typeof v.color === 'object' ? v.color.hexCode : v.colorHex} 
+                               size="sm" 
+                             /></span>
                             <span className="meta-sep">|</span>
                             <span>SL: <strong>{v.quantity}</strong></span>
                           </div>
@@ -728,7 +739,7 @@ export default function CheckoutPage() {
           if (checkoutError?.variantIds) navigate('/cart');
           setCheckoutError(null);
         }}
-        cartItems={cartItems}
+        cartItems={checkoutItems}
       />
 
     </div>

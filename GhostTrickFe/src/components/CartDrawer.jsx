@@ -59,7 +59,11 @@ export default function CartDrawer() {
                   <div className="item-info">
                     <h4 className="item-name">{item.name}</h4>
                     <div className="item-meta">
-                      <ColorTag name={typeof item.color === 'object' ? item.color.name : item.color} hex={item.colorHex} size="sm" />
+                      <ColorTag 
+                        name={typeof item.color === 'object' ? item.color.name : (item.color || 'N/A')} 
+                        hex={typeof item.color === 'object' ? item.color.hexCode : item.colorHex} 
+                        size="sm" 
+                      />
                       <span style={{ margin: '0 8px', color: '#cbd5e1' }}>|</span>
                       <span>Size: {item.size}</span>
                     </div>

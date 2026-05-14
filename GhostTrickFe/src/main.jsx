@@ -9,7 +9,6 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 const GOOGLE_CLIENT_ID = "355373139751-ie4gr5mdsi08fed9bmb7uff7bs6i264g.apps.googleusercontent.com";
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ToastProvider>
         <GlobalProvider>
@@ -17,6 +16,5 @@ createRoot(document.getElementById('root')).render(
         </GlobalProvider>
       </ToastProvider>
     </GoogleOAuthProvider>
-  </StrictMode>,
 )
 

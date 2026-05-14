@@ -69,7 +69,11 @@ export default function CartPage() {
                             <span className="v-label">Size: {item.size}</span>
                             <span className="v-sep">|</span>
                             <span className="v-label">Màu:</span>
-                            <ColorTag name={typeof item.color === 'object' ? item.color.name : item.color} hex={item.colorHex} size="xs" />
+                            <ColorTag 
+                              name={typeof item.color === 'object' ? item.color.name : (item.color || 'N/A')} 
+                              hex={typeof item.color === 'object' ? item.color.hexCode : item.colorHex} 
+                              size="xs" 
+                            />
                           </div>
                           
                           <div className="variant-actions">

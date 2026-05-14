@@ -59,6 +59,18 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [productId]);
 
+  // Handle body scroll lock when modal is open
+  useEffect(() => {
+    if (showSizeChart) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSizeChart]);
+
   // Separate effect for related products to prevent blocking the main content
   useEffect(() => {
     const fetchRelated = async () => {
@@ -111,26 +123,44 @@ export default function ProductDetailPage() {
 
     const variant = product.variants.find(v => v.colorId === selectedColor?.id && v.size === selectedSize);
 
-    if (!variant || variant.stock < quantity || product.totalStock <= 0) {
-      addToast('Sản phẩm đã hết hàng hoặc không đủ số lượng!', 'error');
+    if (!variant || (variant.stock <= 0 && product.totalStock > 0)) {
+       addToast('Size này hiện đã hết hàng!', 'error');
+       return;
+    }
+
+    if (product.totalStock <= 0) {
+      addToast('Sản phẩm đã hết hàng!', 'error');
       return;
     }
 
-    const success = await addToCart({
-      variantId: variant.id,
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      mainImageUrl: product.mainImageUrl,
-      size: selectedSize,
-      color: selectedColor?.name,
-      colorHex: selectedColor?.hexCode,
-      quantity: quantity,
-      stock: variant.stock
-    }, isBuyNow);
-
-    if (success && isBuyNow) {
-      navigate('/checkout');
+    if (isBuyNow) {
+      // Create a standalone item for checkout without adding to cart
+      const buyNowItem = {
+        variantId: variant.id,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        mainImageUrl: product.mainImageUrl,
+        size: selectedSize,
+        color: selectedColor, // Pass full color object
+        quantity: quantity,
+        stock: variant.stock,
+        isBuyNow: true
+      };
+      
+      navigate('/checkout', { state: { buyNowItem } });
+    } else {
+      const success = await addToCart({
+        variantId: variant.id,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        mainImageUrl: product.mainImageUrl,
+        size: selectedSize,
+        color: selectedColor, // Consistent with updated Cart logic
+        quantity: quantity,
+        stock: variant.stock
+      }, false);
     }
   };
 
@@ -539,17 +569,23 @@ export default function ProductDetailPage() {
 
       {/* Size Chart Modal */}
       {showSizeChart && product.sizeChartUrl && (
-        <div className="detail-modal-overlay" onClick={() => setShowSizeChart(false)} style={{ zIndex: 1000 }}>
-          <div className="detail-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', background: 'white' }}>
-            <div className="modal-header-pd" style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontWeight: 900, fontSize: '1.2rem', margin: 0 }}>BẢNG QUY ĐỔI KÍCH CỠ</h3>
-              <button onClick={() => setShowSizeChart(false)} className="action-btn">
-                <X size={20} />
+        <div className="detail-modal-overlay" onClick={() => setShowSizeChart(false)}>
+          <div className="detail-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-pd">
+              <h3>BẢNG QUY ĐỔI KÍCH CỠ</h3>
+              <button onClick={() => setShowSizeChart(false)} className="modal-close-btn">
+                <X size={18} />
               </button>
             </div>
             <div style={{ padding: '24px', textAlign: 'center' }}>
-              <img src={product.sizeChartUrl} alt="Size Chart" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
-              <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>
+              <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <img 
+                  src={product.sizeChartUrl} 
+                  alt="Size Chart" 
+                  style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} 
+                />
+              </div>
+              <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic', fontWeight: 500 }}>
                 * Kích thước thực tế có thể chênh lệch 1-2cm tùy vào chất liệu vải.
               </p>
             </div>
