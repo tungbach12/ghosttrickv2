@@ -16,7 +16,7 @@ export default function Layout() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [categories, setCategories] = useState([])
   const [promotions, setPromotions] = useState([])
-  
+
   const { cartItems, user, logout, setIsCartOpen } = useGlobalContext()
   const navigate = useNavigate()
 
@@ -85,11 +85,20 @@ export default function Layout() {
             <button className="icon-btn mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
               <Menu size={24} />
             </button>
-            <Link to="/" className="logo">Ghosttrick</Link>
+            <Link to="/" className="logo">
+              <video 
+                src="/videos/brand-logo.mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline
+                className="brand-video"
+              />
+            </Link>
           </div>
 
 
-          
+
           {/* Desktop Navigation */}
           <nav className="desktop-nav">
             <ul className="nav-menu">
@@ -113,17 +122,17 @@ export default function Layout() {
                   )}
                 </ul>
               </li>
-              <li><Link to="/sale" className="nav-link" style={{color: 'red'}}>SALE</Link></li>
+              <li><Link to="/sale" className="nav-link" style={{ color: 'red' }}>SALE</Link></li>
               <li><Link to="/about" className="nav-link">GIỚI THIỆU</Link></li>
             </ul>
           </nav>
-          
+
           <div className="header-right">
             {isSearchOpen ? (
               <form onSubmit={handleSearch} className="search-form desktop-only">
-                <input 
-                  type="text" 
-                  placeholder="Tìm kiếm..." 
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -152,7 +161,7 @@ export default function Layout() {
                   )}
                   <span style={{ fontWeight: '600' }}>
                     {user.fullName ? (
-                      user.fullName.split(' ').length > 1 
+                      user.fullName.split(' ').length > 1
                         ? `${user.fullName.split(' ')[0]} ${user.fullName.split(' ').pop()}`
                         : user.fullName
                     ) : (user.name || 'User')}
@@ -182,13 +191,13 @@ export default function Layout() {
         <div className={`mobile-search-bar ${isSearchOpen ? 'active' : ''}`}>
           <div className="container">
             <form onSubmit={handleSearch} className="mobile-search-form">
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm sản phẩm..." 
+              <input
+                type="text"
+                placeholder="Tìm kiếm sản phẩm..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <button type="button" className="icon-btn" onClick={() => setIsSearchOpen(false)}><X size={20}/></button>
+              <button type="button" className="icon-btn" onClick={() => setIsSearchOpen(false)}><X size={20} /></button>
             </form>
           </div>
         </div>
@@ -202,7 +211,7 @@ export default function Layout() {
           </div>
 
 
-          
+
           <div className="nav-menu-mobile">
             <ul>
               <li>
@@ -211,9 +220,9 @@ export default function Layout() {
                   <ul className="mobile-dropdown" style={{ paddingLeft: '20px', listStyle: 'none' }}>
                     {categories.map(cat => (
                       <li key={cat.id}>
-                        <Link 
-                          to={`/product/category/${cat.slug}`} 
-                          className="nav-link" 
+                        <Link
+                          to={`/product/category/${cat.slug}`}
+                          className="nav-link"
                           style={{ fontSize: '0.9rem', padding: '10px 25px', textTransform: 'none', border: 'none' }}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -224,7 +233,7 @@ export default function Layout() {
                   </ul>
                 )}
               </li>
-              <li><Link to="/sale" className="nav-link" style={{color: 'red'}} onClick={() => setIsMobileMenuOpen(false)}>SALE</Link></li>
+              <li><Link to="/sale" className="nav-link" style={{ color: 'red' }} onClick={() => setIsMobileMenuOpen(false)}>SALE</Link></li>
               <li><Link to="/about" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>GIỚI THIỆU</Link></li>
             </ul>
           </div>
@@ -266,13 +275,13 @@ export default function Layout() {
       <footer className="footer">
         <div className="container footer-main">
           <div className="footer-col brand-col">
-            <Link to="/" className="logo">Ghosttrick</Link>
+            <Link to="/" className="logo footer-logo-text">Ghosttrick</Link>
             <ul className="footer-contact">
 
 
-              <li><MapPin size={16}/> 123 Đường Fashion, Quận 1, TP. HCM</li>
-              <li><Mail size={16}/> cskh@ghosttrick.vn</li>
-              <li><Phone size={16}/> 1900 1234</li>
+              <li><MapPin size={16} /> 123 Đường Fashion, Quận 1, TP. HCM</li>
+              <li><Mail size={16} /> cskh@ghosttrick.vn</li>
+              <li><Phone size={16} /> 1900 1234</li>
             </ul>
             <div className="social-icons">
               <div className="social-icon"><Share2 size={18} /></div>
@@ -280,7 +289,7 @@ export default function Layout() {
               <div className="social-icon"><Play size={18} /></div>
             </div>
           </div>
-          
+
           <div className="footer-col">
             <h4>Về Ghosttrick</h4>
             <ul className="footer-links">
@@ -318,7 +327,7 @@ export default function Layout() {
         </div>
       </footer>
 
-      
+
 
 
     </div>

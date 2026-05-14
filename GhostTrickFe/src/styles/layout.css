@@ -76,14 +76,28 @@
 }
 
 .logo {
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: -2px;
-  white-space: nowrap;
-  text-transform: uppercase;
-  font-style: italic;
-  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
+  height: 100%;
+  min-width: 200px;
+  /* Tăng chiều rộng tối thiểu để không bị che ngang */
+  overflow: hidden;
+  padding: 0 10px;
+}
+
+.brand-video {
+  height: 62px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  transform: scale(2.3);
+  /* Phóng to nhẹ video */
+}
+
+.logo:hover .brand-video {
+  transform: scale(1.1);
 }
 
 /* Mobile Adjustments */
@@ -92,7 +106,14 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 1.6rem;
+    height: 100%;
+    min-width: 170px;
+    /* Cho mobile */
+  }
+
+  .header-main .brand-video {
+    height: 48px;
+    transform: scale(2.5);
   }
 }
 
@@ -320,6 +341,7 @@
 
 /* --- Mobile Drawer (Responsive at 860px) --- */
 @media (max-width: 860px) {
+
   .desktop-search-btn,
   .desktop-only,
   .desktop-nav {
@@ -394,12 +416,15 @@
     padding: 20px 0;
     flex: 1;
     overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
   }
 
   .nav-menu-mobile::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
+    /* Chrome/Safari */
   }
 
   .nav-menu-mobile li {
@@ -527,9 +552,13 @@
 }
 
 .footer-col .logo {
-  font-size: 1.5rem;
-  letter-spacing: 2px;
+  height: auto;
   margin-bottom: 20px;
+}
+
+.footer-col .brand-video {
+  height: 55px;
+  transform: scale(1.1);
 }
 
 

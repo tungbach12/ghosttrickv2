@@ -393,7 +393,7 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="pd-extra">
-            <button className="pd-wish"><Heart size={18} /> Thêm vào yêu thích</button>
+
             <button className="pd-share"><Share2 size={18} /> Chia sẻ</button>
           </div>
 
@@ -507,7 +507,7 @@ export default function ProductDetailPage() {
                 <Link to={`/product/${p.id}`} className="product-link-overlay">
                   <div className="product-img-wrapper">
                     <img src={p.mainImageUrl} alt={p.name} className="product-img" />
-                    <button className="wishlist-btn" onClick={e => e.preventDefault()}><Heart size={20} /></button>
+
                   </div>
                   <div className="product-info" data-id={p.id}>
                     <h3 className="product-title">{p.name}</h3>

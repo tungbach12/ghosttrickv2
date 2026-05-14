@@ -175,15 +175,7 @@ export default function ProductPage() {
                   <Link to={`/product/${p.id}`} className="product-link-overlay">
                     <div className="product-img-wrapper">
                       <img src={p.mainImageUrl} alt={p.name} className="product-img" />
-                      <button 
-                        className="wishlist-btn" 
-                        onClick={(e) => { 
-                          e.preventDefault(); 
-                          e.stopPropagation(); 
-                        }}
-                      >
-                        <Heart size={20}/>
-                      </button>
+
                       {p.totalStock <= 0 ? (
                         <span className="product-badge soldout" style={{background: '#6b7280'}}>HẾT HÀNG</span>
                       ) : p.isOnSale && p.originalPrice > p.price && (

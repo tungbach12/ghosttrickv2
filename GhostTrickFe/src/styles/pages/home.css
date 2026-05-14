@@ -8,27 +8,20 @@
 .hero-slider-wrapper {
   position: relative;
   width: 100%;
-  overflow: hidden;
-  /* Clips absolute-positioned inactive slides */
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 100%;
 }
 
 .hero-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
+  flex: 0 0 100%;
   width: 100%;
-  height: 100%;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
+  position: relative;
   z-index: 1;
 }
 
 /* Active slide is relative so it drives the wrapper height */
 .hero-slide.active {
-  position: relative;
-  opacity: 1;
-  visibility: visible;
   z-index: 2;
 }
 

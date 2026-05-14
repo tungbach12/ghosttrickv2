@@ -142,11 +142,7 @@ const AdminAddHomeBanner = () => {
   };
 
     const validate = () => {
-    const newErrors = {};
-    if (!isEdit && !croppedImageFile) newErrors.image = 'Vui lòng chọn ảnh banner';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true; // Cho phép để trống tất cả các trường
   };
 
   const handleSubmit = async (e) => {

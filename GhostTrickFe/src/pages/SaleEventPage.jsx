@@ -229,15 +229,7 @@ export default function SaleEventPage() {
               <Link to={`/product/${p.id}`} className="product-link-overlay">
                 <div className="product-img-wrapper">
                   <img src={p.mainImageUrl} alt={p.name} className="product-img" />
-                  <button
-                    className="wishlist-btn"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <Heart size={20} />
-                  </button>
+
                   {p.originalPrice > 0 && p.originalPrice > p.price && (
                     <span className="product-badge sale">
                       -{calculateSalePercentage(p.price, p.originalPrice)}%

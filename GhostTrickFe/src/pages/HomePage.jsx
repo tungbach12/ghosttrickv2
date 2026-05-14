@@ -110,7 +110,25 @@ export default function HomePage() {
   };
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const bannerIntervalRef = useRef(null);
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) nextSlide();
+    if (isRightSwipe) prevSlide();
+  };
 
   const startBannerTimer = () => {
     stopBannerTimer();
@@ -199,8 +217,18 @@ export default function HomePage() {
   return (
     <div className="home-page">
       {/* Hero Banner */}
-      <section className="hero" onMouseEnter={stopBannerTimer} onMouseLeave={startBannerTimer}>
-        <div className="hero-slider-wrapper">
+      <section 
+        className="hero" 
+        onMouseEnter={stopBannerTimer} 
+        onMouseLeave={startBannerTimer}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div 
+          className="hero-slider-wrapper"
+          style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}
+        >
           {banners.length > 0 && banners.map((banner, index) => (
             <div 
               key={banner.id} 
@@ -370,15 +398,7 @@ export default function HomePage() {
                       -{calculateSalePercentage(p.price, p.originalPrice)}%
                     </span>
                   )}
-                  <button 
-                    className="wishlist-btn" 
-                    onClick={(e) => { 
-                      e.preventDefault(); 
-                      e.stopPropagation(); 
-                    }}
-                  >
-                    <Heart size={20}/>
-                  </button>
+
                 </div>
                 <div className="product-info" data-id={p.id}>
                   <h3 className="product-title">{p.name}</h3>
