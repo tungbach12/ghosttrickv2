@@ -250,30 +250,6 @@ export default function SaleEventPage() {
                     )}
                   </div>
 
-                  {/* Flash Sale Progress Bar */}
-                  {p.flashStock !== undefined && p.flashStock !== null && (
-                    <div className="flash-sale-progress">
-                      <div className="progress-info">
-                        <span>Đã bán {p.soldCount}</span>
-                        <span>Còn {Math.max(0, p.flashStock - p.soldCount)}</span>
-                      </div>
-                      <div className="progress-bar-bg">
-                        {p.flashStock > 0 ? (
-                          <>
-                            <div 
-                              className={`progress-bar-fill ${p.soldCount >= p.flashStock ? 'full' : ''}`} 
-                              style={{ width: `${Math.min(100, (p.soldCount / p.flashStock) * 100)}%` }}
-                            ></div>
-                            <div className="progress-text-overlay">
-                              {p.soldCount >= p.flashStock ? 'CHÁY HÀNG' : `${Math.round((p.soldCount / p.flashStock) * 100)}%`}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="progress-text-overlay">CHÁY HÀNG</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </Link>
             </div>

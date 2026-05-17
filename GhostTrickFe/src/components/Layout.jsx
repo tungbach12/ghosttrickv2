@@ -86,11 +86,11 @@ export default function Layout() {
               <Menu size={24} />
             </button>
             <Link to="/" className="logo">
-              <video 
-                src="/videos/brand-logo.mp4" 
-                autoPlay 
-                loop 
-                muted 
+              <video
+                src="/videos/brand-logo.mp4"
+                autoPlay
+                loop
+                muted
                 playsInline
                 className="brand-video"
               />
@@ -123,7 +123,7 @@ export default function Layout() {
                 </ul>
               </li>
               <li><Link to="/sale" className="nav-link" style={{ color: 'red' }}>SALE</Link></li>
-              <li><Link to="/about" className="nav-link">GIỚI THIỆU</Link></li>
+              <li><Link to="/about" className="nav-link">ABOUT US</Link></li>
             </ul>
           </nav>
 
@@ -206,7 +206,7 @@ export default function Layout() {
         {/* Mobile Navigation Drawer */}
         <div className={`nav-drawer ${isMobileMenuOpen ? 'active' : ''}`}>
           <div className="drawer-header">
-            <Link to="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>Ghosttrick</Link>
+            <Link to="/" className="logo" onClick={() => setIsMobileMenuOpen(false)}>GHOSTTRICK</Link>
             <button className="icon-btn" onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button>
           </div>
 
@@ -218,6 +218,16 @@ export default function Layout() {
                 <Link to="/product" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>SẢN PHẨM</Link>
                 {categories.length > 0 && (
                   <ul className="mobile-dropdown" style={{ paddingLeft: '20px', listStyle: 'none' }}>
+                    <li>
+                      <Link
+                        to="/product"
+                        className="nav-link"
+                        style={{ fontSize: '0.9rem', padding: '10px 25px', textTransform: 'none', border: 'none', fontWeight: 'bold' }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        All
+                      </Link>
+                    </li>
                     {categories.map(cat => (
                       <li key={cat.id}>
                         <Link
@@ -234,7 +244,7 @@ export default function Layout() {
                 )}
               </li>
               <li><Link to="/sale" className="nav-link" style={{ color: 'red' }} onClick={() => setIsMobileMenuOpen(false)}>SALE</Link></li>
-              <li><Link to="/about" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>GIỚI THIỆU</Link></li>
+              <li><Link to="/about" className="nav-link" onClick={() => setIsMobileMenuOpen(false)}>ABOUT US</Link></li>
             </ul>
           </div>
 
@@ -276,45 +286,32 @@ export default function Layout() {
         <div className="container footer-main">
           <div className="footer-col brand-col">
             <Link to="/" className="logo footer-logo-text">Ghosttrick</Link>
+            <p className="footer-brand-desc">
+              Biểu tượng Ghost 👻 đại diện cho tinh thần tự do, bí ẩn và khác biệt. Dành cho những người yêu mến streetwear, hiphop và đơn giản là thích mặc đẹp theo cách riêng.
+            </p>
             <ul className="footer-contact">
-
-
-              <li><MapPin size={16} /> 123 Đường Fashion, Quận 1, TP. HCM</li>
-              <li><Mail size={16} /> cskh@ghosttrick.vn</li>
-              <li><Phone size={16} /> 1900 1234</li>
-            </ul>
-            <div className="social-icons">
-              <div className="social-icon"><Share2 size={18} /></div>
-              <div className="social-icon"><Camera size={18} /></div>
-              <div className="social-icon"><Play size={18} /></div>
-            </div>
-          </div>
-
-          <div className="footer-col">
-            <h4>Về Ghosttrick</h4>
-            <ul className="footer-links">
-              <li><Link to="/about">Giới thiệu</Link></li>
-              <li><a href="#">Tuyển dụng</a></li>
-              <li><a href="#">Hệ thống cửa hàng</a></li>
+              <li><Mail size={16} /> ghosttrickvn@gmail.com</li>
+              <li><Phone size={16} /> 0333452926</li>
             </ul>
           </div>
 
           <div className="footer-col">
-            <h4>Chính sách khách hàng</h4>
+            <h4>Hỗ trợ khách hàng</h4>
             <ul className="footer-links">
-              <li><Link to="/policy/khach-hang-than-thiet">Chính sách khách hàng thân thiết</Link></li>
-              <li><Link to="/policy/doi-tra">Chính sách đổi trả</Link></li>
-              <li><Link to="/policy/bao-mat">Chính sách bảo mật</Link></li>
-              <li><a href="#">Câu hỏi thường gặp</a></li>
+              <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/policy/doi-tra">Chính sách bảo hành & đổi trả</Link></li>
+              <li><Link to="/policy/van-chuyen">Chính sách vận chuyển (Freeship)</Link></li>
+              <li><Link to="/policy/bao-mat">Chính sách bảo mật thông tin</Link></li>
+              <li><Link to="/policy/thanh-toan">Phương thức thanh toán</Link></li>
             </ul>
           </div>
 
           <div className="footer-col">
             <h4>Kết nối với chúng tôi</h4>
             <ul className="footer-links social-list">
-              <li><a href="https://facebook.com/ghosttrick" target="_blank" rel="noreferrer">Facebook</a></li>
-              <li><a href="https://instagram.com/ghosttrick" target="_blank" rel="noreferrer">Instagram</a></li>
-              <li><a href="https://tiktok.com/@ghosttrick" target="_blank" rel="noreferrer">TikTok</a></li>
+              <li><a href="https://www.facebook.com/share/18VvASdCk4/" target="_blank" rel="noreferrer">Facebook</a></li>
+              <li><a href="https://www.instagram.com/ghosttrick.vn?igsh=ZTk5Nzd6b2M1OHY2" target="_blank" rel="noreferrer">Instagram</a></li>
+              <li><a href="https://www.tiktok.com/@ghosttrick.vn?_r=1&_t=ZS-96QvEsfDWHF" target="_blank" rel="noreferrer">TikTok</a></li>
             </ul>
           </div>
 

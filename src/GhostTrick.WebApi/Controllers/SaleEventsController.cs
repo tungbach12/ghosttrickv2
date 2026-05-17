@@ -91,6 +91,21 @@ namespace GhostTrick.WebApi.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id:int}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Activate(int id)
+        {
+            try
+            {
+                await _marketingService.ActivateSaleEventAsync(id);
+                return Ok();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+        }
+
         [HttpPost("{id}/products")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateProducts(int id, [FromBody] List<SaleEventProductInputDto> products)

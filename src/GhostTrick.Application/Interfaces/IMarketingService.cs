@@ -11,6 +11,7 @@ namespace GhostTrick.Application.Interfaces
         Task<SaleEventResponseDto> GetSaleEventByIdAsync(int id);
         Task<SaleEvent> CreateSaleEventAsync(SaleEventDto dto);
         Task<SaleEvent> UpdateSaleEventAsync(int id, SaleEventDto dto);
+        Task ActivateSaleEventAsync(int id);
         Task DeleteSaleEventAsync(int id);
         Task UpdateSaleProductsAsync(int saleEventId, List<SaleEventProductInputDto> products);
 

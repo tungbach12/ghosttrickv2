@@ -503,7 +503,7 @@ namespace GhostTrick.Application.Services
                 Name = p.Name,
                 SKU = p.SKU,
                 Price = price,
-                OriginalPrice = p.OriginalPrice,
+                OriginalPrice = activeSaleProduct != null ? (p.OriginalPrice > 0 ? p.OriginalPrice : p.Price) : p.OriginalPrice,
                 MainImageUrl = p.MainImageUrl,
                 CategorySlug = p.Category?.Slug,
                 Subcategory = p.Subcategory,
@@ -560,6 +560,7 @@ namespace GhostTrick.Application.Services
                 Colors = dto.Colors,
                 Description = product.Description,
                 CategoryName = product.Category?.Name,
+                SizeChartId = dto.SizeChartId,
                 Variants = product.Variants?.Select(v => new VariantDto
                 {
                     Id = v.Id,

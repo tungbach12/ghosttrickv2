@@ -106,7 +106,7 @@ namespace GhostTrick.Application.Services
                     Name = sp.Product.Name,
                     SKU = sp.Product.SKU,
                     Price = sp.SalePrice > 0 ? sp.SalePrice : sp.Product.Price, 
-                    OriginalPrice = sp.Product.Price,
+                    OriginalPrice = sp.Product.OriginalPrice > 0 ? sp.Product.OriginalPrice : sp.Product.Price,
                     MainImageUrl = sp.Product.MainImageUrl,
                     IsOnSale = true,
                     FlashStock = sp.FlashStock,
@@ -186,6 +186,21 @@ namespace GhostTrick.Application.Services
             _saleRepo.Update(sale);
             await _uow.CompleteAsync();
             return sale;
+        }
+
+        public async Task ActivateSaleEventAsync(int id)
+        {
+            var sales = await _saleRepo.FindAsync(s => !s.IsDeleted);
+            var target = sales.FirstOrDefault(s => s.Id == id);
+            if (target == null) throw new KeyNotFoundException("Sale event not found.");
+
+            foreach (var sale in sales)
+            {
+                sale.IsActive = sale.Id == id;
+                _saleRepo.Update(sale);
+            }
+
+            await _uow.CompleteAsync();
         }
 
         public async Task DeleteSaleEventAsync(int id)

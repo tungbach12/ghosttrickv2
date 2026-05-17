@@ -299,28 +299,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {product.flashStock !== null && product.flashStock !== undefined && (
-            <div className="flash-sale-progress" style={{maxWidth: '300px', marginBottom: '24px'}}>
-              <div className="progress-bar-bg" style={{ position: 'relative', height: '16px', background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                <div 
-                  className="progress-bar-fill" 
-                  style={{ 
-                    height: '100%',
-                    background: product.soldCount >= product.flashStock ? '#94a3b8' : 'linear-gradient(90deg, #ef4444, #f97316)',
-                    width: `${Math.min(100, (product.soldCount / product.flashStock) * 100)}%`,
-                    transition: 'width 0.5s ease-in-out'
-                  }}
-                ></div>
-                <div className="progress-text-overlay" style={{
-                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '10px', fontWeight: 800, color: 'black', pointerEvents: 'none'
-                }}>
-                  {product.soldCount >= product.flashStock ? 'CHÁY HÀNG' : `Đã bán ${product.soldCount}`}
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="pd-section">
             <label className="pd-label">Màu sắc: <strong>{selectedColor?.name}</strong></label>
             <div className="pd-colors">

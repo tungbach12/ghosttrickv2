@@ -55,6 +55,7 @@ const AdminAddSale = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]); // Array of { productId, salePrice, flashStock }
+  const [discountPercent, setDiscountPercent] = useState('');
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -176,14 +177,18 @@ const AdminAddSale = () => {
   };
 
   const toggleProductSelection = (product) => {
+    const basePrice = product.originalPrice > 0 ? product.originalPrice : product.price;
+    const percentValue = Number(discountPercent);
+    const hasDiscount = Number.isFinite(percentValue) && percentValue > 0;
     setSelectedProducts(prev => {
       const exists = prev.find(p => p.productId === product.id);
       if (exists) {
         return prev.filter(p => p.productId !== product.id);
       } else {
+        const discountFactor = hasDiscount ? (1 - Math.min(percentValue, 100) / 100) : 0.7;
         return [...prev, {
           productId: product.id,
-          salePrice: Math.floor(product.price * 0.7), // Default 30% off
+          salePrice: Math.floor(basePrice * discountFactor),
           flashStock: 10
         }];
       }
@@ -197,16 +202,39 @@ const AdminAddSale = () => {
   };
 
   const selectAll = () => {
-    const all = allProducts.map(p => ({
-      productId: p.id,
-      salePrice: Math.floor(p.price * 0.7),
-      flashStock: 10
-    }));
+    const percentValue = Number(discountPercent);
+    const hasDiscount = Number.isFinite(percentValue) && percentValue > 0;
+    const discountFactor = hasDiscount ? (1 - Math.min(percentValue, 100) / 100) : 0.7;
+    const all = allProducts.map(p => {
+      const basePrice = p.originalPrice > 0 ? p.originalPrice : p.price;
+      return {
+        productId: p.id,
+        salePrice: Math.floor(basePrice * discountFactor),
+        flashStock: 10
+      };
+    });
     setSelectedProducts(all);
   };
 
   const deselectAll = () => {
     setSelectedProducts([]);
+  };
+
+  const applyDiscountToSelected = () => {
+    const percentValue = Number(discountPercent);
+    if (!Number.isFinite(percentValue) || percentValue <= 0) {
+      addToast('Vui lòng nhập % giảm hợp lệ', 'warning');
+      return;
+    }
+
+    const clampedPercent = Math.min(percentValue, 100);
+    setSelectedProducts(prev => prev.map(sp => {
+      const product = allProducts.find(p => p.id === sp.productId);
+      if (!product) return sp;
+      const basePrice = product.originalPrice > 0 ? product.originalPrice : product.price;
+      const salePrice = Math.floor(basePrice * (1 - clampedPercent / 100));
+      return { ...sp, salePrice };
+    }));
   };
 
   const validate = () => {
@@ -435,6 +463,18 @@ const AdminAddSale = () => {
               <div className="section-header">
                 <h3 className="section-title">Sản phẩm áp dụng</h3>
                 <div className="section-actions">
+                  <div className="discount-control">
+                    <label>Giảm %</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={discountPercent}
+                      onChange={(e) => setDiscountPercent(e.target.value)}
+                      placeholder="VD: 20"
+                    />
+                    <button type="button" onClick={applyDiscountToSelected} className="text-btn">Áp dụng</button>
+                  </div>
                   <button type="button" onClick={selectAll} className="text-btn">Chọn tất cả</button>
                   <button type="button" onClick={deselectAll} className="text-btn">Bỏ chọn</button>
                 </div>
@@ -452,6 +492,7 @@ const AdminAddSale = () => {
                   ) : filteredProducts.length > 0 ? (
                     filteredProducts.map(product => {
                       const isSelected = selectedProducts.some(p => p.productId === product.id);
+                      const basePrice = product.originalPrice > 0 ? product.originalPrice : product.price;
                       return (
                         <div key={product.id} className={`selection-item ${isSelected ? 'selected' : ''}`} onClick={() => toggleProductSelection(product)}>
                           <div className="item-img"><img src={product.mainImageUrl} alt="" /></div>
@@ -461,6 +502,10 @@ const AdminAddSale = () => {
                               <span>SKU: {product.sku}</span>
                               <span>•</span>
                               <span className="price">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}</span>
+                              <span>•</span>
+                              <span className={`original-price ${basePrice > product.price ? 'strike' : ''}`}>
+                                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(basePrice)}
+                              </span>
                             </div>
                           </div>
                           <div className="check-box">{isSelected && <Check size={14} />}</div>
@@ -480,6 +525,7 @@ const AdminAddSale = () => {
                     {selectedProducts.map(sp => {
                       const product = allProducts.find(p => p.id === sp.productId);
                       if (!product) return null;
+                      const basePrice = product.originalPrice > 0 ? product.originalPrice : product.price;
                       return (
                         <div key={sp.productId} className="config-item">
                           <div className="config-product-info">
@@ -490,7 +536,7 @@ const AdminAddSale = () => {
                             <div className="config-field">
                               <label>Giá gốc</label>
                               <div className="original-price-display">
-                                {new Intl.NumberFormat('vi-VN').format(product.price)}
+                                {new Intl.NumberFormat('vi-VN').format(basePrice)}
                               </div>
                             </div>
                             <div className="config-field">
@@ -500,9 +546,9 @@ const AdminAddSale = () => {
                                 value={sp.salePrice} 
                                 onChange={(e) => updateProductConfig(sp.productId, 'salePrice', e.target.value)} 
                               />
-                              {product.price > 0 && sp.salePrice > 0 && (
+                              {basePrice > 0 && sp.salePrice > 0 && (
                                 <div className="discount-badge">
-                                  Giảm {Math.round((1 - sp.salePrice / product.price) * 100)}%
+                                  Giảm {Math.round((1 - sp.salePrice / basePrice) * 100)}%
                                 </div>
                               )}
                             </div>
@@ -543,6 +589,9 @@ const AdminAddSale = () => {
         .section-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 24px; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .text-btn { background: none; border: none; color: #3b82f6; font-weight: 700; font-size: 0.85rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.2s; }
+        .discount-control { display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 10px; margin-right: 8px; }
+        .discount-control label { font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
+        .discount-control input { width: 80px; border: none; background: white; border-radius: 8px; padding: 6px 8px; font-weight: 700; font-size: 0.85rem; outline: none; }
         .gt-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .gt-form-group { display: flex; flex-direction: column; gap: 8px; }
         .gt-form-group.span-2 { grid-column: span 2; }
@@ -588,6 +637,8 @@ const AdminAddSale = () => {
         .selection-item.selected { border-color: #3b82f6; background: #eff6ff; }
         .item-img img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; }
         .item-name { font-weight: 700; color: #1e293b; font-size: 0.9rem; margin-bottom: 4px; }
+        .original-price { font-size: 0.8rem; color: #64748b; }
+        .original-price.strike { text-decoration: line-through; color: #94a3b8; }
         .check-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #e2e8f0; margin-left: auto; display: flex; align-items: center; justify-content: center; }
         .selected .check-box { background: #3b82f6; border-color: #3b82f6; color: white; }
         .selection-stats { margin-top: 16px; padding: 12px 20px; background: #f0f9ff; border-radius: 12px; color: #0369a1; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }

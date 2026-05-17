@@ -52,10 +52,123 @@ export const sortOptions = [
 export const productSizes = ['S', 'M', 'L', 'XL'];
 
 export const policies = [
-  { slug: 'doi-tra', title: 'Chính sách đổi trả', content: 'Ghosttrick hỗ trợ đổi trả sản phẩm trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm đổi trả phải còn nguyên tem mác, chưa qua sử dụng hoặc giặt ủi. Quý khách vui lòng giữ lại hóa đơn mua hàng để đảm bảo quyền lợi đổi trả.' },
-  { slug: 'van-chuyen', title: 'Chính sách vận chuyển', content: 'Ghosttrick giao hàng toàn quốc. Đơn hàng từ 500.000₫ được miễn phí vận chuyển. Thời gian giao hàng: Nội thành HCM 1-2 ngày, các tỉnh khác 3-5 ngày làm việc.' },
-  { slug: 'bao-mat', title: 'Chính sách bảo mật', content: 'Ghosttrick cam kết bảo mật tuyệt đối thông tin cá nhân của khách hàng. Mọi thông tin thu thập chỉ được sử dụng cho mục đích phục vụ đơn hàng và chăm sóc khách hàng.' },
-  { slug: 'thanh-toan', title: 'Chính sách thanh toán', content: 'Ghosttrick hỗ trợ thanh toán COD (thanh toán khi nhận hàng), chuyển khoản ngân hàng, và thanh toán qua ví điện tử (MoMo, ZaloPay, VNPay).' },
+  { slug: 'doi-tra', title: 'Chính sách bảo hành & đổi trả', content: `1. CHÍNH SÁCH BẢO HÀNH:
+
+• GHOST TRICK hỗ trợ bảo hành hình in 1 đổi 1 trong vòng 06 tháng kể từ ngày nhận hàng.
+
+• Chính sách áp dụng đối với các lỗi từ nhà sản xuất như:
+- Hình in bong tróc bất thường
+- Hình in phai màu nghiêm trọng
+- Sản phẩm co rút vượt mức tiêu chuẩn sau quá trình sử dụng đúng hướng dẫn
+
+• Các trường hợp không áp dụng bảo hành:
+- Sử dụng chất tẩy mạnh lên sản phẩm
+- Ủi hoặc sấy ở nhiệt độ cao
+- Giặt chung với các sản phẩm đậm màu gây loang màu
+- Sản phẩm hư hỏng do tác động bên ngoài: côn trùng, vật nuôi, môi trường bảo quản...
+- Sản phẩm hư hỏng do tác động vật lý: ma sát mạnh, cào xước, va chạm...
+
+2. CHÍNH SÁCH ĐỔI TRẢ:
+
+2a. Đổi trả đối với lỗi từ GHOST TRICK
+• Nếu sản phẩm bị lỗi từ nhà sản xuất hoặc giao sai sản phẩm, GHOST TRICK sẽ hỗ trợ đổi mới 100%.
+• Áp dụng cho cả sản phẩm SALE / ƯU ĐÃI.
+• Chỉ hỗ trợ đổi size hoặc màu của cùng sản phẩm, không hỗ trợ đổi sang sản phẩm khác.
+• Thời gian yêu cầu đổi: trong vòng 07 ngày kể từ khi nhận hàng.
+• GHOST TRICK sẽ chi trả toàn bộ chi phí vận chuyển đổi trả.
+
+2b. Đổi trả theo nhu cầu khách hàng (đổi size / màu)
+• Chỉ hỗ trợ đổi size hoặc màu của cùng sản phẩm.
+• Không áp dụng với sản phẩm SALE / ƯU ĐÃI và các sản phẩm cá nhân như đồ lót, vớ (tất)...
+• Thời gian yêu cầu đổi: trong vòng 07 ngày kể từ khi nhận hàng.
+• Chi phí vận chuyển đổi trả sẽ do khách hàng chi trả.
+
+2c. QUY ĐỊNH CHUNG KHI ĐỔI TRẢ
+• GHOST TRICK chỉ hỗ trợ đổi sản phẩm duy nhất 01 lần cho mỗi đơn hàng.
+• Không áp dụng trả hàng hoặc hoàn tiền.
+• Sản phẩm đổi trả phải còn nguyên tag giấy, nhãn vải và hóa đơn / xác nhận mua hàng.
+• Sản phẩm không có dấu hiệu đã qua sử dụng, không bị bẩn, có mùi lạ hoặc hư hỏng do tác động từ người dùng.
+
+👻GHOST TRICK luôn mong muốn mang đến trải nghiệm tốt nhất và những sản phẩm chất lượng nhất cho khách hàng. Cảm ơn quý khách đã tin dùng sản phẩm của GHOST TRICK.` },
+  { slug: 'van-chuyen', title: 'Chính sách vận chuyển', content: `1. CHÍNH SÁCH FREESHIP TOÀN QUỐC:
+
+• GHOST TRICK áp dụng chính sách MIỄN PHÍ VẬN CHUYỂN (FREESHIP) 100% cho mọi đơn hàng trên toàn quốc.
+
+• Hoàn toàn không giới hạn giá trị đơn hàng tối thiểu. Dù bạn mua 1 sản phẩm hay nhiều sản phẩm, phí ship hiển thị lúc thanh toán (checkout) luôn luôn là 0đ.
+
+2. THỜI GIAN GIAO HÀNG TIÊU CHUẨN:
+
+• Đơn hàng nội thành TP. Hồ Chí Minh: 1 - 2 ngày làm việc kể từ ngày xác nhận đơn hàng.
+
+• Đơn hàng tỉnh thành khác: 3 - 5 ngày làm việc tùy theo khu vực địa lý.
+
+• GHOST TRICK hợp tác cùng các đơn vị vận chuyển uy tín và nhanh chóng hàng đầu Việt Nam để đảm bảo sản phẩm đến tay khách hàng nhanh nhất và an toàn nhất.
+
+3. QUY TRÌNH ĐÓNG GÓI & GIAO NHẬN:
+
+• Sản phẩm của GHOST TRICK luôn được đóng gói 2 lớp kèm hộp Carton bảo vệ thương hiệu cao cấp để tránh móp méo, hư hỏng trong quá trình vận chuyển.
+
+• Khách hàng có quyền đồng kiểm (kiểm tra ngoại quan sản phẩm) cùng nhân viên giao hàng trước khi nhận để đảm bảo sản phẩm đúng mẫu mã, kích thước đã đặt.
+
+👻GHOST TRICK cam kết luôn nỗ lực tối đa để mang đến cho bạn trải nghiệm dịch vụ vận chuyển chuyên nghiệp, chu đáo và hoàn toàn miễn phí!` },
+  { slug: 'bao-mat', title: 'Chính sách bảo mật', content: `Cám ơn quý khách đã quan tâm và truy cập vào website. Chúng tôi tôn trọng và cam kết sẽ bảo mật những thông tin mang tính riêng tư của Quý khách.
+
+Chính sách bảo mật sẽ giải thích cách chúng tôi tiếp nhận, sử dụng và (trong trường hợp nào đó) tiết lộ thông tin cá nhân của Quý khách.
+
+Bảo vệ dữ liệu cá nhân và gây dựng được niềm tin cho quý khách là vấn đề rất quan trọng với chúng tôi. Vì vậy, chúng tôi sẽ dùng tên và các thông tin khác liên quan đến quý khách tuân thủ theo nội dung của Chính sách bảo mật. Chúng tôi chỉ thu thập những thông tin cần thiết liên quan đến giao dịch mua bán.
+
+Chúng tôi sẽ giữ thông tin của khách hàng trong thời gian luật pháp quy định hoặc cho mục đích nào đó. Quý khách có thể truy cập vào website và trình duyệt mà không cần phải cung cấp chi tiết cá nhân. Lúc đó, Quý khách đang ẩn danh và chúng tôi không thể biết bạn là ai nếu Quý khách không đăng nhập vào tài khoản của mình.
+
+1. Thu thập thông tin cá nhân
+
+- Chúng tôi thu thập, lưu trữ và xử lý thông tin của bạn cho quá trình mua hàng và cho những thông báo sau này liên quan đến đơn hàng, và để cung cấp dịch vụ, bao gồm một số thông tin cá nhân: danh hiệu, tên, giới tính, ngày sinh, email, địa chỉ, địa chỉ giao hàng, số điện thoại, fax, chi tiết thanh toán, chi tiết thanh toán bằng thẻ hoặc chi tiết tài khoản ngân hàng.
+
+- Chúng tôi sẽ dùng thông tin quý khách đã cung cấp để xử lý đơn đặt hàng, cung cấp các dịch vụ và thông tin yêu cầu thông qua website và theo yêu cầu của bạn.
+
+- Hơn nữa, chúng tôi sẽ sử dụng các thông tin đó để quản lý tài khoản của bạn; xác minh và thực hiện giao dịch trực tuyến, nhận diện khách vào web, nghiên cứu nhân khẩu học, gửi thông tin bao gồm thông tin sản phẩm và dịch vụ. Nếu quý khách không muốn nhận bất cứ thông tin tiếp thị của chúng tôi thì có thể từ chối bất cứ lúc nào.
+
+- Chúng tôi có thể chuyển tên và địa chỉ cho bên thứ ba để họ giao hàng cho bạn (ví dụ cho bên chuyển phát nhanh hoặc nhà cung cấp).
+
+- Chi tiết đơn đặt hàng của bạn được chúng tôi lưu giữ nhưng vì lí do bảo mật nên chúng tôi không công khai trực tiếp được. Tuy nhiên, quý khách có thể tiếp cận thông tin bằng cách đăng nhập tài khoản trên web. Tại đây, quý khách sẽ thấy chi tiết đơn đặt hàng của mình, những sản phẩm đã nhận và những sản phẩm đã gửi và chi tiết email, ngân hàng và bản tin mà bạn đặt theo dõi dài hạn.
+
+- Quý khách cam kết bảo mật dữ liệu cá nhân và không được phép tiết lộ cho bên thứ ba. Chúng tôi không chịu bất kỳ trách nhiệm nào cho việc dùng sai mật khẩu nếu đây không phải lỗi của chúng tôi.
+
+- Chúng tôi có thể dùng thông tin cá nhân của bạn để nghiên cứu thị trường. mọi thông tin chi tiết sẽ được ẩn và chỉ được dùng để thống kê. Quý khách có thể từ chối không tham gia bất cứ lúc nào.
+
+2. Bảo mật
+
+- Chúng tôi có biện pháp thích hợp về kỹ thuật và an ninh để ngăn chặn truy cập trái phép hoặc trái pháp luật hoặc mất mát hoặc tiêu hủy hoặc thiệt hại cho thông tin của bạn.
+
+- Chúng tôi khuyên quý khách không nên đưa thông tin chi tiết về việc thanh toán với bất kỳ ai bằng e-mail, chúng tôi không chịu trách nhiệm về những mất mát quý khách có thể gánh chịu trong việc trao đổi thông tin của quý khách qua internet hoặc email.
+
+- Quý khách tuyệt đối không sử dụng bất kỳ chương trình, công cụ hay hình thức nào khác để can thiệp vào hệ thống hay làm thay đổi cấu trúc dữ liệu. Nghiêm cấm việc phát tán, truyền bá hay cổ vũ cho bất kỳ hoạt động nào nhằm can thiệp, phá hoại hay xâm nhập vào dữ liệu của hệ thống website. Mọi vi phạm sẽ bị tước bỏ mọi quyền lợi cũng như sẽ bị truy tố trước pháp luật nếu cần thiết.
+
+- Mọi thông tin giao dịch sẽ được bảo mật nhưng trong trường hợp cơ quan pháp luật yêu cầu, chúng tôi sẽ buộc phải cung cấp những thông tin này cho các cơ quan pháp luật.
+
+Các điều kiện, điều khoản và nội dung của trang web này được điều chỉnh bởi luật pháp Việt Nam và tòa án Việt Nam có thẩm quyền xem xét.
+
+3. Quyền lợi khách hàng
+
+- Quý khách có quyền yêu cầu truy cập vào dữ liệu cá nhân của mình, có quyền yêu cầu chúng tôi sửa lại những sai sót trong dữ liệu của bạn mà không mất phí. Bất cứ lúc nào bạn cũng có quyền yêu cầu chúng tôi ngưng sử dụng dữ liệu cá nhân của bạn cho mục đích tiếp thị.` },
+  { slug: 'thanh-toan', title: 'Phương thức thanh toán', content: `1. THANH TOÁN KHI NHẬN HÀNG (COD - CASH ON DELIVERY):
+
+• Đây là phương thức thanh toán truyền thống, dễ dàng và cực kỳ an toàn.
+
+• Quý khách thanh toán bằng tiền mặt trực tiếp cho nhân viên giao hàng (shipper) ngay sau khi nhận, kiểm tra sản phẩm thành công.
+
+• Không phát sinh bất kỳ khoản phụ phí nào khác ngoài tổng tiền hàng hiển thị trên hóa đơn (phí vận chuyển luôn luôn là 0đ).
+
+2. CHUYỂN KHOẢN NGÂN HÀNG (BANK TRANSFER VIA QR CODE):
+
+• Phương thức thanh toán hiện đại, nhanh chóng và bảo mật cao thông qua mã QR động được hiển thị trực tiếp sau khi hoàn tất đặt hàng.
+
+• Quý khách chỉ cần mở ứng dụng Mobile Banking của bất kỳ ngân hàng nào, chọn quét mã QR được hiển thị trên màn hình xác nhận đơn hàng để tự động điền đầy đủ số tài khoản, số tiền và nội dung chuyển khoản.
+
+• Ngay sau khi giao dịch thành công, hệ thống sẽ ghi nhận và bộ phận CSKH của GHOST TRICK sẽ duyệt đơn hàng, chuyển trạng thái thanh toán sang "ĐÃ THANH TOÁN" (PAID).
+
+• Mã QR thanh toán của GHOST TRICK được quản lý an toàn và cập nhật trực tiếp bởi Admin thông qua hệ thống quản trị, đảm bảo giao dịch chính xác 100%.
+
+👻GHOST TRICK luôn mong muốn đem đến cho bạn những phương thức giao dịch an toàn, tiện lợi và hiện đại nhất. Cám ơn quý khách đã đồng hành cùng thương hiệu!` },
 ];
 
 

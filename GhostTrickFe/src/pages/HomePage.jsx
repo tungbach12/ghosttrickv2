@@ -302,17 +302,9 @@ export default function HomePage() {
                   </div>
                   <div className="flash-info">
                     <div className="flash-price">{formatPrice(p.price)}</div>
-                    <div className="flash-progress">
-                      <div className="progress-bar-bg">
-                        <div 
-                          className="progress-bar-fill" 
-                          style={{ width: `${Math.min(100, (p.soldCount / (p.flashStock || 100)) * 100)}%` }}
-                        ></div>
-                        <div className="progress-text">
-                          {p.soldCount >= p.flashStock ? 'CHÁY HÀNG' : `ĐÃ BÁN ${p.soldCount}`}
-                        </div>
-                      </div>
-                    </div>
+                    {p.originalPrice > 0 && p.originalPrice > p.price && (
+                      <div className="product-original-price">{formatPrice(p.originalPrice)}</div>
+                    )}
                   </div>
                 </Link>
               ))}

@@ -1632,13 +1632,17 @@
   }
 
   .flash-products-slider {
-    gap: 12px !important;
-    padding: 5px 0 20px !important;
+    gap: 10px !important;
+    padding: 4px 0 16px !important;
   }
 
   .flash-product-card {
-    flex: 0 0 150px !important;
+    flex: 0 0 100px !important;
     border-radius: 12px !important;
+  }
+
+  .flash-img-wrapper {
+    aspect-ratio: 1 / 1 !important;
   }
 
   .flash-discount-badge {
@@ -1650,12 +1654,12 @@
   }
 
   .flash-info {
-    padding: 10px !important;
+    padding: 5px !important;
   }
 
   .flash-price {
-    font-size: 0.95rem !important;
-    margin-bottom: 8px !important;
+    font-size: 0.75rem !important;
+    margin-bottom: 3px !important;
   }
 
   .progress-bar-bg {

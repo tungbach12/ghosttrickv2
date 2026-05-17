@@ -1,38 +1,448 @@
-/* --- Policy Page --- */
-.policy-content {
-  padding: 40px 0 60px;
-  max-width: 800px;
+/* --- Premium Streetwear Policy Page CSS --- */
+
+.policy-page-premium {
+  --policy-bg: #09090b;
+  --policy-text-primary: #f4f4f5;
+  --policy-text-secondary: #a1a1aa;
+  --policy-card-bg: rgba(20, 20, 25, 0.7);
+  --policy-card-border: rgba(255, 255, 255, 0.07);
+  --policy-neon-purple: #a855f7;
+  --policy-neon-blue: #00f2fe;
+  
+  background-color: var(--policy-bg);
+  color: var(--policy-text-primary);
+  font-family: var(--font-main), sans-serif;
+  min-height: 100vh;
+  padding-bottom: 100px;
 }
 
-.policy-body {
-  color: var(--secondary-text);
-  line-height: 1.9;
+/* Breadcrumbs section */
+.policy-breadcrumb-bar {
+  background: rgba(9, 9, 11, 0.6);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.policy-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.policy-breadcrumb a {
+  color: var(--policy-text-secondary);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.policy-breadcrumb a:hover {
+  color: var(--policy-text-primary);
+}
+
+.breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.breadcrumb-current {
+  color: var(--policy-neon-purple);
+  font-weight: 500;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+
+/* Layout Grid */
+.policy-layout-container {
+  padding-top: 60px;
+}
+
+.policy-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 50px;
+  align-items: start;
+}
+
+/* Main Content Area */
+.policy-main-content {
+  background: var(--policy-card-bg);
+  border: 1px solid var(--policy-card-border);
+  border-radius: var(--radius-lg);
+  padding: 50px;
+  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.3);
+}
+
+.policy-header-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 25px;
   margin-bottom: 40px;
 }
 
-.policy-nav {
-  border-top: 1px solid var(--border-color);
-  padding-top: 25px;
+.policy-header-icon {
+  color: var(--policy-neon-purple);
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
 }
 
-.policy-nav h3 {
+.policy-main-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 40%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Parsed Content Styling */
+.policy-body-styled {
+  line-height: 1.8;
   font-size: 1rem;
+}
+
+.policy-paragraph {
+  color: var(--policy-text-secondary);
+  margin-bottom: 24px;
+}
+
+.policy-paragraph strong {
+  color: var(--policy-text-primary);
+}
+
+/* Policy Headings (e.g. 1. Thu thập thông tin) */
+.policy-section-heading {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--policy-text-primary);
+  margin: 45px 0 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.heading-decor {
+  width: 4px;
+  height: 20px;
+  background: var(--policy-neon-purple);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+}
+
+/* Bullet list stylings */
+.policy-list-container {
+  margin-bottom: 24px;
+}
+
+.policy-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.policy-list-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.list-ghost-bullet {
+  font-size: 0.85rem;
+  opacity: 0.55;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  filter: grayscale(100%) brightness(1.2) drop-shadow(0 0 3px rgba(168, 85, 247, 0.2));
+  user-select: none;
+  margin-top: 4px; /* Perfect baseline vertical alignment */
+  flex-shrink: 0;
+}
+
+.policy-list-item:hover .list-ghost-bullet {
+  opacity: 1;
+  transform: scale(1.2) rotate(10deg);
+  filter: grayscale(0%) drop-shadow(0 0 8px rgba(168, 85, 247, 0.8));
+}
+
+.list-item-text {
+  color: var(--policy-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Sidebar Styling */
+.sidebar-card-glass {
+  background: var(--policy-card-bg);
+  border: 1px solid var(--policy-card-border);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.sidebar-icon {
+  color: var(--policy-neon-purple);
+}
+
+.sidebar-header h3 {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--policy-text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.link-dot {
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.sidebar-nav-link:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--policy-text-primary);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nav-link:hover .link-dot {
+  background: var(--policy-text-primary);
+}
+
+/* Active Link style */
+.sidebar-nav-link.active-link {
+  background: rgba(168, 85, 247, 0.1);
+  color: var(--policy-text-primary);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.05);
+}
+
+.sidebar-nav-link.active-link .link-dot {
+  background: var(--policy-neon-purple);
+  box-shadow: 0 0 10px var(--policy-neon-purple);
+}
+
+/* Sidebar Footer / Contact Box */
+.sidebar-footer {
+  margin-top: 35px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 20px;
+  text-align: center;
+}
+
+.sidebar-footer p {
+  font-size: 0.8rem;
+  color: var(--policy-text-secondary);
   margin-bottom: 12px;
 }
 
-.policy-nav ul {
-  list-style: none;
+.sidebar-contact-btn {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #000000;
+  background: #ffffff;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
 }
 
-.policy-nav li {
-  padding: 8px 0;
+.sidebar-contact-btn:hover {
+  background: var(--policy-neon-purple);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
 }
 
-.policy-nav a {
-  color: var(--secondary-text);
-  transition: color 0.2s;
+/* Responsive Styles */
+
+@media (max-width: 991px) {
+  .policy-grid-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .sidebar-card-glass {
+    position: static;
+  }
 }
 
-.policy-nav a:hover {
-  color: var(--accent-color);
+@media (max-width: 768px) {
+  .policy-main-content {
+    padding: 30px 20px;
+  }
+  
+  .policy-main-title {
+    font-size: 1.8rem;
+  }
+  
+  .policy-section-heading {
+    font-size: 1.2rem;
+    margin-top: 35px;
+  }
 }
+
+/* Extra Small / Mobile Viewport Optimization (under 480px) */
+@media (max-width: 480px) {
+  .policy-layout-container {
+    padding-top: 25px;
+  }
+
+  .policy-main-content {
+    padding: 24px 16px;
+    border-radius: var(--radius-md);
+  }
+
+  .policy-header-box {
+    gap: 12px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+  }
+
+  .policy-main-title {
+    font-size: 1.45rem;
+    letter-spacing: -0.5px;
+  }
+
+  .policy-section-heading {
+    font-size: 1.1rem;
+    margin: 30px 0 15px 0;
+    line-height: 1.3;
+  }
+
+  .heading-decor {
+    height: 16px;
+    width: 3px;
+  }
+
+  .policy-paragraph {
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+    line-height: 1.7;
+  }
+
+  .policy-list {
+    gap: 10px;
+    margin: 12px 0 20px 0;
+  }
+
+  .list-ghost-bullet {
+    font-size: 0.75rem;
+    margin-top: 4px;
+  }
+
+  .list-item-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .sidebar-card-glass {
+    padding: 20px 15px;
+  }
+
+  .sidebar-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+  }
+
+  .sidebar-header h3 {
+    font-size: 0.82rem;
+  }
+
+  .sidebar-nav-link {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+  }
+
+  .sidebar-footer {
+    margin-top: 25px;
+    padding-top: 15px;
+  }
+
+  .sidebar-contact-btn {
+    padding: 10px;
+    font-size: 0.72rem;
+  }
+}
+
+/* Breadcrumb Active Color Enhancements for Perfect Contrast */
+.policy-page-premium .breadcrumb-current {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* Dark Footer has-clause Integration */
+main:has(.policy-page-premium) ~ .footer {
+  background-color: #0c0c0e !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #f4f4f5 !important;
+}
+
+main:has(.policy-page-premium) ~ .footer .footer-col h4,
+main:has(.policy-page-premium) ~ .footer .logo.footer-logo-text {
+  color: #ffffff !important;
+}
+
+main:has(.policy-page-premium) ~ .footer .footer-contact li,
+main:has(.policy-page-premium) ~ .footer .footer-links a {
+  color: #a1a1aa !important;
+}
+
+main:has(.policy-page-premium) ~ .footer .footer-links a:hover {
+  color: #a855f7 !important;
+}
+
+main:has(.policy-page-premium) ~ .footer .footer-bottom {
+  background-color: #09090b !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+main:has(.policy-page-premium) ~ .footer .bottom-inner {
+  color: #71717a !important;
+}
+
