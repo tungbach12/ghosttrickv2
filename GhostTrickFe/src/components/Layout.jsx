@@ -311,7 +311,7 @@ export default function Layout() {
             <ul className="footer-links social-list">
               <li><a href="https://www.facebook.com/share/18VvASdCk4/" target="_blank" rel="noreferrer">Facebook</a></li>
               <li><a href="https://www.instagram.com/ghosttrick.vn?igsh=ZTk5Nzd6b2M1OHY2" target="_blank" rel="noreferrer">Instagram</a></li>
-              <li><a href="https://www.tiktok.com/@ghosttrick.vn?_r=1&_t=ZS-96QvEsfDWHF" target="_blank" rel="noreferrer">TikTok</a></li>
+              <li><a href="https://www.tiktok.com/@ghosttrick.vn?_r=1&_t=ZS-96R9HcSmBJC" target="_blank" rel="noreferrer">TikTok</a></li>
             </ul>
           </div>
 

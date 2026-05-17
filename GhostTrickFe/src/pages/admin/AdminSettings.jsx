@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import settingsService from '../../services/settingsService';
 import api from '../../services/api';
-import Cropper from 'react-easy-crop';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { createPortal } from 'react-dom';
 import { Save, Mail, Settings, Shield, Bell, RefreshCw, MessageSquare, Send, Database, AlertCircle, QrCode, Upload, Trash2, Crop, X, Check } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
@@ -14,10 +15,10 @@ const AdminSettings = () => {
   const { addToast } = useToast();
 
   // QR Crop states
+  const qrImageRef = useRef(null);
   const [qrRawImage, setQrRawImage] = useState(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [crop, setCrop] = useState({ unit: '%', x: 10, y: 10, width: 80, height: 80 });
+  const [completedCrop, setCompletedCrop] = useState(null);
   const [showCropper, setShowCropper] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
 
@@ -88,11 +89,6 @@ const AdminSettings = () => {
     });
   };
 
-  // --- QR Crop helpers ---
-  const onCropComplete = useCallback((_, croppedPixels) => {
-    setCroppedAreaPixels(croppedPixels);
-  }, []);
-
   const handleQrFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -101,32 +97,46 @@ const AdminSettings = () => {
     reader.onload = () => {
       setQrRawImage(reader.result);
       setShowCropper(true);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
+      setCrop({ unit: '%', x: 10, y: 10, width: 80, height: 80 });
+      setCompletedCrop(null);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
   };
 
-  const getCroppedImg = async (imageSrc, pixelCrop) => {
-    const image = new Image();
-    image.src = imageSrc;
-    await new Promise(resolve => { image.onload = resolve; });
+  const getCroppedImg = async (image, pixelCrop) => {
+    if (!image || !pixelCrop?.width || !pixelCrop?.height) return null;
     const canvas = document.createElement('canvas');
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = Math.floor(pixelCrop.width * scaleX);
+    canvas.height = Math.floor(pixelCrop.height * scaleY);
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, pixelCrop.width, pixelCrop.height);
+    ctx.drawImage(
+      image,
+      pixelCrop.x * scaleX,
+      pixelCrop.y * scaleY,
+      pixelCrop.width * scaleX,
+      pixelCrop.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
     return new Promise(resolve => {
       canvas.toBlob(blob => resolve(blob), 'image/png', 1);
     });
   };
 
   const handleCropConfirm = async () => {
-    if (!croppedAreaPixels || !qrRawImage) return;
+    if (!completedCrop || !qrRawImage || !qrImageRef.current) return;
     setUploadingQr(true);
     try {
-      const blob = await getCroppedImg(qrRawImage, croppedAreaPixels);
+      const blob = await getCroppedImg(qrImageRef.current, completedCrop);
+      if (!blob) {
+        addToast('Vui lòng chọn vùng cắt hợp lệ', 'warning');
+        return;
+      }
       const formData = new FormData();
       formData.append('file', blob, 'qr-payment.png');
       const uploadRes = await api.post('/photos/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -358,26 +368,33 @@ const AdminSettings = () => {
 
       {/* QR Cropper Modal — rendered via portal to document.body */}
       {showCropper && createPortal(
-        <div className="crop-modal-overlay" onClick={() => { setShowCropper(false); setQrRawImage(null); }}>
-          <div className="crop-modal" onClick={e => e.stopPropagation()}>
+        <div className="crop-modal-overlay">
+          <div className="crop-modal">
             <div className="crop-modal-header">
               <h3><Crop size={20} /> Cắt ảnh QR</h3>
               <button className="crop-close-btn" onClick={() => { setShowCropper(false); setQrRawImage(null); }}><X size={20} /></button>
             </div>
             <div className="crop-container">
-              <Cropper
-                image={qrRawImage}
+              <ReactCrop
                 crop={crop}
-                zoom={zoom}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                style={{ containerStyle: { width: '100%', height: '100%', position: 'relative' } }}
-              />
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(pixelCrop) => setCompletedCrop(pixelCrop)}
+                keepSelection
+                ruleOfThirds
+              >
+                <img
+                  ref={qrImageRef}
+                  src={qrRawImage}
+                  alt="QR crop"
+                  style={{ maxHeight: '100%', maxWidth: '100%', display: 'block' }}
+                  onLoad={() => {
+                    setCompletedCrop(null);
+                  }}
+                />
+              </ReactCrop>
             </div>
             <div className="crop-controls">
-              <label className="zoom-label">Zoom</label>
-              <input type="range" min="1" max="3" step="0.1" value={zoom} onChange={e => setZoom(Number(e.target.value))} className="zoom-slider" />
+              <span className="crop-hint">Keo khung de thay doi ty le va kich thuoc, keo anh de can chinh.</span>
             </div>
             <div className="crop-actions">
               <button className="crop-cancel" onClick={() => { setShowCropper(false); setQrRawImage(null); }}>Hủy</button>
@@ -393,10 +410,12 @@ const AdminSettings = () => {
             .crop-modal-header h3 { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; margin: 0; color: #0f172a; }
             .crop-close-btn { background: #f8fafc; border: none; cursor: pointer; color: #64748b; padding: 8px; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
             .crop-close-btn:hover { color: #0f172a; background: #f1f5f9; }
-            .crop-container { position: relative; width: 100%; height: 400px; background: #0f172a; flex-shrink: 0; }
-            .crop-controls { padding: 16px 24px; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-            .zoom-label { font-size: 0.8rem; font-weight: 700; color: #64748b; white-space: nowrap; }
-            .zoom-slider { flex: 1; accent-color: #0f172a; height: 4px; }
+            .crop-container { position: relative; width: 100%; height: min(60vh, 520px); background: #0f172a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+            .ReactCrop { width: 100%; height: 100%; }
+            .ReactCrop__child-wrapper { width: 100%; height: 100%; }
+            .ReactCrop__image { width: 100%; height: 100%; object-fit: contain; }
+            .crop-controls { padding: 12px 24px; display: flex; align-items: center; gap: 12px; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+            .crop-hint { font-size: 0.8rem; font-weight: 600; color: #64748b; }
             .crop-actions { padding: 16px 24px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
             .crop-cancel { padding: 12px 24px; background: #f1f5f9; color: #475569; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
             .crop-cancel:hover { background: #e2e8f0; }
@@ -407,8 +426,9 @@ const AdminSettings = () => {
             @keyframes cropSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
             @media (max-width: 640px) {
               .crop-modal { max-width: 100%; border-radius: 16px; margin: 0 8px; }
-              .crop-container { height: 280px; }
+              .crop-container { height: 60vh; }
               .crop-modal-header { padding: 16px 20px; }
+              .crop-controls { flex-direction: column; align-items: stretch; }
               .crop-actions { padding: 14px 20px; flex-direction: column; }
               .crop-cancel, .crop-confirm { width: 100%; justify-content: center; }
             }

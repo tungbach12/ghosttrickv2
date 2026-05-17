@@ -106,7 +106,7 @@ export const policies = [
 
 3. QUY TRÌNH ĐÓNG GÓI & GIAO NHẬN:
 
-• Sản phẩm của GHOST TRICK luôn được đóng gói 2 lớp kèm hộp Carton bảo vệ thương hiệu cao cấp để tránh móp méo, hư hỏng trong quá trình vận chuyển.
+• Sản phẩm của GHOST TRICK luôn được đóng gói bằng túi niêm phong có in logo thương hiệu.
 
 • Khách hàng có quyền đồng kiểm (kiểm tra ngoại quan sản phẩm) cùng nhân viên giao hàng trước khi nhận để đảm bảo sản phẩm đúng mẫu mã, kích thước đã đặt.
 
