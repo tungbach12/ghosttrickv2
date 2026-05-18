@@ -58,7 +58,10 @@
   border-bottom: 3px solid #000;
 }
 
-.mobile-only,
+.mobile-only {
+  display: none !important;
+}
+
 .mobile-search-bar,
 .nav-drawer,
 .mobile-overlay {
@@ -363,9 +366,12 @@
   }
 
   .mobile-menu-btn,
-  .mobile-search-btn,
-  .mobile-only {
+  .mobile-search-btn {
     display: flex;
+  }
+
+  .mobile-only {
+    display: flex !important;
   }
 
   .nav-drawer,
@@ -481,8 +487,8 @@
   }
 
   .mobile-search-bar {
-    position: fixed;
-    top: var(--header-height);
+    position: absolute;
+    top: 100%;
     left: 0;
     width: 100%;
     background: white;

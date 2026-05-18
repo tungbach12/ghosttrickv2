@@ -9,9 +9,9 @@ export default function PolicyPage() {
 
   if (!policy) {
     return (
-      <div className="container" style={{padding: '100px 0', textAlign: 'center', backgroundColor: '#09090b', color: '#fff', minHeight: '60vh'}}>
+      <div className="container" style={{padding: '100px 0', textAlign: 'center', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '60vh'}}>
         <h2 style={{fontSize: '2rem', fontWeight: 900}}>TRANG KHÔNG TỒN TẠI</h2>
-        <Link to="/" className="btn-outline" style={{marginTop: '30px', display: 'inline-block', color: '#fff', borderColor: '#fff'}}>Về trang chủ</Link>
+        <Link to="/" className="btn-outline" style={{marginTop: '30px', display: 'inline-block'}}>Về trang chủ</Link>
       </div>
     );
   }

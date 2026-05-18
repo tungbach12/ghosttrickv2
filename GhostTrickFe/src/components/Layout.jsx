@@ -144,6 +144,22 @@ export default function Layout() {
             )}
             <button className="icon-btn mobile-search-btn" onClick={() => setIsSearchOpen(!isSearchOpen)}><Search size={20} /></button>
 
+            {user ? (
+              <Link to="/account" className="icon-btn mobile-only" title="Tài khoản">
+                {user.avatarUrl ? (
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', overflow: 'hidden', border: '1.5px solid #000' }}>
+                    <img src={user.avatarUrl} alt={user.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ) : (
+                  <User size={20} />
+                )}
+              </Link>
+            ) : (
+              <Link to="/sign-in" className="icon-btn mobile-only" title="Đăng nhập">
+                <User size={20} />
+              </Link>
+            )}
+
             <Link to="/cart" className="icon-btn cart-btn">
               <ShoppingBag size={20} />
               <span className="cart-badge">{cartItems.length}</span>

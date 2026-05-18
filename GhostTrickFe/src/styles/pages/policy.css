@@ -1,26 +1,27 @@
-/* --- Premium Streetwear Policy Page CSS --- */
+/* --- Premium Streetwear Policy Page CSS (Light/White Redesign) --- */
 
 .policy-page-premium {
-  --policy-bg: #09090b;
-  --policy-text-primary: #f4f4f5;
-  --policy-text-secondary: #a1a1aa;
-  --policy-card-bg: rgba(20, 20, 25, 0.7);
-  --policy-card-border: rgba(255, 255, 255, 0.07);
-  --policy-neon-purple: #a855f7;
-  --policy-neon-blue: #00f2fe;
+  --policy-bg: #f8fafc;
+  --policy-text-primary: #0f172a;
+  --policy-text-secondary: #475569;
+  --policy-card-bg: #ffffff;
+  --policy-card-border: #e2e8f0;
+  --policy-neon-purple: #7c3aed;
+  --policy-neon-blue: #0ea5e9;
   
   background-color: var(--policy-bg);
   color: var(--policy-text-primary);
   font-family: var(--font-main), sans-serif;
   min-height: 100vh;
   padding-bottom: 100px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Breadcrumbs section */
 .policy-breadcrumb-bar {
-  background: rgba(9, 9, 11, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   padding: 15px 0;
   position: relative;
   z-index: 10;
@@ -44,13 +45,12 @@
 }
 
 .breadcrumb-separator {
-  color: rgba(255, 255, 255, 0.2);
+  color: rgba(0, 0, 0, 0.25);
 }
 
 .breadcrumb-current {
   color: var(--policy-neon-purple);
-  font-weight: 500;
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+  font-weight: 600;
 }
 
 /* Layout Grid */
@@ -71,21 +71,21 @@
   border: 1px solid var(--policy-card-border);
   border-radius: var(--radius-lg);
   padding: 50px;
-  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04);
 }
 
 .policy-header-box {
   display: flex;
   align-items: center;
   gap: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--policy-card-border);
   padding-bottom: 25px;
   margin-bottom: 40px;
 }
 
 .policy-header-icon {
   color: var(--policy-neon-purple);
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+  filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.15));
 }
 
 .policy-main-title {
@@ -94,7 +94,7 @@
   letter-spacing: -1px;
   text-transform: uppercase;
   margin: 0;
-  background: linear-gradient(135deg, #ffffff 40%, #a855f7 100%);
+  background: linear-gradient(135deg, #0f172a 40%, var(--policy-neon-purple) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -133,7 +133,7 @@
   background: var(--policy-neon-purple);
   border-radius: var(--radius-sm);
   display: inline-block;
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.7);
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
 }
 
 /* Bullet list stylings */
@@ -160,7 +160,7 @@
   font-size: 0.85rem;
   opacity: 0.55;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  filter: grayscale(100%) brightness(1.2) drop-shadow(0 0 3px rgba(168, 85, 247, 0.2));
+  filter: grayscale(100%) brightness(0.6) drop-shadow(0 1px 2px rgba(124, 58, 237, 0.1));
   user-select: none;
   margin-top: 4px; /* Perfect baseline vertical alignment */
   flex-shrink: 0;
@@ -169,7 +169,7 @@
 .policy-list-item:hover .list-ghost-bullet {
   opacity: 1;
   transform: scale(1.2) rotate(10deg);
-  filter: grayscale(0%) drop-shadow(0 0 8px rgba(168, 85, 247, 0.8));
+  filter: grayscale(0%) drop-shadow(0 4px 8px rgba(124, 58, 237, 0.4));
 }
 
 .list-item-text {
@@ -184,7 +184,7 @@
   border: 1px solid var(--policy-card-border);
   border-radius: var(--radius-lg);
   padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
   position: sticky;
   top: 100px;
 }
@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--policy-card-border);
   padding-bottom: 15px;
   margin-bottom: 20px;
 }
@@ -230,21 +230,21 @@
   padding: 12px 16px;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .link-dot {
   width: 6px;
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 50%;
   transition: all 0.3s ease;
 }
 
 .sidebar-nav-link:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.02);
   color: var(--policy-text-primary);
-  border-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 0, 0, 0.04);
 }
 
 .sidebar-nav-link:hover .link-dot {
@@ -253,21 +253,21 @@
 
 /* Active Link style */
 .sidebar-nav-link.active-link {
-  background: rgba(168, 85, 247, 0.1);
-  color: var(--policy-text-primary);
-  border-color: rgba(168, 85, 247, 0.3);
-  box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.05);
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--policy-neon-purple);
+  border-color: rgba(124, 58, 237, 0.2);
+  font-weight: 600;
 }
 
 .sidebar-nav-link.active-link .link-dot {
   background: var(--policy-neon-purple);
-  box-shadow: 0 0 10px var(--policy-neon-purple);
+  box-shadow: 0 0 6px var(--policy-neon-purple);
 }
 
 /* Sidebar Footer / Contact Box */
 .sidebar-footer {
   margin-top: 35px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--policy-card-border);
   padding-top: 20px;
   text-align: center;
 }
@@ -282,20 +282,20 @@
   display: block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #000000;
-  background: #ffffff;
+  color: #ffffff;
+  background: #0f172a;
   border-radius: var(--radius-sm);
   padding: 12px;
   text-decoration: none;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
 }
 
 .sidebar-contact-btn:hover {
   background: var(--policy-neon-purple);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
 }
 
 /* Responsive Styles */
@@ -411,38 +411,7 @@
 
 /* Breadcrumb Active Color Enhancements for Perfect Contrast */
 .policy-page-premium .breadcrumb-current {
-  color: #ffffff !important;
+  color: var(--policy-neon-purple) !important;
   font-weight: 600 !important;
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5) !important;
+  text-shadow: none !important;
 }
-
-/* Dark Footer has-clause Integration */
-main:has(.policy-page-premium) ~ .footer {
-  background-color: #0c0c0e !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-  color: #f4f4f5 !important;
-}
-
-main:has(.policy-page-premium) ~ .footer .footer-col h4,
-main:has(.policy-page-premium) ~ .footer .logo.footer-logo-text {
-  color: #ffffff !important;
-}
-
-main:has(.policy-page-premium) ~ .footer .footer-contact li,
-main:has(.policy-page-premium) ~ .footer .footer-links a {
-  color: #a1a1aa !important;
-}
-
-main:has(.policy-page-premium) ~ .footer .footer-links a:hover {
-  color: #a855f7 !important;
-}
-
-main:has(.policy-page-premium) ~ .footer .footer-bottom {
-  background-color: #09090b !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-}
-
-main:has(.policy-page-premium) ~ .footer .bottom-inner {
-  color: #71717a !important;
-}
-

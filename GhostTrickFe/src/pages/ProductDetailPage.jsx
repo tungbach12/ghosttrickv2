@@ -59,6 +59,25 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [productId]);
 
+  // Automatically pre-select first size (in-stock preferred) when product or color changes
+  useEffect(() => {
+    if (product && selectedColor) {
+      const sizes = product.variants
+        ? [...new Set(product.variants.filter(v => v.colorId === selectedColor.id).map(v => v.size))]
+        : [];
+      
+      if (sizes.length > 0) {
+        const firstInStockSize = sizes.find(s => {
+          const v = product.variants.find(varItem => varItem.colorId === selectedColor.id && varItem.size === s);
+          return v && v.stock > 0;
+        });
+        setSelectedSize(firstInStockSize || sizes[0]);
+      } else {
+        setSelectedSize(null);
+      }
+    }
+  }, [product, selectedColor]);
+
   // Handle body scroll lock when modal is open
   useEffect(() => {
     if (showSizeChart) {
