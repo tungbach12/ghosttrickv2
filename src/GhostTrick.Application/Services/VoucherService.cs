@@ -123,9 +123,13 @@ namespace GhostTrick.Application.Services
             foreach (var uv in userVouchers)
             {
                 var usageResults = await _usageRepo.FindAsync(vu => vu.VoucherId == uv.VoucherId && vu.UserId == userId);
+                var userUsageCount = usageResults.Count;
+                var limitPerUser = uv.Voucher!.LimitPerUser;
+                var isUsed = limitPerUser > 0 && userUsageCount >= limitPerUser;
+
                 walletItems.Add(new
                 {
-                    uv.Voucher!.Id,
+                    uv.Voucher.Id,
                     uv.Voucher.Code,
                     uv.Voucher.Description,
                     uv.Voucher.Category,
@@ -136,7 +140,9 @@ namespace GhostTrick.Application.Services
                     uv.Voucher.EndDate,
                     UsedCount = uv.Voucher.Usages?.Count ?? 0,
                     RemainingCount = uv.Voucher.UsageLimit > 0 ? (uv.Voucher.UsageLimit - (uv.Voucher.Usages?.Count ?? 0)) : (int?)null,
-                    IsUsed = usageResults.Any(),
+                    IsUsed = isUsed,
+                    LimitPerUser = limitPerUser,
+                    UserUsedCount = userUsageCount,
                     uv.SavedAt
                 });
             }

@@ -550,6 +550,11 @@ export default function AccountPage() {
                                   <span className="v-card-code">{v.code}</span>
                                   <div className="v-card-desc">{v.description}</div>
                                   <div className="v-card-min">Đơn tối thiểu {formatPrice(v.minOrderAmount)}</div>
+                                  {v.limitPerUser > 1 && (
+                                    <div className="v-card-usage" style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', fontWeight: '800', textTransform: 'uppercase' }}>
+                                      Đã dùng: {v.userUsedCount ?? 0}/{v.limitPerUser} lần
+                                    </div>
+                                  )}
                                   <div className="v-card-validity">
                                     HSD: {new Date(v.startDate).toLocaleDateString('vi-VN')} - {v.endDate ? new Date(v.endDate).toLocaleDateString('vi-VN') : 'Không giới hạn'}
                                   </div>

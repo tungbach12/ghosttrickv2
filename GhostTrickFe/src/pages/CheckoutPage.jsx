@@ -20,11 +20,23 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
         try {
           let available = [];
           if (user) {
-            const wallet = await voucherService.getMyWallet();
-            available = wallet.map(w => ({ ...w, isSaved: true }));
+            const [wallet, publics] = await Promise.all([
+              voucherService.getMyWallet(),
+              voucherService.getPublicVouchers()
+            ]);
+            
+            // Map wallet vouchers with isSaved: true
+            const savedVouchers = wallet.map(w => ({ ...w, isSaved: true }));
+            
+            // Find public vouchers that are not saved in wallet
+            const unsavedPublics = publics
+              .filter(p => !wallet.some(w => w.code === p.code))
+              .map(p => ({ ...p, isSaved: false, isUsed: false }));
+              
+            available = [...savedVouchers, ...unsavedPublics];
           } else {
             const publicVouchers = await voucherService.getPublicVouchers();
-            available = publicVouchers.map(v => ({ ...v, isSaved: false }));
+            available = publicVouchers.map(v => ({ ...v, isSaved: false, isUsed: false }));
           }
           setVouchers(available);
         } catch (error) {
@@ -85,9 +97,31 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
                   return (
                     <div key={v.code} className={`voucher-item-brutal ${(!isApplicable && !isSelected) ? 'disabled' : ''} ${isSelected ? 'selected' : ''} ${isAlreadyUsed || isExhausted ? 'used' : ''}`}>
                       <div className="v-mid">
-                        <div className="v-code">{v.code}</div>
+                        <div className="v-code-row" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="v-code">{v.code}</span>
+                          {user && (
+                            <span className={`v-save-badge ${v.isSaved ? 'saved' : 'unsaved'}`} style={{
+                              fontSize: '0.65rem',
+                              fontWeight: '900',
+                              padding: '2px 8px',
+                              border: '1px solid',
+                              borderColor: v.isSaved ? '#10b981' : '#3b82f6',
+                              color: v.isSaved ? '#10b981' : '#3b82f6',
+                              background: v.isSaved ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              {v.isSaved ? 'Đã lưu' : 'Chưa lưu'}
+                            </span>
+                          )}
+                        </div>
                         <div className="v-desc">{v.description}</div>
                         <div className="v-condition">Đơn tối thiểu {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v.minOrderAmount)}</div>
+                        {v.limitPerUser > 1 && (
+                          <div className="v-user-usage" style={{ fontSize: '0.7rem', color: '#a1a1aa', fontWeight: '800', marginTop: '4px', textTransform: 'uppercase' }}>
+                            Đã sử dụng: {v.userUsedCount ?? 0}/{v.limitPerUser} lần
+                          </div>
+                        )}
                         
                         {!isApplicable && !isAlreadyUsed && !isExhausted && <div className="v-error">Chưa đủ điều kiện đơn hàng</div>}
                         {isAlreadyUsed && <div className="v-error" style={{color: '#94a3b8', fontSize: '0.75rem'}}>BẠN ĐÃ SỬ DỤNG MÃ NÀY</div>}

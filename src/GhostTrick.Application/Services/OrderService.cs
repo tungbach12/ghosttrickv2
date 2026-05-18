@@ -2,6 +2,7 @@ using GhostTrick.Application.DTOs;
 using GhostTrick.Application.Interfaces;
 using GhostTrick.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace GhostTrick.Application.Services
 {
@@ -19,6 +20,7 @@ namespace GhostTrick.Application.Services
         private readonly IUnitOfWork _uow;
         private readonly IStockService _stock;
         private readonly IEmailService _email;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public OrderService(
             IGenericRepository<Order> orderRepo,
@@ -32,7 +34,8 @@ namespace GhostTrick.Application.Services
             IGenericRepository<SystemSetting> settingsRepo,
             IUnitOfWork uow,
             IStockService stock,
-            IEmailService email)
+            IEmailService email,
+            UserManager<ApplicationUser> userManager)
         {
             _orderRepo = orderRepo;
             _variantRepo = variantRepo;
@@ -46,6 +49,7 @@ namespace GhostTrick.Application.Services
             _uow = uow;
             _stock = stock;
             _email = email;
+            _userManager = userManager;
         }
 
         public async Task<PagedResult<OrderResponseDto>> GetMyOrdersAsync(string userId, int page, int pageSize)
@@ -264,25 +268,55 @@ namespace GhostTrick.Application.Services
 
                 try
                 {
+                    // 1. Fetch customer's email address
+                    var user = await _userManager.FindByIdAsync(userId);
+                    var customerEmail = user?.Email;
+
+                    // 2. Fetch the notification setting email
                     var settings = await _settingsRepo.FindAsync(s => s.Key == "OrderNotificationEmail");
                     var notificationEmailSetting = settings.FirstOrDefault();
-                    
-                    if (notificationEmailSetting != null && !string.IsNullOrEmpty(notificationEmailSetting.Value))
+
+                    var subject = $"[Ghosttrick] Xác nhận đơn hàng #{order.Id}";
+                    var body = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;'>
+                            <h2 style='color: #000000; font-size: 20px; font-weight: 800; border-bottom: 2px solid #000000; padding-bottom: 15px; margin-top: 0;'>XÁC NHẬN ĐƠN HÀNG #{order.Id}</h2>
+                            <p style='color: #475569; font-size: 14px;'>Cảm ơn bạn đã mua sắm tại <strong>Ghosttrick</strong>. Đơn hàng của bạn đã được tiếp nhận và đang được xử lý.</p>
+                            
+                            <h3 style='color: #0f172a; font-size: 16px; margin-top: 25px;'>THÔNG TIN ĐƠN HÀNG</h3>
+                            <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;'>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #64748b; width: 180px;'><strong>Khách nhận hàng:</strong></td>
+                                    <td style='padding: 8px 0; color: #0f172a;'>{order.ReceiverName}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #64748b;'><strong>Số điện thoại:</strong></td>
+                                    <td style='padding: 8px 0; color: #0f172a;'>{order.Phone}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #64748b;'><strong>Địa chỉ giao hàng:</strong></td>
+                                    <td style='padding: 8px 0; color: #0f172a;'>{order.ShippingAddress}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #64748b;'><strong>Phương thức thanh toán:</strong></td>
+                                    <td style='padding: 8px 0; color: #0f172a;'>{order.PaymentMethod}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #64748b;'><strong>Tổng thanh toán:</strong></td>
+                                    <td style='padding: 8px 0; color: #0f172a; font-size: 16px; font-weight: bold;'>{order.TotalAmount:N0}₫</td>
+                                </tr>
+                            </table>
+                            
+                            <hr style='border: none; border-top: 1px dashed #cbd5e1; margin: 25px 0;' />
+                            <p style='color: #94a3b8; font-size: 12px; text-align: center; margin-bottom: 0;'>Đội ngũ Ghosttrick - Est. 2024</p>
+                        </div>";
+
+                    if (!string.IsNullOrEmpty(customerEmail))
                     {
-                        var subject = $"[Ghosttrick] Đơn hàng mới #{order.Id}";
-                        var body = $@"
-                            <div style='font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;'>
-                                <h2 style='color: #0f172a;'>Bạn có đơn hàng mới!</h2>
-                                <p>Đơn hàng <strong>#{order.Id}</strong> vừa được đặt thành công.</p>
-                                <hr style='border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;' />
-                                <p><strong>Khách hàng:</strong> {order.ReceiverName}</p>
-                                <p><strong>Số điện thoại:</strong> {order.Phone}</p>
-                                <p><strong>Tổng cộng:</strong> {order.TotalAmount:N0}₫</p>
-                                <p><strong>Phương thức thanh toán:</strong> {order.PaymentMethod}</p>
-                                <div style='margin-top: 30px;'>
-                                    <a href='http://localhost:5173/admin/orders' style='background: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;'>Xem chi tiết đơn hàng</a>
-                                </div>
-                            </div>";
+                        await _email.SendEmailAsync(customerEmail, subject, body);
+                    }
+
+                    if (notificationEmailSetting != null && !string.IsNullOrEmpty(notificationEmailSetting.Value) && notificationEmailSetting.Value != customerEmail)
+                    {
                         await _email.SendEmailAsync(notificationEmailSetting.Value, subject, body);
                     }
                 }

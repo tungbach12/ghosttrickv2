@@ -20,7 +20,7 @@ export default function AboutPage() {
       <div className="container about-hero-container">
         <div className="about-hero-street">
           <div className="about-hero-bg">
-            <img src="/images/about-brand-identity.jpg" alt="Ghosttrick Brand Aesthetics" className="about-hero-img-full" />
+            <img src="/images/about-brand-identity.png" alt="Ghosttrick Brand Aesthetics" className="about-hero-img-full" />
           </div>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function AboutPage() {
             <div className="details-info">
               <span className="section-subtitle">TẠI SAO LÀ GHOSTTRICK?</span>
               <h2 className="section-title">ĐIỀU LÀM NÊN SỰ KHÁC BIỆT</h2>
-              
+
               <div className="feature-list">
                 <div className="feature-item">
                   <div className="feature-num">01</div>
@@ -128,19 +128,10 @@ export default function AboutPage() {
 
       {/* CTA Section */}
       <section className="about-cta-section container">
-        <div className="cta-container-glass">
-          <div className="cta-glow"></div>
-          <div className="cta-content">
-            <h2 className="cta-title">SẴN SÀNG KHÁM PHÁ GHOST VIBE?</h2>
-            <p className="cta-description">
-              Định hình cá tính, tự tin khẳng định chất riêng của bạn cùng những bộ sưu tập mới nhất.
-            </p>
-            <div className="cta-actions">
-              <Link to="/product" className="btn-cta-street">
-                MUA SẮM NGAY <ArrowRight size={18} />
-              </Link>
-            </div>
-          </div>
+        <div className="about-cta-wrapper">
+          <Link to="/product" className="btn-cta-premium-street">
+            MUA SẮM NGAY <ArrowRight size={20} />
+          </Link>
         </div>
       </section>
     </div>
