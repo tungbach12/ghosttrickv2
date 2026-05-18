@@ -24,15 +24,15 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
               voucherService.getMyWallet(),
               voucherService.getPublicVouchers()
             ]);
-            
+
             // Map wallet vouchers with isSaved: true
             const savedVouchers = wallet.map(w => ({ ...w, isSaved: true }));
-            
+
             // Find public vouchers that are not saved in wallet
             const unsavedPublics = publics
               .filter(p => !wallet.some(w => w.code === p.code))
               .map(p => ({ ...p, isSaved: false, isUsed: false }));
-              
+
             available = [...savedVouchers, ...unsavedPublics];
           } else {
             const publicVouchers = await voucherService.getPublicVouchers();
@@ -58,12 +58,12 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
           <h3>Chọn mã giảm giá</h3>
           <button onClick={onClose} className="close-btn"><X size={20} /></button>
         </div>
-        
+
         <div className="voucher-modal-body">
           {!user && (
             <div className="guest-voucher-notice">
               <AlertCircle size={18} />
-              <p>Bạn cần <Link to="/login" style={{color: '#000', textDecoration: 'underline', fontWeight: 900}}>Đăng nhập</Link> để sử dụng mã giảm giá.</p>
+              <p>Bạn cần <Link to="/login" style={{ color: '#000', textDecoration: 'underline', fontWeight: 900 }}>Đăng nhập</Link> để sử dụng mã giảm giá.</p>
             </div>
           )}
           {loading ? (
@@ -122,14 +122,14 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
                             Đã sử dụng: {v.userUsedCount ?? 0}/{v.limitPerUser} lần
                           </div>
                         )}
-                        
+
                         {!isApplicable && !isAlreadyUsed && !isExhausted && <div className="v-error">Chưa đủ điều kiện đơn hàng</div>}
-                        {isAlreadyUsed && <div className="v-error" style={{color: '#94a3b8', fontSize: '0.75rem'}}>BẠN ĐÃ SỬ DỤNG MÃ NÀY</div>}
-                        {isExhausted && !isAlreadyUsed && <div className="v-error" style={{color: '#ef4444', fontSize: '0.75rem'}}>MÃ ĐÃ HẾT LƯỢT SỬ DỤNG</div>}
+                        {isAlreadyUsed && <div className="v-error" style={{ color: '#94a3b8', fontSize: '0.75rem' }}>BẠN ĐÃ SỬ DỤNG MÃ NÀY</div>}
+                        {isExhausted && !isAlreadyUsed && <div className="v-error" style={{ color: '#ef4444', fontSize: '0.75rem' }}>MÃ ĐÃ HẾT LƯỢT SỬ DỤNG</div>}
                       </div>
                       <div className="v-right">
-                        <button 
-                          disabled={!isApplicable || isAlreadyUsed || isExhausted} 
+                        <button
+                          disabled={!isApplicable || isAlreadyUsed || isExhausted}
                           onClick={() => { onSelect(v); onClose(); }}
                           className={isSelected ? 'applied' : (isAlreadyUsed || isExhausted) ? 'used' : ''}
                         >
@@ -143,8 +143,9 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
           )}
         </div>
       </div>
-      
-      <style dangerouslySetInnerHTML={{ __html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .voucher-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
         .voucher-modal-content { background: white; width: 100%; max-width: 480px; border: 3px solid #000; box-shadow: 12px 12px 0px #000; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh; }
         .voucher-modal-header { padding: 20px; border-bottom: 2px solid #000; display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
@@ -183,7 +184,7 @@ const VoucherModal = ({ isOpen, onClose, onSelect, subtotal, currentVoucher }) =
 const CheckoutErrorModal = ({ error, onClose, cartItems }) => {
   if (!error) return null;
 
-  const affectedItems = error.variantIds 
+  const affectedItems = error.variantIds
     ? cartItems.filter(item => error.variantIds.includes(item.variantId))
     : [];
 
@@ -199,11 +200,11 @@ const CheckoutErrorModal = ({ error, onClose, cartItems }) => {
           </div>
           <button onClick={onClose} className="close-btn"><X size={20} /></button>
         </div>
-        
+
         <div className="voucher-modal-body">
           <div className="error-message-box">
             <p className="main-msg">{error.message}</p>
-            
+
             {affectedItems.length > 0 && (
               <div className="affected-items">
                 <p className="sub-msg">Các sản phẩm sau đã hết hàng hoặc không đủ số lượng:</p>
@@ -222,21 +223,22 @@ const CheckoutErrorModal = ({ error, onClose, cartItems }) => {
                 </div>
               </div>
             )}
-            
+
             <p className="action-hint">
-              {error.variantIds 
-                ? "Vui lòng cập nhật giỏ hàng và thử lại." 
+              {error.variantIds
+                ? "Vui lòng cập nhật giỏ hàng và thử lại."
                 : "Vui lòng kiểm tra lại thông tin hoặc thử lại sau giây lát."}
             </p>
           </div>
-          
+
           <button className="error-close-btn" onClick={onClose}>
             {error.variantIds ? "QUAY LẠI GIỎ HÀNG" : "ĐÃ HIỂU"}
           </button>
         </div>
       </div>
-      
-      <style dangerouslySetInnerHTML={{ __html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .error-modal { max-width: 480px; border: 4px solid #000; box-shadow: 16px 16px 0px #000; }
         .error-header { 
           background: #ef4444; 
@@ -437,7 +439,7 @@ export default function CheckoutPage() {
     }
   }, [subtotal]);
   const shipping = 0; // Free shipping for all orders
-  
+
   // Logic: Nếu là mã Freeship thì chỉ giảm trên phí vận chuyển
   // Nếu là mã General thì giảm trên tiền hàng (subtotal)
   let discount = 0;
@@ -445,8 +447,8 @@ export default function CheckoutPage() {
   let generalDiscount = 0;
 
   if (voucher) {
-    const rawDiscount = voucher.discountType === 'Percent' 
-      ? Math.min(subtotal * voucher.discountValue / 100, voucher.maxDiscountAmount > 0 ? voucher.maxDiscountAmount : 999999999) 
+    const rawDiscount = voucher.discountType === 'Percent'
+      ? Math.min(subtotal * voucher.discountValue / 100, voucher.maxDiscountAmount > 0 ? voucher.maxDiscountAmount : 999999999)
       : voucher.discountValue;
 
     if (voucher.category === 'Shipping') {
@@ -502,7 +504,7 @@ export default function CheckoutPage() {
     if (!selectedProvince) newErrors.province = 'Vui lòng chọn tỉnh/thành';
     if (!selectedDistrict) newErrors.district = 'Vui lòng chọn quận/huyện';
     if (!selectedWard) newErrors.ward = 'Vui lòng chọn phường/xã';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -519,7 +521,7 @@ export default function CheckoutPage() {
       const districtName = districts.find(d => d.code == selectedDistrict)?.name || '';
       const wardName = wards.find(w => w.code == selectedWard)?.name || '';
       const fullAddress = `${streetAddress}, ${wardName}, ${districtName}, ${provinceName}`;
-      
+
       const orderData = {
         items: checkoutItems.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
         shippingAddress: fullAddress,
@@ -557,9 +559,9 @@ export default function CheckoutPage() {
 
   if (checkoutItems.length === 0) {
     return (
-      <div className="container" style={{padding: '80px 0', textAlign: 'center'}}>
+      <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
         <h2>Giỏ hàng của bạn đang trống</h2>
-        <Link to="/product" className="btn-outline" style={{marginTop: '20px', display: 'inline-block'}}>Mua sắm ngay</Link>
+        <Link to="/product" className="btn-outline" style={{ marginTop: '20px', display: 'inline-block' }}>Mua sắm ngay</Link>
       </div>
     );
   }
@@ -583,10 +585,10 @@ export default function CheckoutPage() {
               <h3 className="section-title"><MapPin size={20} /> Thông tin giao hàng</h3>
               <div className="form-group">
                 <label>Họ tên</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={`form-control ${errors.fullName ? 'is-invalid' : ''}`}
-                  value={fullName} 
+                  value={fullName}
                   onChange={e => handleFieldChange('fullName', e.target.value, setFullName)}
                 />
                 {errors.fullName && <div className="error-message">{errors.fullName}</div>}
@@ -598,20 +600,20 @@ export default function CheckoutPage() {
                 </div>
                 <div className="form-group half">
                   <label>Số điện thoại</label>
-                  <input 
-                    type="tel" 
+                  <input
+                    type="tel"
                     className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
-                    value={phone} 
+                    value={phone}
                     onChange={e => handleFieldChange('phone', e.target.value, setPhone)}
                   />
-                   {errors.phone && <div className="error-message">{errors.phone}</div>}
+                  {errors.phone && <div className="error-message">{errors.phone}</div>}
                 </div>
               </div>
-              
+
               <div className="form-group">
                 <label>Địa chỉ cụ thể</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className={`form-control ${errors.streetAddress ? 'is-invalid' : ''}`}
                   placeholder="Nhập địa chỉ chi tiết của bạn"
                   value={streetAddress}
@@ -678,7 +680,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="qr-checkout-hint">
                       <QrCode size={18} />
-                      <p>Vui lòng chuyển khoản theo mã QR trước khi đặt hàng.<br/><strong>Nội dung chuyển khoản:</strong> Tên + SĐT của bạn.</p>
+                      <p>Vui lòng chuyển khoản theo mã QR trước khi đặt hàng.<br /><strong>Nội dung chuyển khoản:</strong> Tên + SĐT của bạn.</p>
                     </div>
                   </div>
                 )}
@@ -703,14 +705,14 @@ export default function CheckoutPage() {
                       <div className="item-details">
                         <div className="item-name">{group.name}</div>
                         {group.variants.map(v => (
-                          <div key={v.variantId} className="item-meta" style={{marginBottom: '4px'}}>
+                          <div key={v.variantId} className="item-meta" style={{ marginBottom: '4px' }}>
                             <span>Size: <strong>{v.size}</strong></span>
                             <span className="meta-sep">|</span>
-                             <span>Màu: <ColorTag 
-                               name={typeof v.color === 'object' ? v.color.name : (v.color || 'N/A')} 
-                               hex={typeof v.color === 'object' ? v.color.hexCode : v.colorHex} 
-                               size="sm" 
-                             /></span>
+                            <span>Màu: <ColorTag
+                              name={typeof v.color === 'object' ? v.color.name : (v.color || 'N/A')}
+                              hex={typeof v.color === 'object' ? v.color.hexCode : v.colorHex}
+                              size="sm"
+                            /></span>
                             <span className="meta-sep">|</span>
                             <span>SL: <strong>{v.quantity}</strong></span>
                           </div>
@@ -724,10 +726,10 @@ export default function CheckoutPage() {
 
               <div className="summary-voucher">
                 <div className="voucher-input-group">
-                  <input 
-                    type="text" 
-                    placeholder="Mã giảm giá" 
-                    value={voucherCode} 
+                  <input
+                    type="text"
+                    placeholder="Mã giảm giá"
+                    value={voucherCode}
                     onChange={e => setVoucherCode(e.target.value.toUpperCase())}
                   />
                   <button onClick={handleApplyVoucher}>ÁP DỤNG</button>
@@ -760,15 +762,15 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <VoucherModal 
-        isOpen={isVoucherModalOpen} 
-        onClose={() => setIsVoucherModalOpen(false)} 
+      <VoucherModal
+        isOpen={isVoucherModalOpen}
+        onClose={() => setIsVoucherModalOpen(false)}
         onSelect={handleSelectVoucher}
         subtotal={subtotal}
         currentVoucher={voucher}
       />
-      <CheckoutErrorModal 
-        error={checkoutError} 
+      <CheckoutErrorModal
+        error={checkoutError}
         onClose={() => {
           if (checkoutError?.variantIds) navigate('/cart');
           setCheckoutError(null);

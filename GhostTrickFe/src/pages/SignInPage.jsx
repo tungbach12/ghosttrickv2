@@ -66,16 +66,16 @@ export default function SignInPage() {
         <div className="social-login-section">
           <p className="social-login-title">Đăng nhập nhanh với</p>
           <div className="social-btns" style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
-             <GoogleLogin
-                onSuccess={onGoogleSuccess}
-                onError={onGoogleError}
-                useOneTap
-                theme="outline"
-                size="large"
-                shape="pill"
-                text="continue_with"
-                width="100%"
-             />
+            <GoogleLogin
+              onSuccess={onGoogleSuccess}
+              onError={onGoogleError}
+              useOneTap
+              theme="outline"
+              size="large"
+              shape="pill"
+              text="continue_with"
+              width="100%"
+            />
           </div>
           <div className="auth-divider">
             <span>Hoặc</span>

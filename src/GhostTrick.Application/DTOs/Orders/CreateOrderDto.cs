@@ -17,6 +17,7 @@ namespace GhostTrick.Application.DTOs
         public string? Phone { get; set; }
 
         public string? Note { get; set; }
+        public string? Email { get; set; }
 
         public string? VoucherCode { get; set; }
 

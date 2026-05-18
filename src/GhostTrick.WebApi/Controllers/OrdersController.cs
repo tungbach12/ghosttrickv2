@@ -29,22 +29,27 @@ namespace GhostTrick.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<OrderResponseDto>> GetOrder(int id)
         {
+            var userId = User.Identity?.IsAuthenticated == true ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+
             if (User.IsInRole("Admin"))
             {
                 var orderAdmin = await _orderService.GetOrderByIdAsync(id);
                 return Ok(orderAdmin);
             }
 
-            var order = await _orderService.GetOrderAsync(id, UserId);
+            var order = await _orderService.GetOrderAsync(id, userId);
             return Ok(order);
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<OrderResponseDto>> CreateOrder([FromBody] CreateOrderDto dto)
         {
-            var order = await _orderService.CreateOrderAsync(dto, UserId);
+            var userId = User.Identity?.IsAuthenticated == true ? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Guest" : "Guest";
+            var order = await _orderService.CreateOrderAsync(dto, userId);
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
         }
 

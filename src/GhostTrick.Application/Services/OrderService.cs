@@ -83,11 +83,12 @@ namespace GhostTrick.Application.Services
             };
         }
 
-        public async Task<OrderResponseDto> GetOrderAsync(int id, string userId)
+        public async Task<OrderResponseDto> GetOrderAsync(int id, string? userId)
         {
             var result = await _orderRepo.FindAsync(
-                o => o.Id == id && o.UserId == userId,
+                o => o.Id == id,
                 q => q.AsNoTracking()
+                      .Include(o => o.User)
                       .AsSplitQuery()
                       .Include(o => o.Items!).ThenInclude(i => i.Product)
                       .Include(o => o.Items!).ThenInclude(i => i.Variant!).ThenInclude(v => v.Color)
@@ -97,10 +98,21 @@ namespace GhostTrick.Application.Services
             var order = result.FirstOrDefault();
             if (order == null) throw new KeyNotFoundException("Đơn hàng không tồn tại.");
 
+            // Ownership check: 
+            // Allow if current user owns the order, OR if this is a guest order and current client is anonymous.
+            if (order.UserId != userId)
+            {
+                var isGuestOrder = order.User?.Email?.Contains("guest") == true;
+                if (!isGuestOrder)
+                {
+                    throw new UnauthorizedAccessException("Bạn không có quyền xem đơn hàng này.");
+                }
+            }
+
             var productIds = order.Items!.Select(i => i.ProductId).Distinct().ToList();
-            var reviewsInOrder = await _reviewRepo.FindAsync(
-                r => r.UserId == userId && productIds.Contains(r.ProductId) && !r.IsDeleted
-            );
+            var reviewsInOrder = !string.IsNullOrEmpty(userId)
+                ? await _reviewRepo.FindAsync(r => r.UserId == userId && productIds.Contains(r.ProductId) && !r.IsDeleted)
+                : new List<ProductReview>();
 
             var reviewDict = reviewsInOrder
                 .OrderByDescending(r => r.CreatedAt)
@@ -115,6 +127,34 @@ namespace GhostTrick.Application.Services
             using var transaction = await _uow.BeginTransactionAsync();
             try
             {
+                if (userId == "Guest" || string.IsNullOrEmpty(userId))
+                {
+                    var guestEmail = dto.Email?.Trim();
+                    if (string.IsNullOrEmpty(guestEmail))
+                    {
+                        guestEmail = "guest_" + Guid.NewGuid().ToString("N") + "@ghosttrick.com";
+                    }
+
+                    var guestUser = await _userManager.FindByEmailAsync(guestEmail);
+                    if (guestUser == null)
+                    {
+                        guestUser = new ApplicationUser
+                        {
+                            UserName = guestEmail,
+                            Email = guestEmail,
+                            FullName = dto.ReceiverName ?? "Guest Customer",
+                            PhoneNumber = dto.Phone ?? "0000000000",
+                            EmailConfirmed = true
+                        };
+                        var createResult = await _userManager.CreateAsync(guestUser, "GuestOrder@" + Guid.NewGuid().ToString("N").Substring(0, 8) + "!");
+                        if (!createResult.Succeeded)
+                        {
+                            throw new InvalidOperationException("Không thể tạo tài khoản Guest: " + string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                        }
+                        await _userManager.AddToRoleAsync(guestUser, "Customer");
+                    }
+                    userId = guestUser.Id;
+                }
                 var variantIds = dto.Items.Select(i => i.VariantId).ToList();
                 var variantsList = await _variantRepo.FindAsync(
                     v => variantIds.Contains(v.Id),
