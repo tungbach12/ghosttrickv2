@@ -33,6 +33,55 @@ namespace GhostTrick.Application.Services
 
         public async Task<Category> CreateCategoryAsync(Category category)
         {
+            category.Name = category.Name?.Trim();
+            category.Slug = category.Slug?.Trim().ToLowerInvariant();
+
+            // Check if there is an existing category (including soft-deleted ones) with the same Slug
+            var existingBySlugList = await _categoryRepo.GetAsync(q => q.IgnoreQueryFilters().Where(c => c.Slug == category.Slug));
+            var existingBySlug = existingBySlugList.FirstOrDefault();
+
+            if (existingBySlug != null)
+            {
+                if (existingBySlug.IsDeleted)
+                {
+                    // Restore it!
+                    existingBySlug.IsDeleted = false;
+                    existingBySlug.Name = category.Name;
+                    existingBySlug.Description = category.Description;
+                    existingBySlug.UpdatedAt = DateTime.UtcNow;
+                    _categoryRepo.Update(existingBySlug);
+                    await _uow.CompleteAsync();
+                    return existingBySlug;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Đường dẫn (Slug) này đã tồn tại và đang hoạt động.");
+                }
+            }
+
+            // Check if there is an existing category (including soft-deleted ones) with the same Name
+            var existingByNameList = await _categoryRepo.GetAsync(q => q.IgnoreQueryFilters().Where(c => c.Name.ToLower() == category.Name.ToLower()));
+            var existingByName = existingByNameList.FirstOrDefault();
+
+            if (existingByName != null)
+            {
+                if (existingByName.IsDeleted)
+                {
+                    // Restore it!
+                    existingByName.IsDeleted = false;
+                    existingByName.Slug = category.Slug;
+                    existingByName.Description = category.Description;
+                    existingByName.UpdatedAt = DateTime.UtcNow;
+                    _categoryRepo.Update(existingByName);
+                    await _uow.CompleteAsync();
+                    return existingByName;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Tên danh mục này đã tồn tại.");
+                }
+            }
+
             await _categoryRepo.AddAsync(category);
             await _uow.CompleteAsync();
             return category;

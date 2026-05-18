@@ -221,13 +221,44 @@ namespace GhostTrick.Application.Services
 
         public async Task<Voucher> CreateVoucherAsync(CreateVoucherDto dto)
         {
-            var results = await _voucherRepo.FindAsync(v => v.Code == dto.Code && !v.IsDeleted);
-            if (results.Any())
-                throw new InvalidOperationException("Mã giảm giá này đã tồn tại.");
+            var code = dto.Code?.Trim().ToUpperInvariant();
+
+            // Check including soft-deleted ones
+            var existingList = await _voucherRepo.GetAsync(q => q.IgnoreQueryFilters().Where(v => v.Code == code));
+            var existing = existingList.FirstOrDefault();
+
+            if (existing != null)
+            {
+                if (existing.IsDeleted)
+                {
+                    // Restore and update all values
+                    existing.IsDeleted = false;
+                    existing.Description = dto.Description;
+                    existing.Category = dto.Category;
+                    existing.DiscountType = dto.DiscountType;
+                    existing.DiscountValue = dto.DiscountValue;
+                    existing.MinOrderAmount = dto.MinOrderAmount;
+                    existing.MaxDiscountAmount = dto.MaxDiscountAmount;
+                    existing.UsageLimit = dto.UsageLimit;
+                    existing.LimitPerUser = dto.LimitPerUser;
+                    existing.IsActive = dto.IsActive;
+                    existing.StartDate = dto.StartDate;
+                    existing.EndDate = dto.EndDate;
+                    existing.UpdatedAt = DateTime.UtcNow;
+
+                    _voucherRepo.Update(existing);
+                    await _uow.CompleteAsync();
+                    return existing;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Mã giảm giá này đã tồn tại và đang hoạt động.");
+                }
+            }
 
             var voucher = new Voucher
             {
-                Code = dto.Code,
+                Code = code ?? dto.Code,
                 Description = dto.Description,
                 Category = dto.Category,
                 DiscountType = dto.DiscountType,
@@ -251,11 +282,25 @@ namespace GhostTrick.Application.Services
             var voucher = await _voucherRepo.GetByIdAsync(id);
             if (voucher == null || voucher.IsDeleted) throw new KeyNotFoundException();
 
-            var results = await _voucherRepo.FindAsync(v => v.Code == dto.Code && v.Id != id && !v.IsDeleted);
-            if (results.Any())
-                throw new InvalidOperationException("Mã giảm giá này đã tồn tại.");
+            var code = dto.Code?.Trim().ToUpperInvariant();
 
-            voucher.Code = dto.Code;
+            // Check if another voucher has the same code (including soft-deleted ones)
+            var duplicateList = await _voucherRepo.GetAsync(q => q.IgnoreQueryFilters().Where(v => v.Code == code && v.Id != id));
+            var duplicate = duplicateList.FirstOrDefault();
+
+            if (duplicate != null)
+            {
+                if (duplicate.IsDeleted)
+                {
+                    throw new InvalidOperationException("Mã giảm giá này đã tồn tại trong danh sách đã xóa. Vui lòng khôi phục hoặc dùng mã khác.");
+                }
+                else
+                {
+                    throw new InvalidOperationException("Mã giảm giá này đã tồn tại.");
+                }
+            }
+
+            voucher.Code = code ?? dto.Code;
             voucher.Description = dto.Description;
             voucher.Category = dto.Category;
             voucher.DiscountType = dto.DiscountType;
@@ -267,6 +312,7 @@ namespace GhostTrick.Application.Services
             voucher.IsActive = dto.IsActive;
             voucher.StartDate = dto.StartDate;
             voucher.EndDate = dto.EndDate;
+            voucher.UpdatedAt = DateTime.UtcNow;
 
             _voucherRepo.Update(voucher);
             await _uow.CompleteAsync();
