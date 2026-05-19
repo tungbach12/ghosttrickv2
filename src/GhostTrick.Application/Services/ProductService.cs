@@ -113,10 +113,10 @@ namespace GhostTrick.Application.Services
                     "price-desc" => query.OrderByDescending(p => p.Price).ThenByDescending(p => p.Id),
                     "name-asc" => query.OrderBy(p => p.Name).ThenByDescending(p => p.Id),
                     "name-desc" => query.OrderByDescending(p => p.Name).ThenByDescending(p => p.Id),
-                    "newest" => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id),
+                    "newest" => query.OrderByDescending(p => p.RefreshedAt).ThenByDescending(p => p.Id),
                     "best-sellers" => query.OrderByDescending(p => p.ManualSalesCount ?? p.ActualSalesCount).ThenByDescending(p => p.Id),
                     "best-sellers-actual" when isAdmin => query.OrderByDescending(p => p.ActualSalesCount).ThenByDescending(p => p.Id),
-                    _ => query.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+                    _ => query.OrderByDescending(p => p.RefreshedAt).ThenByDescending(p => p.Id)
                 };
 
                 return query;
@@ -201,8 +201,7 @@ namespace GhostTrick.Application.Services
                 .Include(p => p.Variants).ThenInclude(v => v.Color)
                 .Include(p => p.SaleEventProducts).ThenInclude(sp => sp.SaleEvent)
                 .Where(p => p.Status == ProductStatus.Active || p.Status == ProductStatus.SoldOut)
-                .OrderByDescending(p => p.IsNewArrival)
-                .ThenByDescending(p => p.CreatedAt)
+                .OrderByDescending(p => p.RefreshedAt)
                 .ThenByDescending(p => p.Id)
                 .Take(top)
             );
@@ -474,6 +473,16 @@ namespace GhostTrick.Application.Services
             await _uow.CompleteAsync();
         }
 
+        public async Task RefreshProductAsync(int id)
+        {
+            var product = await _productRepo.GetByIdAsync(id);
+            if (product == null) throw new KeyNotFoundException("Sản phẩm không tồn tại.");
+
+            product.RefreshedAt = DateTime.UtcNow;
+            _productRepo.Update(product);
+            await _uow.CompleteAsync();
+        }
+
         private ProductListDto MapToListDtoSync(Product p)
         {
             var price = p.Price;
@@ -520,6 +529,7 @@ namespace GhostTrick.Application.Services
                 FlashStock = flashStock,
                 SoldCount = soldCount,
                 SizeChartId = p.SizeChartId,
+                RefreshedAt = p.RefreshedAt,
                 Colors = p.Variants?
                     .Where(v => v.Color != null)
                     .Select(v => v.Color!)

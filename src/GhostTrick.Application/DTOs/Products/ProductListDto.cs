@@ -29,6 +29,7 @@ namespace GhostTrick.Application.DTOs
         public int? SoldCount { get; set; }
         public bool IsDeleted { get; set; }
         public int? SizeChartId { get; set; }
+        public DateTime RefreshedAt { get; set; }
         public List<ProductColorDto> Colors { get; set; } = new();
     }
 }

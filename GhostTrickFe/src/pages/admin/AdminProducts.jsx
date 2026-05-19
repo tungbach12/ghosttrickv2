@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
-import { Plus, Edit, Trash2, Eye, X, Package, Tag, Layers, ShoppingBag, Info, Palette, Search, Filter, Star, User, Edit2, Upload, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, X, Package, Tag, Layers, ShoppingBag, Info, Palette, Search, Filter, Star, User, Edit2, Upload, Camera, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import feedbackService from '../../services/feedbackService';
 import { useToast } from '../../context/ToastContext';
 import { formatPrice } from '../../utils/formatters';
@@ -30,6 +30,7 @@ const AdminProducts = () => {
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(null); // ID of product being updated
+  const [refreshLoading, setRefreshLoading] = useState(null); // ID of product being refreshed
   const pageSize = 10;
   const { addToast } = useToast();
 
@@ -214,6 +215,19 @@ const AdminProducts = () => {
       addToast('Không thể cập nhật trạng thái', 'error');
     } finally {
       setStatusUpdateLoading(null);
+    }
+  };
+
+  const handleRefreshProduct = async (productId) => {
+    setRefreshLoading(productId);
+    try {
+      await api.post(`/products/${productId}/refresh`);
+      addToast('Làm mới sản phẩm thành công', 'success');
+      fetchProducts();
+    } catch (error) {
+      addToast('Không thể làm mới sản phẩm', 'error');
+    } finally {
+      setRefreshLoading(null);
     }
   };
 
@@ -554,8 +568,11 @@ const AdminProducts = () => {
         .variant-summary-table { width: 100%; border-collapse: collapse; border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden; }
         .variant-summary-table th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.75rem; font-weight: 800; color: #64748b; }
         .variant-summary-table td { padding: 12px; border-top: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 600; }
-        .variant-summary-table .color-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; border: 1px solid rgba(0,0,0,0.1); }
-        
+        .action-btn.refresh:hover { background: #3b82f6; color: white; }
+        .action-btn.refresh.loading { cursor: wait; opacity: 0.5; }
+        .m-action-btn.refresh { background: #eff6ff; color: #3b82f6; border-color: #bfdbfe; }
+        .m-action-btn.refresh:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
+
         /* Pagination */
         .admin-pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #f1f5f9; }
         .page-info { font-size: 0.85rem; color: #64748b; font-weight: 600; }
@@ -783,6 +800,14 @@ const AdminProducts = () => {
                 </td>
                 <td>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button 
+                      onClick={() => handleRefreshProduct(product.id)} 
+                      className={`action-btn refresh ${refreshLoading === product.id ? 'loading' : ''}`} 
+                      disabled={refreshLoading === product.id}
+                      title="Làm mới (Đẩy lên đầu)"
+                    >
+                      <RefreshCw size={18} className={refreshLoading === product.id ? 'animate-spin' : ''} />
+                    </button>
                     <button onClick={() => handleViewDetail(product.id)} className="action-btn" title="Xem chi tiết">
                       <Eye size={18} />
                     </button>
@@ -850,6 +875,13 @@ const AdminProducts = () => {
               </div>
             </div>
             <div className="card-actions">
+              <button 
+                onClick={() => handleRefreshProduct(product.id)} 
+                className={`m-action-btn refresh ${refreshLoading === product.id ? 'loading' : ''}`}
+                disabled={refreshLoading === product.id}
+              >
+                <RefreshCw size={18} className={refreshLoading === product.id ? 'animate-spin' : ''} /> Làm mới
+              </button>
               <button onClick={() => handleViewDetail(product.id)} className="m-action-btn">
                 <Eye size={18} /> Chi tiết
               </button>

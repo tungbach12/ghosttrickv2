@@ -94,5 +94,13 @@ namespace GhostTrick.WebApi.Controllers
             await _productService.DeleteProductAsync(id);
             return NoContent();
         }
+
+        [HttpPost("{id}/refresh")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RefreshProduct(int id)
+        {
+            await _productService.RefreshProductAsync(id);
+            return NoContent();
+        }
     }
 }

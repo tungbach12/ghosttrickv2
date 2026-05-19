@@ -44,6 +44,7 @@ namespace GhostTrick.Domain.Entities
         public bool IsOnSale { get; set; } = false;
         public bool IsNewArrival { get; set; } = false;
         public bool IsTrending { get; set; } = false;
+        public DateTime RefreshedAt { get; set; } = DateTime.UtcNow;
         public ProductStatus Status { get; set; } = ProductStatus.Active;
 
         // Navigation
