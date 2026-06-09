@@ -44,9 +44,9 @@ builder.Services.AddHttpClient();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 
-// Configure DbContext with SQL Server
+// Configure DbContext with PostgreSQL
 builder.Services.AddDbContext<GhostTrickContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Map IGhostTrickContext to GhostTrickContext
 builder.Services.AddScoped<IGhostTrickContext>(provider => provider.GetRequiredService<GhostTrickContext>());

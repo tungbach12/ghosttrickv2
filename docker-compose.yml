@@ -2,16 +2,22 @@ version: '3.8'
 
 services:
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: postgres:16-alpine
     container_name: ghosttrick_db
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=GhostTrickDb
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - mssql_data:/var/opt/mssql
-      - mssql_backups:/var/opt/mssql/backups
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -19,11 +25,12 @@ services:
       dockerfile: Dockerfile
     container_name: ghosttrick_api
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       # Connection string uses the container name 'db' instead of localhost
-      - ConnectionStrings__DefaultConnection=Server=db;Database=GhostTrickDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=GhostTrickDb;Username=postgres;Password=${DB_PASSWORD}
       - Jwt__Key=${Jwt__Key}
       - Jwt__Issuer=${Jwt__Issuer}
       - Jwt__Audience=${Jwt__Audience}
@@ -38,7 +45,7 @@ services:
       - Telegram__Token=${Telegram__Token}
       - Telegram__ChatId=${Telegram__ChatId}
     volumes:
-      - mssql_backups:/app/backups
+      - postgres_backups:/app/backups
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -58,5 +65,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  mssql_data:
-  mssql_backups:
+  postgres_data:
+  postgres_backups:

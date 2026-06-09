@@ -23,3 +23,7 @@ src/GhostTrick.WebApi/logs/
 logs/
 *.log
 src/GhostTrick.WebApi/logs/log-20260511.txt
+
+# Migration temp files
+scripts/temp/
+src/GhostTrick.WebApi/backups/

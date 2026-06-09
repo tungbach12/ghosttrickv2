@@ -111,7 +111,7 @@ namespace GhostTrick.Infrastructure.Persistence
 
             // Stock cannot go negative
             builder.Entity<ProductVariant>()
-                .ToTable(t => t.HasCheckConstraint("CK_ProductVariant_Stock", "[Stock] >= 0"));
+                .ToTable(t => t.HasCheckConstraint("CK_ProductVariant_Stock", "\"Stock\" >= 0"));
 
             // ── ProductImage ──────────────────────────────────────────
             builder.Entity<ProductImage>()

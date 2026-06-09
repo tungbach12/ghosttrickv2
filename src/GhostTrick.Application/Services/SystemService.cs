@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.IO.Compression;
+using System.Diagnostics;
 
 namespace GhostTrick.Application.Services
 {
@@ -46,61 +47,73 @@ namespace GhostTrick.Application.Services
                 }
 
                 var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                var backupFileName = $"GhostTrickDb_Manual_{timestamp}.bak";
+                var backupFileName = $"GhostTrickDb_Manual_{timestamp}.sql";
                 
-                string dbPath;
-                string apiPath;
+                var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "backups");
+                if (!Directory.Exists(backupDir)) Directory.CreateDirectory(backupDir);
+                
+                var backupPath = Path.Combine(backupDir, backupFileName);
 
-                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                _logger.LogInformation("Starting PostgreSQL backup process. backupPath: {BackupPath}", backupPath);
+
+                // 1. Extract connection info from the connection string
+                var connectionString = _configuration.GetConnectionString("DefaultConnection") ?? "";
+                var connParts = ParseConnectionString(connectionString);
+
+                // 2. Run pg_dump command
+                try
                 {
-                    var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "backups");
-                    if (!Directory.Exists(backupDir)) Directory.CreateDirectory(backupDir);
+                    var pgDumpPath = FindPgDump();
                     
-                    apiPath = Path.Combine(backupDir, backupFileName);
-                    dbPath = apiPath;
-                }
-                else
-                {
-                    // Path inside DB container
-                    dbPath = $"/var/opt/mssql/backups/{backupFileName}";
-                    // Path inside API container
-                    apiPath = Path.Combine(Directory.GetCurrentDirectory(), "backups", backupFileName);
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = pgDumpPath,
+                        Arguments = $"--host={connParts.Host} --port={connParts.Port} --username={connParts.Username} --format=plain --file=\"{backupPath}\" {connParts.Database}",
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
                     
-                    var apiDir = Path.GetDirectoryName(apiPath);
-                    if (!Directory.Exists(apiDir!)) Directory.CreateDirectory(apiDir!);
-                }
+                    // Set PGPASSWORD environment variable for authentication
+                    startInfo.EnvironmentVariables["PGPASSWORD"] = connParts.Password;
 
-                _logger.LogInformation("Starting backup process. dbPath: {DbPath}, apiPath: {ApiPath}", dbPath, apiPath);
+                    using var process = Process.Start(startInfo);
+                    if (process == null)
+                    {
+                        return (false, "Không thể khởi chạy pg_dump. Đảm bảo PostgreSQL client tools đã được cài đặt.");
+                    }
 
-                // 1. Run SQL Backup command
-                try 
-                {
-                    await _context.Database.ExecuteSqlRawAsync($"BACKUP DATABASE [GhostTrickDb] TO DISK = N'{dbPath}' WITH FORMAT, MEDIANAME = 'GhostTrickManualBackup', NAME = 'Full Backup of GhostTrickDb'");
+                    var stderr = await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+
+                    if (process.ExitCode != 0)
+                    {
+                        _logger.LogError("pg_dump failed with exit code {ExitCode}: {Error}", process.ExitCode, stderr);
+                        return (false, $"Lỗi pg_dump (exit code {process.ExitCode}): {stderr}");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "SQL Backup command failed.");
-                    return (false, $"Lỗi SQL Backup: {ex.Message}. Đảm bảo container DB có quyền ghi vào volume mssql_backups.");
+                    _logger.LogError(ex, "PostgreSQL backup command failed.");
+                    return (false, $"Lỗi PostgreSQL Backup: {ex.Message}. Đảm bảo pg_dump đã được cài đặt và có trong PATH.");
                 }
 
-                // 2. Wait a bit and check if file exists
-                await Task.Delay(2000);
-
-                if (!File.Exists(apiPath))
+                if (!File.Exists(backupPath))
                 {
-                    _logger.LogError("Backup file not found at API path: {ApiPath}", apiPath);
-                    return (false, $"Không tìm thấy file backup tại đường dẫn API: {apiPath}. Kiểm tra volume mapping giữa container DB và API.");
+                    _logger.LogError("Backup file not found at path: {BackupPath}", backupPath);
+                    return (false, $"Không tìm thấy file backup tại đường dẫn: {backupPath}.");
                 }
 
                 // 3. Compress the backup file using GZip
                 var gzFileName = $"{backupFileName}.gz";
-                var gzPath = Path.Combine(Path.GetDirectoryName(apiPath)!, gzFileName);
+                var gzPath = Path.Combine(backupDir, gzFileName);
                 
                 try 
                 {
                     if (File.Exists(gzPath)) File.Delete(gzPath);
                     
-                    using (var sourceStream = new FileStream(apiPath, FileMode.Open, FileAccess.Read))
+                    using (var sourceStream = new FileStream(backupPath, FileMode.Open, FileAccess.Read))
                     using (var targetStream = new FileStream(gzPath, FileMode.Create, FileAccess.Write))
                     using (var gzipStream = new GZipStream(targetStream, CompressionMode.Compress))
                     {
@@ -110,7 +123,7 @@ namespace GhostTrick.Application.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to compress backup file to GZ.");
-                    gzPath = apiPath; 
+                    gzPath = backupPath; 
                     gzFileName = backupFileName;
                 }
 
@@ -137,8 +150,8 @@ namespace GhostTrick.Application.Services
                     fileStream.Close();
                     
                     // Cleanup
-                    if (File.Exists(apiPath)) File.Delete(apiPath);
-                    if (File.Exists(gzPath) && gzPath != apiPath) File.Delete(gzPath);
+                    if (File.Exists(backupPath)) File.Delete(backupPath);
+                    if (File.Exists(gzPath) && gzPath != backupPath) File.Delete(gzPath);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -155,6 +168,73 @@ namespace GhostTrick.Application.Services
                 _logger.LogError(ex, "Unexpected error in CreateBackupAsync");
                 return (false, $"Lỗi không xác định: {ex.Message}");
             }
+        }
+
+        private static string FindPgDump()
+        {
+            // Check if pg_dump is in PATH
+            var pgDump = "pg_dump";
+            
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                // Check common installation paths on all drives
+                var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var drives = new[] { programFiles, programFiles.Replace("C:", "E:"), programFiles.Replace("C:", "D:") };
+                var versions = new[] { "18", "17", "16", "15", "14" };
+                
+                foreach (var drive in drives)
+                {
+                    foreach (var ver in versions)
+                    {
+                        var path = Path.Combine(drive, "PostgreSQL", ver, "bin", "pg_dump.exe");
+                        if (File.Exists(path))
+                            return path;
+                    }
+                }
+            }
+
+            return pgDump; // Fallback to PATH
+        }
+
+        private static (string Host, string Port, string Database, string Username, string Password) ParseConnectionString(string connectionString)
+        {
+            var host = "localhost";
+            var port = "5432";
+            var database = "GhostTrickDb";
+            var username = "postgres";
+            var password = "";
+
+            foreach (var part in connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var kv = part.Split('=', 2);
+                if (kv.Length != 2) continue;
+
+                var key = kv[0].Trim().ToLower();
+                var value = kv[1].Trim();
+
+                switch (key)
+                {
+                    case "host":
+                    case "server":
+                        host = value;
+                        break;
+                    case "port":
+                        port = value;
+                        break;
+                    case "database":
+                        database = value;
+                        break;
+                    case "username":
+                    case "user id":
+                        username = value;
+                        break;
+                    case "password":
+                        password = value;
+                        break;
+                }
+            }
+
+            return (host, port, database, username, password);
         }
     }
 }
