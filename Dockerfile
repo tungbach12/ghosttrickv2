@@ -23,7 +23,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Expose ports
-EXPOSE 8080
+# Configure Port for Render
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
 
 ENTRYPOINT ["dotnet", "GhostTrick.WebApi.dll"]
