@@ -30,3 +30,7 @@ jobs:
             
             # Clean up Docker images (optional to free memory)
             docker image prune -f
+            
+            # Seed database if empty (auto-runs init.sql when DB has no users)
+            chmod +x ./scripts/seed-db.sh
+            DB_PASSWORD="${{ secrets.DB_PASSWORD }}" ./scripts/seed-db.sh
