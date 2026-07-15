@@ -11,13 +11,11 @@
 
 
 -- Table: AspNetRoles
-DELETE FROM AspNetRoles;
 -- Columns: Id, Name, NormalizedName, ConcurrencyStamp
 INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES ('40a8e78f-e8e4-41a0-94a7-78095e54028c', 'Customer', 'CUSTOMER', NULL);
 INSERT INTO AspNetRoles (Id, Name, NormalizedName, ConcurrencyStamp) VALUES ('7e87bca3-5535-4f41-a148-bc3a286710aa', 'Admin', 'ADMIN', NULL);
 
 -- Table: AspNetUsers
-DELETE FROM AspNetUsers;
 -- Columns: Id, FullName, AvatarUrl, CreatedAt, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnd, LockoutEnabled, AccessFailedCount, DateOfBirth, IsDeleted
 INSERT INTO AspNetUsers (Id, FullName, AvatarUrl, CreatedAt, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnd, LockoutEnabled, AccessFailedCount, DateOfBirth, IsDeleted) VALUES ('02230069-c301-4062-a3fe-4ea0bf76e001', 'lih', NULL, '2026-05-19 09:24:54.7929856', 'guest_b09717b04d014b4faba0ea4290e9f325@ghosttrick.com', 'GUEST_B09717B04D014B4FABA0EA4290E9F325@GHOSTTRICK.COM', 'guest_b09717b04d014b4faba0ea4290e9f325@ghosttrick.com', 'GUEST_B09717B04D014B4FABA0EA4290E9F325@GHOSTTRICK.COM', 1, 'AQAAAAIAAYagAAAAEKHLbqNkR2XQdWLrvHGpdR0muA2ra2a07DYuZR++o0h5K7u4l70wiWKh8Jk2U0R2WQ==', '7QPRHIXZPNHXAFDCUWPFK6UC2XKXKD3J', '0106df9d-0ca6-47ac-8af0-fed5d5ea9abf', '09822483713', 0, 0, NULL, 1, 0, NULL, 0);
 INSERT INTO AspNetUsers (Id, FullName, AvatarUrl, CreatedAt, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnd, LockoutEnabled, AccessFailedCount, DateOfBirth, IsDeleted) VALUES ('46257b1c-a8a3-431f-baf1-550e743597a9', 'Ghosttrick Admin', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778490393/dubx4irrutnb5mif08p0.jpg', '2026-05-10 14:26:17.2537946', 'admin@ghosttrick.com', 'ADMIN@GHOSTTRICK.COM', 'admin@ghosttrick.com', 'ADMIN@GHOSTTRICK.COM', 1, 'AQAAAAIAAYagAAAAEH3EMuU8UkV+uIi/dugl6Iz2TmwiSzmlMwTexa4/sy8nvQj79zzheFS7Vd03Avbyxw==', 'FQX27POZZ46AWVFIOCSICQEPI7X5RTAF', '19c2307d-3bb8-44cc-8050-e7a63cbb7b3e', '0900000000', 0, 0, NULL, 1, 0, NULL, 0);
@@ -26,7 +24,6 @@ INSERT INTO AspNetUsers (Id, FullName, AvatarUrl, CreatedAt, UserName, Normalize
 INSERT INTO AspNetUsers (Id, FullName, AvatarUrl, CreatedAt, UserName, NormalizedUserName, Email, NormalizedEmail, EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnd, LockoutEnabled, AccessFailedCount, DateOfBirth, IsDeleted) VALUES ('7b532411-18df-48b4-8326-5225771ddc73', 'Tùng Bách', NULL, '2026-05-17 10:56:44.6535485', 'trantungbach20@gmail.com', 'TRANTUNGBACH20@GMAIL.COM', 'trantungbach20@gmail.com', 'TRANTUNGBACH20@GMAIL.COM', 1, 'AQAAAAIAAYagAAAAEAhvc5ltSnmC0AhyNpEiTG2InYyoGUQ6DVQBvHDvoF4uHn0ucbuBqoj6WnIaO3oUKA==', 'A3QMCAUVPS6Y67OLJLCSC5ANGYVUGC3U', 'eb712325-f9b0-4380-8082-3a342477ac32', '0378351050', 0, 0, NULL, 1, 0, NULL, 0);
 
 -- Table: AspNetUserRoles
-DELETE FROM AspNetUserRoles;
 -- Columns: UserId, RoleId
 INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES ('02230069-c301-4062-a3fe-4ea0bf76e001', '40a8e78f-e8e4-41a0-94a7-78095e54028c');
 INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES ('6ba4438f-aa88-4c81-bfd8-0e3b4fa6cb8e', '40a8e78f-e8e4-41a0-94a7-78095e54028c');
@@ -35,23 +32,18 @@ INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES ('7b532411-18df-48b4-8326-52
 INSERT INTO AspNetUserRoles (UserId, RoleId) VALUES ('46257b1c-a8a3-431f-baf1-550e743597a9', '7e87bca3-5535-4f41-a148-bc3a286710aa');
 
 -- Table: AspNetUserClaims
-DELETE FROM AspNetUserClaims;
 -- Columns: Id, UserId, ClaimType, ClaimValue
 
 -- Table: AspNetRoleClaims
-DELETE FROM AspNetRoleClaims;
 -- Columns: Id, RoleId, ClaimType, ClaimValue
 
 -- Table: AspNetUserLogins
-DELETE FROM AspNetUserLogins;
 -- Columns: LoginProvider, ProviderKey, ProviderDisplayName, UserId
 
 -- Table: AspNetUserTokens
-DELETE FROM AspNetUserTokens;
 -- Columns: UserId, LoginProvider, Name, Value
 
 -- Table: Categories
-DELETE FROM Categories;
 -- Columns: Id, Name, Slug, Description, IsDeleted, CreatedAt, UpdatedAt
 INSERT INTO Categories (Id, Name, Slug, Description, IsDeleted, CreatedAt, UpdatedAt) VALUES (1, 'Tops', 'tops', NULL, 0, '2026-05-10 14:26:17.5423970', '2026-05-10 14:26:17.5423971');
 INSERT INTO Categories (Id, Name, Slug, Description, IsDeleted, CreatedAt, UpdatedAt) VALUES ('2', 'Bottoms', 'bottoms', NULL, 0, '2026-05-10 14:26:17.5424504', '2026-05-18 10:07:43.3383318');
@@ -63,7 +55,6 @@ INSERT INTO Categories (Id, Name, Slug, Description, IsDeleted, CreatedAt, Updat
 INSERT INTO Categories (Id, Name, Slug, Description, IsDeleted, CreatedAt, UpdatedAt) VALUES ('3002', 'Gifts', 'gifts', NULL, 0, '2026-05-19 09:10:29.4260051', '2026-05-19 09:10:29.4260052');
 
 -- Table: Products
-DELETE FROM Products;
 -- Columns: Id, Name, Description, Price, OriginalPrice, MainImageUrl, SKU, ActualSalesCount, IsTrending, IsNewArrival, CategoryId, CreatedAt, IsOnSale, Subcategory, UpdatedAt, IsDeleted, Status, ManualSalesCount, SizeChartId, RefreshedAt
 INSERT INTO Products (Id, Name, Description, Price, OriginalPrice, MainImageUrl, SKU, ActualSalesCount, IsTrending, IsNewArrival, CategoryId, CreatedAt, IsOnSale, Subcategory, UpdatedAt, IsDeleted, Status, ManualSalesCount, SizeChartId, RefreshedAt) VALUES (1, 'Áo thun', '<p>hihi</p>', '299000.00', '400000.00', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778491603/chaxbxq0xrjtndf9h2nz.jpg', 'GT-001', 1, 0, 1, 1, '2026-05-11 09:26:44.2646846', 0, NULL, '2026-05-12 11:37:35.0277180', 1, 0, '1000', NULL, '2026-05-11 09:26:44.2646846');
 INSERT INTO Products (Id, Name, Description, Price, OriginalPrice, MainImageUrl, SKU, ActualSalesCount, IsTrending, IsNewArrival, CategoryId, CreatedAt, IsOnSale, Subcategory, UpdatedAt, IsDeleted, Status, ManualSalesCount, SizeChartId, RefreshedAt) VALUES ('2', 'BADKID T-SHIRT', '<p><span style="color: rgba(0, 0, 0, 0.8); background-color: rgb(255, 255, 255);">✨Thông&nbsp;số&nbsp;sản&nbsp;phẩm:</span></p><p></p><p><span style="color: rgb(72, 72, 72); background-color: rgb(255, 255, 255);">•&nbsp;Size:</span><span style="color: rgba', '390000.00', '480000.00', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778646499/ztnetqdadzlbn8ktcz4x.png', 'GT-BADKID', 0, 1, 0, 1, '2026-05-13 04:28:20.4246941', 0, NULL, '2026-05-18 08:08:43.0402469', 0, 0, '3150', 1, '2026-05-19 10:02:05.7725168');
@@ -98,7 +89,6 @@ INSERT INTO Products (Id, Name, Description, Price, OriginalPrice, MainImageUrl,
 INSERT INTO Products (Id, Name, Description, Price, OriginalPrice, MainImageUrl, SKU, ActualSalesCount, IsTrending, IsNewArrival, CategoryId, CreatedAt, IsOnSale, Subcategory, UpdatedAt, IsDeleted, Status, ManualSalesCount, SizeChartId, RefreshedAt) VALUES ('2030', 'SNOOPDOGG X THUOCLAO T-SHIRT / RED', '<p><span style="background-color: rgb(255, 255, 255); color: rgba(0, 0, 0, 0.8);">✨Thông&nbsp;số&nbsp;sản&nbsp;phẩm:</span></p><p></p><p><span style="background-color: rgb(255, 255, 255); color: rgb(72, 72, 72);">•&nbsp;Size:</span><span style="background-', '320000.00', '410000.00', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779183811/csa6xo7u35eyhj5am56k.png', 'GT-THUOCLAO2', 0, 0, 0, 1, '2026-05-19 09:43:31.7751679', 1, NULL, '2026-05-19 09:43:31.7751680', 0, 0, '1020', 1, '2026-05-19 10:00:38.4176279');
 
 -- Table: ProductImages
-DELETE FROM ProductImages;
 -- Columns: Id, ProductId, ImageUrl, SortOrder, IsMain
 INSERT INTO ProductImages (Id, ProductId, ImageUrl, SortOrder, IsMain) VALUES (1, 1, 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778491604/rwkspcei4bpo6tdtkbkm.jpg', 0, 0);
 INSERT INTO ProductImages (Id, ProductId, ImageUrl, SortOrder, IsMain) VALUES ('2', '2', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778646500/psflva4g3c9inlkzgp3d.png', 0, 0);
@@ -318,7 +308,6 @@ INSERT INTO ProductImages (Id, ProductId, ImageUrl, SortOrder, IsMain) VALUES ('
 INSERT INTO ProductImages (Id, ProductId, ImageUrl, SortOrder, IsMain) VALUES ('2201', '2029', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779183651/rqofnbfwgh7c5i4teaxg.jpg', 0, 0);
 
 -- Table: ProductVariants
-DELETE FROM ProductVariants;
 -- Columns: Id, ProductId, Size, Stock, LowStockThreshold, ColorId, RowVersion
 INSERT INTO ProductVariants (Id, ProductId, Size, Stock, LowStockThreshold, ColorId, RowVersion) VALUES (1, 1, 's', '21', '5', 1, '0x00000000000036B1');
 INSERT INTO ProductVariants (Id, ProductId, Size, Stock, LowStockThreshold, ColorId, RowVersion) VALUES ('2', 1, 'M', 0, '5', 1, '0x00000000000036B2');
@@ -417,7 +406,6 @@ INSERT INTO ProductVariants (Id, ProductId, Size, Stock, LowStockThreshold, Colo
 INSERT INTO ProductVariants (Id, ProductId, Size, Stock, LowStockThreshold, ColorId, RowVersion) VALUES ('3077', '2030', 'XL', '15', 1, '2', '0x0000000000007D2E');
 
 -- Table: ProductColors
-DELETE FROM ProductColors;
 -- Columns: Id, Name, HexCode, IsActive, CreatedAt, UpdatedAt, IsDeleted
 INSERT INTO ProductColors (Id, Name, HexCode, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES (1, 'Đen', '#000000', 1, '2026-05-10 14:26:16.1738279', '2026-05-10 14:26:16.1738280', 0);
 INSERT INTO ProductColors (Id, Name, HexCode, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES ('2', 'Đỏ', '#C60101', 1, '2026-05-13 04:59:46.4580401', '2026-05-13 04:59:46.4580402', 0);
@@ -426,7 +414,6 @@ INSERT INTO ProductColors (Id, Name, HexCode, IsActive, CreatedAt, UpdatedAt, Is
 INSERT INTO ProductColors (Id, Name, HexCode, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES ('5', 'CREAM', '#FEFFD1', 1, '2026-05-19 09:13:49.7897850', '2026-05-19 09:13:49.7897850', 0);
 
 -- Table: Orders
-DELETE FROM Orders;
 -- Columns: Id, UserId, TotalAmount, ShippingFee, Status, PaymentMethod, ShippingAddress, Note, VoucherId, DiscountAmount, CreatedAt, UpdatedAt, IsDeleted, PaymentStatus, Phone, ReceiverName
 INSERT INTO Orders (Id, UserId, TotalAmount, ShippingFee, Status, PaymentMethod, ShippingAddress, Note, VoucherId, DiscountAmount, CreatedAt, UpdatedAt, IsDeleted, PaymentStatus, Phone, ReceiverName) VALUES (1, '46257b1c-a8a3-431f-baf1-550e743597a9', '329000.00', '30000.00', 'Cancelled', 'COD', '123, Xã Tuấn Đạo, Huyện Sơn Động, Tỉnh Bắc Giang', '123', NULL, '.00', '2026-05-11 11:12:14.1833792', '2026-05-17 10:50:34.2922981', 1, 'Unpaid', '0900000000', 'Ghosttrick Admin');
 INSERT INTO Orders (Id, UserId, TotalAmount, ShippingFee, Status, PaymentMethod, ShippingAddress, Note, VoucherId, DiscountAmount, CreatedAt, UpdatedAt, IsDeleted, PaymentStatus, Phone, ReceiverName) VALUES ('2', '46257b1c-a8a3-431f-baf1-550e743597a9', '350000.00', '.00', 'Pending', 'COD', 'qưe, Xã Tân Quang, Huyện Lục Ngạn, Tỉnh Bắc Giang', 'ưqeqw', NULL, '.00', '2026-05-17 10:50:53.0371613', '2026-05-17 10:50:53.0371613', 1, 'Unpaid', '0900000000', 'Ghosttrick Admin');
@@ -434,7 +421,6 @@ INSERT INTO Orders (Id, UserId, TotalAmount, ShippingFee, Status, PaymentMethod,
 INSERT INTO Orders (Id, UserId, TotalAmount, ShippingFee, Status, PaymentMethod, ShippingAddress, Note, VoucherId, DiscountAmount, CreatedAt, UpdatedAt, IsDeleted, PaymentStatus, Phone, ReceiverName) VALUES ('2002', '02230069-c301-4062-a3fe-4ea0bf76e001', '390000.00', '.00', 'Pending', 'COD', 'bbb, Xã Trung Chải, Huyện Nậm Nhùn, Tỉnh Lai Châu', NULL, NULL, '.00', '2026-05-19 09:24:54.9555911', '2026-05-19 09:24:54.9555911', 1, 'Unpaid', '09822483713', 'lih');
 
 -- Table: OrderItems
-DELETE FROM OrderItems;
 -- Columns: Id, OrderId, ProductId, VariantId, Quantity, UnitPrice
 INSERT INTO OrderItems (Id, OrderId, ProductId, VariantId, Quantity, UnitPrice) VALUES (1, 1, 1, 1, 1, '299000.00');
 INSERT INTO OrderItems (Id, OrderId, ProductId, VariantId, Quantity, UnitPrice) VALUES ('2', '2', '9', '1030', 1, '350000.00');
@@ -443,7 +429,6 @@ INSERT INTO OrderItems (Id, OrderId, ProductId, VariantId, Quantity, UnitPrice) 
 INSERT INTO OrderItems (Id, OrderId, ProductId, VariantId, Quantity, UnitPrice) VALUES ('2002', '2002', '15', '1052', 1, '390000.00');
 
 -- Table: OrderTimelines
-DELETE FROM OrderTimelines;
 -- Columns: Id, OrderId, Status, Note, Actor, CreatedAt
 INSERT INTO OrderTimelines (Id, OrderId, Status, Note, Actor, CreatedAt) VALUES (1, 1, 'Đã đặt hàng', 'Đơn hàng được tạo thành công.', 'Customer', '2026-05-11 11:12:14.3024433');
 INSERT INTO OrderTimelines (Id, OrderId, Status, Note, Actor, CreatedAt) VALUES ('2', 1, 'Confirmed', 'Cập nhật trạng thái sang Confirmed', 'Admin', '2026-05-13 15:51:55.3504019');
@@ -456,12 +441,10 @@ INSERT INTO OrderTimelines (Id, OrderId, Status, Note, Actor, CreatedAt) VALUES 
 INSERT INTO OrderTimelines (Id, OrderId, Status, Note, Actor, CreatedAt) VALUES ('3002', '2002', 'Đã đặt hàng', 'Đơn hàng được tạo thành công.', 'Customer', '2026-05-19 09:24:55.0496114');
 
 -- Table: CartItems
-DELETE FROM CartItems;
 -- Columns: Id, UserId, ProductId, VariantId, Quantity, CreatedAt, UpdatedAt
 INSERT INTO CartItems (Id, UserId, ProductId, VariantId, Quantity, CreatedAt, UpdatedAt) VALUES ('94A8508D-4331-4E67-B600-F26E9791B11A', '46257b1c-a8a3-431f-baf1-550e743597a9', '13', '1045', 1, '2026-05-18 08:57:20.4183522', '2026-05-18 08:57:20.4183522');
 
 -- Table: Vouchers
-DELETE FROM Vouchers;
 -- Columns: Id, Code, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscountAmount, UsageLimit, StartDate, EndDate, IsActive, IsDeleted, LimitPerUser, Category, CreatedAt, UpdatedAt, RowVersion
 INSERT INTO Vouchers (Id, Code, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscountAmount, UsageLimit, StartDate, EndDate, IsActive, IsDeleted, LimitPerUser, Category, CreatedAt, UpdatedAt, RowVersion) VALUES (1, 'FREESHIP', 'Miễn phí vận chuyển', 'Fixed', '30000.00', '.00', '.00', 0, NULL, NULL, 1, 1, 1, 1, '2026-05-10 14:26:17.6217554', '2026-05-10 14:26:17.6217555', '0x0000000000005602');
 INSERT INTO Vouchers (Id, Code, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscountAmount, UsageLimit, StartDate, EndDate, IsActive, IsDeleted, LimitPerUser, Category, CreatedAt, UpdatedAt, RowVersion) VALUES ('2', 'GHOST10', 'Giảm 10% cho đơn đầu tiên', 'Percent', '10.00', '100000.00', '.00', 0, NULL, NULL, 1, 1, 1, 0, '2026-05-10 14:26:17.6219496', '2026-05-10 14:26:17.6219496', '0x0000000000005601');
@@ -481,7 +464,6 @@ INSERT INTO Vouchers (Id, Code, Description, DiscountType, DiscountValue, MinOrd
 INSERT INTO Vouchers (Id, Code, Description, DiscountType, DiscountValue, MinOrderAmount, MaxDiscountAmount, UsageLimit, StartDate, EndDate, IsActive, IsDeleted, LimitPerUser, Category, CreatedAt, UpdatedAt, RowVersion) VALUES ('2006', 'QUÀ TẶNG', 'Tặng kèm túi tote', 'Fixed', '1.00', '350000.00', '.00', '100', '2026-05-18 07:21:00.0000000', NULL, 1, 0, '10', 1, '2026-05-18 07:22:52.0298467', '2026-05-18 07:22:52.0298468', '0x0000000000007548');
 
 -- Table: UserVouchers
-DELETE FROM UserVouchers;
 -- Columns: Id, VoucherId, UserId, SavedAt, IsUsed
 INSERT INTO UserVouchers (Id, VoucherId, UserId, SavedAt, IsUsed) VALUES (1, '11', '46257b1c-a8a3-431f-baf1-550e743597a9', '2026-05-10 15:16:03.3126790', 0);
 INSERT INTO UserVouchers (Id, VoucherId, UserId, SavedAt, IsUsed) VALUES ('2', '10', '46257b1c-a8a3-431f-baf1-550e743597a9', '2026-05-12 11:22:46.4425014', 0);
@@ -491,30 +473,25 @@ INSERT INTO UserVouchers (Id, VoucherId, UserId, SavedAt, IsUsed) VALUES ('1003'
 INSERT INTO UserVouchers (Id, VoucherId, UserId, SavedAt, IsUsed) VALUES ('1004', '2005', '46257b1c-a8a3-431f-baf1-550e743597a9', '2026-05-14 15:09:16.6947218', 0);
 
 -- Table: VoucherUsages
-DELETE FROM VoucherUsages;
 -- Columns: Id, VoucherId, UserId, OrderId, UsedAt
 INSERT INTO VoucherUsages (Id, VoucherId, UserId, OrderId, UsedAt) VALUES (1, '2005', '46257b1c-a8a3-431f-baf1-550e743597a9', '1002', '2026-05-17 14:46:20.8439732');
 
 -- Table: SaleEvents
-DELETE FROM SaleEvents;
 -- Columns: Id, Name, Slug, Description, BannerUrl, StartTime, EndTime, IsDeleted, IsActive
 INSERT INTO SaleEvents (Id, Name, Slug, Description, BannerUrl, StartTime, EndTime, IsDeleted, IsActive) VALUES (1, 'FLASH SALE', 'FLASH SALE', NULL, 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779031408/ffp9kmqygtrjvciyegz5.jpg', '2026-05-11 23:48:00.0000000', '2026-05-28 07:59:00.0000000', 0, 1);
 
 -- Table: SaleEventProducts
-DELETE FROM SaleEventProducts;
 -- Columns: SaleEventId, ProductId, FlashStock, RowVersion, SalePrice, SoldCount
 INSERT INTO SaleEventProducts (SaleEventId, ProductId, FlashStock, RowVersion, SalePrice, SoldCount) VALUES (1, '5', '2', '0x0000000000007557', '320000.00', 0);
 INSERT INTO SaleEventProducts (SaleEventId, ProductId, FlashStock, RowVersion, SalePrice, SoldCount) VALUES (1, '9', '3', '0x0000000000007558', '320000.00', 0);
 INSERT INTO SaleEventProducts (SaleEventId, ProductId, FlashStock, RowVersion, SalePrice, SoldCount) VALUES (1, '1016', '5', '0x0000000000007559', '320000.00', 0);
 
 -- Table: HomeBanners
-DELETE FROM HomeBanners;
 -- Columns: Id, Title, Subtitle, LinkUrl, ImageUrl, DisplayOrder, IsActive, IsDeleted, CreatedAt, UpdatedAt
 INSERT INTO HomeBanners (Id, Title, Subtitle, LinkUrl, ImageUrl, DisplayOrder, IsActive, IsDeleted, CreatedAt, UpdatedAt) VALUES (1, NULL, NULL, NULL, 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778940810/h7ppmj6egfgn1ys54lcr.jpg', 0, 1, 0, '2026-05-10 15:04:37.1498122', '2026-05-10 15:04:37.1498122');
 INSERT INTO HomeBanners (Id, Title, Subtitle, LinkUrl, ImageUrl, DisplayOrder, IsActive, IsDeleted, CreatedAt, UpdatedAt) VALUES ('2', NULL, NULL, NULL, 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779028227/rx1yy9dsluxwb2dmzjxj.jpg', 1, 1, 0, '2026-05-12 11:32:49.8462685', '2026-05-12 11:32:49.8462685');
 
 -- Table: TopBarPromos
-DELETE FROM TopBarPromos;
 -- Columns: Id, Content, DisplayOrder, IsActive, CreatedAt, UpdatedAt, IsDeleted
 INSERT INTO TopBarPromos (Id, Content, DisplayOrder, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES (1, 'Chào mừng bạn đến với Ghosttrick!', 1, 1, '2026-05-11 12:38:36.0649059', '2026-05-11 12:38:36.0649059', 1);
 INSERT INTO TopBarPromos (Id, Content, DisplayOrder, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES ('2', 'Freeship cho tất cả đơn hàng', 1, 1, '2026-05-11 12:38:36.0649613', '2026-05-11 12:38:36.0649613', 0);
@@ -522,7 +499,6 @@ INSERT INTO TopBarPromos (Id, Content, DisplayOrder, IsActive, CreatedAt, Update
 INSERT INTO TopBarPromos (Id, Content, DisplayOrder, IsActive, CreatedAt, UpdatedAt, IsDeleted) VALUES ('4', 'Hàng mới về - Mua ngay kẻo lỡ!', '4', 1, '2026-05-11 12:38:36.0649616', '2026-05-11 12:38:36.0649617', 1);
 
 -- Table: Feedbacks
-DELETE FROM Feedbacks;
 -- Columns: Id, ImageUrl, IsActive, DisplayOrder, CreatedAt, UpdatedAt, IsDeleted, PublicId, Subtitle, Title
 INSERT INTO Feedbacks (Id, ImageUrl, IsActive, DisplayOrder, CreatedAt, UpdatedAt, IsDeleted, PublicId, Subtitle, Title) VALUES (1, 'http://135.235.139.8/uploads/feedbacks/b03a2d05-db2e-4b17-b7ae-a6456711c0c9.jpg', 1, 1, '2026-05-11 09:07:39.9583134', '2026-05-11 11:11:34.8783547', 1, NULL, NULL, NULL);
 INSERT INTO Feedbacks (Id, ImageUrl, IsActive, DisplayOrder, CreatedAt, UpdatedAt, IsDeleted, PublicId, Subtitle, Title) VALUES ('2', 'http://135.235.139.8/uploads/feedbacks/9a3707e1-c7c2-4eec-a30d-dab231c7243f.jpg', 1, '2', '2026-05-11 09:08:08.5981285', '2026-05-11 13:42:21.2415596', 1, NULL, NULL, NULL);
@@ -535,14 +511,12 @@ INSERT INTO Feedbacks (Id, ImageUrl, IsActive, DisplayOrder, CreatedAt, UpdatedA
 INSERT INTO Feedbacks (Id, ImageUrl, IsActive, DisplayOrder, CreatedAt, UpdatedAt, IsDeleted, PublicId, Subtitle, Title) VALUES ('3005', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778750789/jwv1ri68fnhwdvublzch.jpg', 1, 1, '2026-05-14 09:26:29.8941829', '2026-05-14 09:26:29.8940895', 0, 'jwv1ri68fnhwdvublzch', NULL, NULL);
 
 -- Table: ProductReviews
-DELETE FROM ProductReviews;
 -- Columns: Id, ProductId, UserId, UserName, UserAvatarUrl, Rating, Comment, IsApproved, IsFake, CreatedAt, UpdatedAt, IsDeleted, IsVerifiedPurchase, OrderId
 INSERT INTO ProductReviews (Id, ProductId, UserId, UserName, UserAvatarUrl, Rating, Comment, IsApproved, IsFake, CreatedAt, UpdatedAt, IsDeleted, IsVerifiedPurchase, OrderId) VALUES (1, '3', '46257b1c-a8a3-431f-baf1-550e743597a9', 'peekaa', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779202176/nwdmla0hyhv6ytktvxyd.webp', '5', 'Áo đẹp, chất lượng, brand đóng gói chỉn chu. Mix quần đùi, jeans, túi hộp gì cũng okla hết nha.', 1, 1, '2026-05-19 14:49:50.1099851', '2026-05-19 14:49:50.1099238', 0, 1, NULL);
 INSERT INTO ProductReviews (Id, ProductId, UserId, UserName, UserAvatarUrl, Rating, Comment, IsApproved, IsFake, CreatedAt, UpdatedAt, IsDeleted, IsVerifiedPurchase, OrderId) VALUES ('2', '3', '46257b1c-a8a3-431f-baf1-550e743597a9', 'vananhtuangau', NULL, '5', 'Áo đẹp lắm ạ, hoạ tiết đẹp, tỉ mỉ, giao hàng nhanh. Có quà tặng kèm', 1, 1, '2026-05-19 14:50:28.1021459', '2026-05-19 14:50:28.1021453', 0, 1, NULL);
 INSERT INTO ProductReviews (Id, ProductId, UserId, UserName, UserAvatarUrl, Rating, Comment, IsApproved, IsFake, CreatedAt, UpdatedAt, IsDeleted, IsVerifiedPurchase, OrderId) VALUES ('3', '13', '46257b1c-a8a3-431f-baf1-550e743597a9', 'hnggkin573', NULL, '5', 'Áo mặc lên đẹp lắm mn ơi. Đồ Ghost trick thì khỏi bàn rùi. Vải dày dặn, hình in nét. Có tặng túi tote nha', 1, 1, '2026-05-19 14:53:00.6285437', '2026-05-19 14:53:00.6285433', 0, 1, NULL);
 
 -- Table: SizeCharts
-DELETE FROM SizeCharts;
 -- Columns: Id, Name, ImageUrl, CreatedAt, UpdatedAt, IsDeleted
 INSERT INTO SizeCharts (Id, Name, ImageUrl, CreatedAt, UpdatedAt, IsDeleted) VALUES (1, 'Áo Thun Oversize', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778572402/nncemelkqeumkmjjvclz.jpg', '2026-05-12 07:53:22.9174765', '2026-05-12 07:53:22.9174765', 0);
 INSERT INTO SizeCharts (Id, Name, ImageUrl, CreatedAt, UpdatedAt, IsDeleted) VALUES ('2', 'Áo thun dài tay', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1778647297/delpvy5eskithy2dqesw.png', '2026-05-13 04:41:37.9502112', '2026-05-13 04:41:37.9502112', 0);
@@ -555,13 +529,11 @@ INSERT INTO SizeCharts (Id, Name, ImageUrl, CreatedAt, UpdatedAt, IsDeleted) VAL
 INSERT INTO SizeCharts (Id, Name, ImageUrl, CreatedAt, UpdatedAt, IsDeleted) VALUES ('1008', 'BABY TEE', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779183338/h4sgvgkmnszhdiqn4z6g.png', '2026-05-19 09:35:39.3873607', '2026-05-19 09:35:39.3873608', 0);
 
 -- Table: Policies
-DELETE FROM Policies;
 -- Columns: Id, Slug, Title, Content, UpdatedAt, IsDeleted, CreatedAt
 INSERT INTO Policies (Id, Slug, Title, Content, UpdatedAt, IsDeleted, CreatedAt) VALUES (1, 'doi-tra', 'Chính sách đổi trả', 'Hỗ trợ đổi trả trong 7 ngày.', '2026-05-10 14:26:17.7052211', 0, '2026-05-10 14:26:17.7052211');
 INSERT INTO Policies (Id, Slug, Title, Content, UpdatedAt, IsDeleted, CreatedAt) VALUES ('2', 'van-chuyen', 'Chính sách vận chuyển', 'Giao hàng toàn quốc.', '2026-05-10 14:26:17.7053019', 0, '2026-05-10 14:26:17.7053019');
 
 -- Table: SystemSettings
-DELETE FROM SystemSettings;
 -- Columns: Id, Key, Value, Description, CreatedAt, UpdatedAt, IsDeleted
 INSERT INTO SystemSettings (Id, Key, Value, Description, CreatedAt, UpdatedAt, IsDeleted) VALUES (1, 'OrderNotificationEmail', 'trantunglinh29@gmail.com', 'Email nhận thông báo khi có đơn hàng mới', '2026-05-11 12:38:36.1875168', '2026-05-12 11:24:36.1477006', 0);
 INSERT INTO SystemSettings (Id, Key, Value, Description, CreatedAt, UpdatedAt, IsDeleted) VALUES ('2', 'TelegramToken', '8693852145:AAG3N59aq0dNg6u3ae5iNB4KD39E4MFLMWE', NULL, '2026-05-12 05:01:53.8939380', '2026-05-12 13:35:59.0469767', 0);
@@ -575,7 +547,6 @@ INSERT INTO SystemSettings (Id, Key, Value, Description, CreatedAt, UpdatedAt, I
 INSERT INTO SystemSettings (Id, Key, Value, Description, CreatedAt, UpdatedAt, IsDeleted) VALUES ('1007', 'PaymentQRCodeUrl', 'https://res.cloudinary.com/doghoyjzh/image/upload/v1779090916/gt5z6wbbr2k8756hf4rz.png', NULL, '2026-05-12 13:37:17.7696451', '2026-05-18 07:55:17.0653566', 0);
 
 -- Table: InventoryTransactions
-DELETE FROM InventoryTransactions;
 -- Columns: Id, VariantId, Quantity, Type, Note, ReferenceId, CreatedAt, CreatedBy
 INSERT INTO InventoryTransactions (Id, VariantId, Quantity, Type, Note, ReferenceId, CreatedAt, CreatedBy) VALUES (1, 1, '-1', 'Sale', 'Xuất kho bán hàng - Đơn hàng 1', 1, '2026-05-11 11:12:14.2798294', NULL);
 INSERT INTO InventoryTransactions (Id, VariantId, Quantity, Type, Note, ReferenceId, CreatedAt, CreatedBy) VALUES ('2', '1030', '-1', 'Sale', 'Xuất kho bán hàng - Đơn hàng 2', '2', '2026-05-17 10:50:53.1106449', NULL);
@@ -584,13 +555,11 @@ INSERT INTO InventoryTransactions (Id, VariantId, Quantity, Type, Note, Referenc
 INSERT INTO InventoryTransactions (Id, VariantId, Quantity, Type, Note, ReferenceId, CreatedAt, CreatedBy) VALUES ('2002', '1052', '-1', 'Sale', 'Xuất kho bán hàng - Đơn hàng 2002', '2002', '2026-05-19 09:24:55.0280910', NULL);
 
 -- Table: OtpCodes
-DELETE FROM OtpCodes;
 -- Columns: Id, Code, ExpiresAt, IsUsed, CreatedAt, UserId
 INSERT INTO OtpCodes (Id, Code, ExpiresAt, IsUsed, CreatedAt, UserId) VALUES (1, '727041', '2026-05-17 11:06:44.7896228', 1, '2026-05-17 10:56:44.7895933', '7b532411-18df-48b4-8326-5225771ddc73');
 INSERT INTO OtpCodes (Id, Code, ExpiresAt, IsUsed, CreatedAt, UserId) VALUES ('2', '967966', '2026-05-17 11:07:28.8450685', 1, '2026-05-17 10:57:28.8450678', '7b532411-18df-48b4-8326-5225771ddc73');
 
 -- Table: RefreshTokens
-DELETE FROM RefreshTokens;
 -- Columns: Id, Token, ExpiresAt, IsRevoked, CreatedAt, UserId
 INSERT INTO RefreshTokens (Id, Token, ExpiresAt, IsRevoked, CreatedAt, UserId) VALUES (1, 'Ir4RzNtvGIJQsJGf1frwPON3XDHVZmmIkwDF9dCQrHu1dDSph9kUgV39haXpKV1NnnzDJHVQuXpCeFICOBNw4g==', '2026-06-09 15:03:08.2756710', 0, '2026-05-10 15:03:08.2756436', '46257b1c-a8a3-431f-baf1-550e743597a9');
 INSERT INTO RefreshTokens (Id, Token, ExpiresAt, IsRevoked, CreatedAt, UserId) VALUES ('2', 'MA7xIBSjP9GzvKwZKzz2D0HZVVVNM6V+MxsWnWQS2bj7oaHAe6+3d5Wuv+SpJVhwAHH4OMy6YUrYw3/4WJGJLA==', '2026-06-10 06:41:27.4961230', 1, '2026-05-11 06:41:27.4960959', '46257b1c-a8a3-431f-baf1-550e743597a9');
