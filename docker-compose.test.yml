@@ -1,0 +1,33 @@
+# Isolated test stack for dogfood automation
+# Uses GhostTrickTestDb (separate DB on same postgres instance)
+# Separate ports so production is never touched
+services:
+  api_test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=ghosttrick_db;Port=5432;Database=GhostTrickTestDb;Username=postgres;Password=${DB_PASSWORD}
+      - ASPNETCORE_URLS=http://+:10000
+      - Jwt__Key=${Jwt__Key}
+      - Jwt__Issuer=${Jwt__Issuer}
+      - Jwt__Audience=${Jwt__Audience}
+      - Jwt__AccessTokenExpiryMinutes=${Jwt__AccessTokenExpiryMinutes}
+      - Jwt__RefreshTokenExpiryDays=${Jwt__RefreshTokenExpiryDays}
+      - Cloudinary__CloudName=${Cloudinary__CloudName}
+      - Cloudinary__ApiKey=${Cloudinary__ApiKey}
+      - Cloudinary__ApiSecret=${Cloudinary__ApiSecret}
+      - Email__Username=${Email__Username}
+      - Email__Password=${Email__Password}
+      - Google__ClientId=${Google__ClientId}
+      - Telegram__Token=${Telegram__Token}
+      - Telegram__ChatId=${Telegram__ChatId}
+    ports:
+      - "8085:10000"
+    networks:
+      - ghosttrickv2_default
+
+networks:
+  ghosttrickv2_default:
+    external: true

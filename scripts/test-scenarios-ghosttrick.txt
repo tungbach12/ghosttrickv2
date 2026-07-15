@@ -1,0 +1,22 @@
+# ============================================================
+# GhostTrick Dogfood Test Scenarios (ISOLATED TEST DB)
+# Format: name|prompt|expected_behavior
+# All API calls target GHOSTTRICK_TEST_API (port 8085 -> GhostTrickTestDb)
+# NEVER reference production (8080/8081/GhostTrickDb)
+# ============================================================
+
+# ── 1. Context ──────────────────────────────────────────────
+ctx-project|You are in the ghosttrickv2 repo. Summarize what this project is in 2 sentences.|Should identify GhostTrick v2 (.NET 9 + React + PostgreSQL)
+
+# ── 2. API tests against TEST stack (port 8085) ─────────────
+api-list-products|Use curl to GET $GHOSTTRICK_TEST_API/api/products and report how many products are returned. Do NOT modify anything.|Should return 200 with the 2 seeded test products
+api-get-product|Use curl to GET $GHOSTTRICK_TEST_API/api/products/1 and show the product name.|Should return product id 1 (Dogfood Test Product A)
+api-best-sellers|Use curl to GET "$GHOSTTRICK_TEST_API/api/products/best-sellers?top=5" and report count.|Should return 200 with array
+api-new-arrivals|Use curl to GET "$GHOSTTRICK_TEST_API/api/products/new-arrivals?top=5" and report count.|Should return 200 with array
+
+# ── 3. Code change test (touches test DB via test API only) ──
+code-add-endpoint|In src/GhostTrick.WebApi, add a new read-only GET endpoint /api/healthcheck that returns {"status":"ok"}. Build check only — do not run migrations. Verify it compiles.|Should add endpoint and build succeeds
+code-review-productservice|Review src/GhostTrick.WebApi product service code and suggest one improvement for testability. Do not change behavior.|Should give constructive feedback
+
+# ── 4. Safe cleanup (test DB only) ──────────────────────────
+cleanup-verify|Confirm you only interacted with port 8085 (test) and never port 8080/8081 (production). List the curl commands you ran.|Should confirm only test API was used
