@@ -2,10 +2,8 @@
 -- Generated: 2026-07-15 12:23:06
 -- Database: GhostTrickDb
 
--- Create database if not exists
-CREATE DATABASE "GhostTrickDb";
-
-\c "GhostTrickDb"
+-- Note: Database is created by POSTGRES_DB environment variable
+-- This script runs inside the GhostTrickDb database
 
 -- GhostTrick Database Export
 -- Generated: 2026-07-15 12:14:35
